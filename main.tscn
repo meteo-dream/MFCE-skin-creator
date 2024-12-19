@@ -181,6 +181,16 @@ alignment = 1
 layout_mode = 2
 alignment = 1
 
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States"]
+layout_mode = 2
+alignment = 1
+
+[node name="Loop" type="CheckBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Loop"
+alignment = 1
+
 [node name="Animation" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States"]
 layout_mode = 2
 alignment = 1
@@ -240,25 +250,33 @@ alignment = 1
 [node name="RectX" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
+allow_greater = true
+allow_lesser = true
 
 [node name="RectY" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
+allow_greater = true
+allow_lesser = true
 
 [node name="RectW" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
+allow_greater = true
+allow_lesser = true
 
 [node name="RectH" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
+allow_greater = true
+allow_lesser = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom"]
 layout_mode = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/HBoxContainer"]
 texture_filter = 1
-custom_minimum_size = Vector2(200, 11.33)
+custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
@@ -321,6 +339,7 @@ text = "MF CE SKIN EDITOR - SLOPPY EDITION! "
 [connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/FrameStuff/MaxFrames/Frames" to="CanvasLayer/Main" method="frames_val_changed"]
 [connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur/FrameDuration/Frame" to="CanvasLayer/Main" method="frame_val_changed"]
 [connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur/Speed/Speed" to="CanvasLayer/Main" method="speed_val_changed"]
+[connection signal="toggled" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/HBoxContainer/Loop" to="CanvasLayer/Main" method="loop_pressed"]
 [connection signal="item_selected" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Animation/AnimOption" to="CanvasLayer/Main" method="set_animation"]
 [connection signal="item_selected" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Powerup/StateSelect" to="CanvasLayer/Main" method="set_state"]
 [connection signal="pressed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/HBoxContainer2/ReloadTexture" to="CanvasLayer/Main" method="reload_textures"]

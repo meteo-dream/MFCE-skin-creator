@@ -67,8 +67,8 @@ func _set_controls_working(val: bool) -> void:
 	%Play.disabled = !val
 	%Stop.disabled = !val
 	%Save.disabled = !val
+	%Loop.disabled = !val
 	%ReloadTexture.disabled = !val
-
 
 #region FileButtons
 ## Called when "save" button pressed.
@@ -89,16 +89,21 @@ func play_toggled(toggle: bool) -> void:
 		preview.pause()
 		_update_preview()
 
-func reload_textures() -> void:
-	if current_skin_setting:
-		current_skin_setting.rebuild_all_animations()
-		await current_skin_setting.rebuild_all_done
-
-
 ## Called when "stop" button pressed.
 func stop_pressed() -> void:
 	preview.stop()
 	_update_preview()
+	play_toggled(false)
+	%Play.button_pressed = false
+
+func loop_pressed(toggle: bool) -> void:
+	current_skin_setting.animation_loops[preview.animation] = toggle
+	preview.sprite_frames.set_animation_loop(preview.animation, toggle)
+
+func reload_textures() -> void:
+	if current_skin_setting:
+		current_skin_setting.rebuild_all_animations()
+		await current_skin_setting.rebuild_all_done
 #endregion FileButtons
 
 #region AnimationButtons
@@ -135,7 +140,7 @@ var _last_frame_amount: int
 
 ## Setter for current amount of frames in current animation, changes "frames" spinbox value.
 func set_frames(value: int) -> void:
-	value = clampi(value, 1, 255)
+	value = max(value, 1)
 	spinbox_frames.value = value
 	
 	if _last_frame_amount < value:
@@ -179,6 +184,10 @@ func set_animation(idx: int) -> void:
 	var frame_count: int = preview.sprite_frames.get_frame_count(preview.animation)
 	_last_frame_amount = frame_count
 	set_frames(frame_count)
+	
+	%Loop.button_pressed = preview.sprite_frames.get_animation_loop(anim_name)
+	play_toggled(false)
+	%Play.button_pressed = false
 
 ## Calls when "Powerup" A.K.A (State) option button changes selected item.
 func set_state(idx: int) -> void:
@@ -193,12 +202,8 @@ func set_state(idx: int) -> void:
 	set_animation(0)
 	set_frame(0)
 	
-	var frame_count: int = preview.sprite_frames.get_frame_count(preview.animation)
-	_last_frame_amount = frame_count
-	set_frames(frame_count)
-	
-	current_skin_setting.rebuild_all_animations()
-	await current_skin_setting.rebuild_all_done
+	#current_skin_setting.rebuild_all_animations()
+	#await current_skin_setting.rebuild_all_done
 
 ## Updates preview(animated sprite).
 func _update_preview() -> void:
