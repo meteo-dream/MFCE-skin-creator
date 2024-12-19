@@ -43,13 +43,22 @@ func _ready() -> void:
 		state_option.add_item(state)
 	
 	get_viewport().gui_focus_changed
+	
+
+func _anim_finished() -> void:
+	
+	pass
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_IN:
 		if current_skin_setting:
-			current_skin_setting.rebuild_all_animations()
-			await current_skin_setting.rebuild_all_done
+			_update_animations()
 
+
+func _update_animations() -> void:
+	_set_controls_working(false)
+	preview.sprite_frames = current_skin_setting.gen_animated_sprites(true)
+	_set_controls_working(true)
 
 ## Disables/Enables controls for editing.
 func _set_controls_working(val: bool) -> void:
@@ -101,9 +110,7 @@ func loop_pressed(toggle: bool) -> void:
 	preview.sprite_frames.set_animation_loop(preview.animation, toggle)
 
 func reload_textures() -> void:
-	if current_skin_setting:
-		current_skin_setting.rebuild_all_animations()
-		await current_skin_setting.rebuild_all_done
+	_update_animations()
 #endregion FileButtons
 
 #region AnimationButtons

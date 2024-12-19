@@ -23,7 +23,12 @@ const ANIMS: Array[String] = [
 	"swim",
 	"walk",
 	"warp",
-	"win", ]
+	"win",
+	"p_run",
+	"p_jump",
+	"p_fall",
+	"look_up",
+	"stomp" ]
 
 const STATES: Array[String] = [
 	"small",
@@ -178,15 +183,15 @@ var baked_frames: SpriteFrames
 
 func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 	if baked_frames:
-		if force_regen:
-			baked_frames.free()
-		else:
+		if !force_regen:
 			return baked_frames
 	
 	var frames := SpriteFrames.new()
 	var res_path := resource_path.get_base_dir()
 	
 	for anim in ANIMS:
+		if !animation_regions.keys().has(anim):
+			continue
 		if !frames.has_animation(anim):
 			frames.add_animation(anim)
 		
@@ -215,49 +220,3 @@ func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 	
 	baked_frames = frames
 	return frames
-
-signal rebuild_done
-signal rebuild_all_done
-
-## Rebuild animation
-func rebuild_animation(animation: String) -> void:
-	if !baked_frames:
-		push_error("Animation frames is null call gen_animated_sprites()!")
-		return
-	if animation.is_empty():
-		push_error("Animation is variable is empty!")
-		print_stack()
-		return
-	
-	var res_path := resource_path.get_base_dir()
-	var img_file := res_path + "/" + animation + ".png"
-	
-	if FileAccess.file_exists(img_file):
-		if baked_frames.has_animation(animation): # Delets all animation frames 
-			baked_frames.remove_animation(animation)
-		
-		baked_frames.add_animation(animation)
-		baked_frames.set_animation_speed(animation, animation_speeds[animation])
-		
-		var image := Image.load_from_file(img_file)
-		var img_texture := ImageTexture.create_from_image(image)
-		
-		var atlas := AtlasTexture.new()
-		
-		for reg in animation_regions[animation]:
-			if reg == RECT_ZERO:
-				print("Rect is zero for: ", animation)
-			atlas.atlas = img_texture
-		
-	else:
-		if baked_frames.has_animation(animation): 
-			baked_frames.remove_animation(animation)
-	
-	rebuild_done.emit()
-
-## Rebuilds all animations
-func rebuild_all_animations() -> void:
-	for animation in ANIMS:
-		rebuild_animation(animation)
-	
-	rebuild_all_done.emit()

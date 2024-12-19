@@ -276,7 +276,7 @@ layout_mode = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/HBoxContainer"]
 texture_filter = 1
-custom_minimum_size = Vector2(300, 300)
+custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
