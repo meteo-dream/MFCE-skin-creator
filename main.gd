@@ -46,8 +46,12 @@ func _ready() -> void:
 	
 
 func _anim_finished() -> void:
-	
-	pass
+	%Play.button_pressed = false
+	play_toggled(false)
+
+func _frame_changed() -> void:
+	set_frame(preview.frame)
+	_update_preview()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_IN:

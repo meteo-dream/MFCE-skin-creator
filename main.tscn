@@ -331,6 +331,8 @@ grow_horizontal = 0
 grow_vertical = 0
 text = "MF CE SKIN EDITOR - SLOPPY EDITION! "
 
+[connection signal="animation_finished" from="Preview" to="CanvasLayer/Main" method="_anim_finished"]
+[connection signal="frame_changed" from="Preview" to="CanvasLayer/Main" method="_frame_changed"]
 [connection signal="pressed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/File/Save" to="CanvasLayer/Main" method="save_pressed"]
 [connection signal="pressed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/File/Open" to="CanvasLayer/Main" method="open_pressed"]
 [connection signal="toggled" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/Btns/Play" to="CanvasLayer/Main" method="play_toggled"]
