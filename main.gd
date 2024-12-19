@@ -8,7 +8,6 @@ var current_skin_setting: PlayerSkin
 
 var current_folder_skin: String
 
-
 @onready var preview: AnimatedSprite2D = %Preview
 @onready var scene: Node2D = get_parent().get_parent()
 
@@ -36,8 +35,6 @@ func _ready() -> void:
 	save_dialog.dir_selected.connect(save_file)
 	open_dialog.dir_selected.connect(open_file)
 	open_dialog.popup_centered()
-	#open_dialog.current_path = mf_cam_path
-	
 	
 	for anim in PlayerSkin.ANIMS:
 		anim_option.add_item(anim)
@@ -45,8 +42,16 @@ func _ready() -> void:
 	for state in PlayerSkin.STATES:
 		state_option.add_item(state)
 	
-	#open_file(test)
+	get_viewport().gui_focus_changed
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		if current_skin_setting:
+			current_skin_setting.rebuild_all_animations()
+			await current_skin_setting.rebuild_all_done
+
+
+## Disables/Enables controls for editing.
 func _set_controls_working(val: bool) -> void:
 	rect_x.editable = val
 	rect_y.editable = val
@@ -62,43 +67,59 @@ func _set_controls_working(val: bool) -> void:
 	%Play.disabled = !val
 	%Stop.disabled = !val
 	%Save.disabled = !val
+	%ReloadTexture.disabled = !val
 
 
 #region FileButtons
+## Called when "save" button pressed.
 func save_pressed() -> void:
 	save_dialog.popup_centered()
 
+## Called when "open" button pressed.
 func open_pressed() -> void:
 	open_dialog.popup_centered()
 
+## Called when "play" button toggled.
 func play_toggled(toggle: bool) -> void:
 	if toggle:
+		%Play.text = "Pause"
 		preview.play()
 	else:
+		%Play.text = "Play"
 		preview.pause()
 		_update_preview()
 
+func reload_textures() -> void:
+	if current_skin_setting:
+		current_skin_setting.rebuild_all_animations()
+		await current_skin_setting.rebuild_all_done
+
+
+## Called when "stop" button pressed.
 func stop_pressed() -> void:
 	preview.stop()
 	_update_preview()
-
 #endregion FileButtons
 
 #region AnimationButtons
+## Calls when "frame" spinbox changed.
 func frame_val_changed(value: float) -> void:
 	set_frame(int(spinbox_frame.value))
 
+## Calls when "speed" spinbox changed
 func speed_val_changed(value: float) -> void:
 	set_anim_speed(int(value))
 
+## Calls when "frames" spinbox changed
 func frames_val_changed(value: float) -> void:
 	set_frames(int(value))
+#region SpinboxSetters
 
-# setters
+# Use this setters to set a value
+## Setter for current frame of current animation, changes "frame" spinbox value. 
 func set_frame(value: int) -> void:
 	var max_frames: int = preview.sprite_frames.get_frame_count(preview.animation)
-	#print(value)
-	if value < 0:
+	if value < 0: # Warp value
 		value = max_frames
 	elif value >= max_frames:
 		value = 0
@@ -112,6 +133,7 @@ func set_frame(value: int) -> void:
 
 var _last_frame_amount: int 
 
+## Setter for current amount of frames in current animation, changes "frames" spinbox value.
 func set_frames(value: int) -> void:
 	value = clampi(value, 1, 255)
 	spinbox_frames.value = value
@@ -135,6 +157,7 @@ func set_frames(value: int) -> void:
 	
 	_last_frame_amount = value
 
+## Setter for current speed of selected animation, changes "speed" spinbox value. 
 func set_anim_speed(value: int) -> void:
 	value = clampi(value, 0, 120)
 	
@@ -144,8 +167,9 @@ func set_anim_speed(value: int) -> void:
 	
 	if preview.animation:
 		preview.sprite_frames.set_animation_speed(preview.animation, value) 
+#endregion SpinboxSetters
 
-
+## Calls when "Animation" option button changes selected item.
 func set_animation(idx: int) -> void:
 	var anim_name: String = anim_option.get_item_text(idx)
 	preview.animation = anim_name
@@ -156,7 +180,7 @@ func set_animation(idx: int) -> void:
 	_last_frame_amount = frame_count
 	set_frames(frame_count)
 
-
+## Calls when "Powerup" A.K.A (State) option button changes selected item.
 func set_state(idx: int) -> void:
 	var state: String = state_option.get_item_text(idx)
 	
@@ -172,8 +196,11 @@ func set_state(idx: int) -> void:
 	var frame_count: int = preview.sprite_frames.get_frame_count(preview.animation)
 	_last_frame_amount = frame_count
 	set_frames(frame_count)
+	
+	current_skin_setting.rebuild_all_animations()
+	await current_skin_setting.rebuild_all_done
 
-
+## Updates preview(animated sprite).
 func _update_preview() -> void:
 	var frame := preview.frame
 	var texture := preview.sprite_frames.get_frame_texture(anim_option.get_item_text(anim_option.selected), frame)
@@ -186,7 +213,7 @@ func _update_preview() -> void:
 	else:
 		sprite_view.texture = texture
 
-
+## Updates current frame of animation.
 func _update_rect_slice() -> void:
 	var frame := preview.frame
 	var texture := preview.sprite_frames.get_frame_texture(anim_option.get_item_text(anim_option.selected), frame)
@@ -196,9 +223,11 @@ func _update_rect_slice() -> void:
 		texture.region = _spin_val_to_rect()
 		sprite_view.rect_draw = texture.region
 
+## Gets value of spinboxes(rect_x, rect_y, rect_w, rect_h) and turns it in Rect2.
 func _spin_val_to_rect() -> Rect2:
 	return Rect2(rect_x.value, rect_y.value, rect_w.value, rect_h.value)
-
+	
+## Gets rect2 and sets it in spinboxes(rect_x, rect_y, rect_w, rect_h).
 func _rect_to_spin_val(val: Rect2) -> void:
 	rect_x.value = val.position.x
 	rect_y.value = val.position.y
@@ -215,6 +244,7 @@ enum RECT_COMP{
 	H
 }
 
+## Calls when any of spinboxes (rect_x, rect_y, rect_w, rect_h)
 func update_rect(value: float, rect_comp: RECT_COMP) -> void:
 	match rect_comp:
 		RECT_COMP.X:
@@ -234,6 +264,7 @@ func update_rect(value: float, rect_comp: RECT_COMP) -> void:
 
 #endregion PreviewRect
 
+## Saves folders where skins located.
 func save_file(path: String) -> void:
 	for skin in skin_settings.keys():
 		var full_path: String = path + "/" + skin + "/"
@@ -242,8 +273,9 @@ func save_file(path: String) -> void:
 		if !dir_acc.dir_exists(skin):
 			dir_acc.make_dir(skin)
 		ResourceSaver.save(skin_settings[skin], full_path + "/skin_settings.tres")
-	
 
+
+## Opens folder where skins located.
 func open_file(path: String) -> void:
 	print("Loading folder conent: %s" % path)
 	current_folder_skin = path
@@ -262,8 +294,8 @@ func open_file(path: String) -> void:
 	_set_controls_working(true)
 	
 	# TODO: Make validation for resource
-	
 
+## Disbales animation that unavalible for current state.
 func update_anim_options() -> void:
 	var frames: SpriteFrames = current_skin_setting.gen_animated_sprites()
 	preview.sprite_frames = frames

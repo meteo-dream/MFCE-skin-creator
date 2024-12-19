@@ -10,7 +10,8 @@ config_version=5
 
 [application]
 
-config/name="mfcsc"
+config/name="mario forever cammunity edition: SUPER! skin editor! (Sloppy edition)"
+config/version="1.0.0"
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.4", "Mobile")
 config/icon="res://icon.svg"

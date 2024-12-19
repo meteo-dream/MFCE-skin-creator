@@ -224,6 +224,15 @@ layout_mode = 2
 size_flags_vertical = 3
 alignment = 1
 
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom"]
+layout_mode = 2
+alignment = 1
+
+[node name="ReloadTexture" type="Button" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reload texture"
+
 [node name="Rect2" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom"]
 layout_mode = 2
 alignment = 1
@@ -267,7 +276,7 @@ script = ExtResource("4_1bvp3")
 
 [node name="SaveDialog" type="FileDialog" parent="CanvasLayer/Main"]
 title = "Open a Directory"
-ok_button_text = "Save Here"
+ok_button_text = "Select Current Folder"
 file_mode = 2
 access = 2
 filters = PackedStringArray("")
@@ -314,6 +323,7 @@ text = "MF CE SKIN EDITOR - SLOPPY EDITION! "
 [connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur/Speed/Speed" to="CanvasLayer/Main" method="speed_val_changed"]
 [connection signal="item_selected" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Animation/AnimOption" to="CanvasLayer/Main" method="set_animation"]
 [connection signal="item_selected" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Powerup/StateSelect" to="CanvasLayer/Main" method="set_state"]
+[connection signal="pressed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/HBoxContainer2/ReloadTexture" to="CanvasLayer/Main" method="reload_textures"]
 [connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2/RectX" to="CanvasLayer/Main" method="update_rect" binds= [0]]
 [connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2/RectY" to="CanvasLayer/Main" method="update_rect" binds= [1]]
 [connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2/RectW" to="CanvasLayer/Main" method="update_rect" binds= [2]]
