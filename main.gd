@@ -44,6 +44,9 @@ func _ready() -> void:
 	
 	get_viewport().gui_focus_changed
 	
+	get_tree().root.min_size = Vector2(320, 256)
+	get_tree().root.size_changed.connect(_on_window_resized)
+
 
 func _anim_finished() -> void:
 	%Play.button_pressed = false
@@ -323,3 +326,12 @@ func update_anim_options() -> void:
 			anim_option.set_item_disabled(i, true)
 		else:
 			anim_option.set_item_disabled(i, false)
+
+
+func _on_h_split_container_dragged(_offset: int) -> void:
+	_on_window_resized()
+
+func _on_window_resized() -> void:
+	var size_x = %FrameHSplitter.size.x
+	if %FrameHSplitter.split_offset < -size_x + 384:
+		%FrameHSplitter.split_offset = -size_x + 384

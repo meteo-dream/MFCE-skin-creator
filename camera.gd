@@ -36,9 +36,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		var zoom_delta: float = 0
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			zoom_delta += 0.05
-		elif  event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			zoom_delta -= 0.05
+			zoom_delta += 0.05 * (1 + int(Input.is_action_pressed("ui_zoom_extra")) * 5)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			zoom_delta -= 0.05 * (1 + int(Input.is_action_pressed("ui_zoom_extra")) * 5)
 			
 		zoom.x += zoom_delta
 		zoom.y += zoom_delta

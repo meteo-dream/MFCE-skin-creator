@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://byxkkvyv24cbb"]
+[gd_scene load_steps=10 format=3 uid="uid://byxkkvyv24cbb"]
 
 [ext_resource type="Script" uid="uid://d26h506i5dbi6" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://bcxcbi4ltmp25" path="res://scene.gd" id="2_0xm2m"]
@@ -14,6 +14,8 @@ animations = [{
 "speed": 120.0
 }]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lquwl"]
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_272bh"]
 texture = ExtResource("4_7mycd")
 axis_stretch_horizontal = 1
@@ -24,6 +26,7 @@ PanelContainer/styles/panel = SubResource("StyleBoxTexture_272bh")
 
 [node name="Scene" type="Node2D"]
 script = ExtResource("2_0xm2m")
+color = Color(0.411765, 0.411765, 0.411765, 0.752941)
 
 [node name="Preview" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
@@ -46,71 +49,87 @@ grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("1_ig7tw")
 
-[node name="Panel" type="Panel" parent="CanvasLayer/Main"]
+[node name="FrameHSplitter" type="HSplitContainer" parent="CanvasLayer/Main"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(384, 0)
 layout_mode = 1
-anchors_preset = 9
+anchors_preset = -1
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_right = 384.0
 grow_vertical = 2
+split_offset = -256
+dragger_visibility = 2
+drag_area_highlight_in_editor = true
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="CanvasLayer/Main/Panel"]
+[node name="Panel" type="Panel" parent="CanvasLayer/Main/FrameHSplitter"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FrameVSplitter" type="VSplitContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/autohide = 0
+drag_area_highlight_in_editor = true
 
-[node name="Top" type="VBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2"]
+[node name="Top" type="VBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="File" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top"]
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_lquwl")
+
+[node name="File" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top"]
 layout_mode = 2
 alignment = 1
 
-[node name="Save" type="Button" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/File"]
+[node name="Save" type="Button" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Save"
 
-[node name="Open" type="Button" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/File"]
+[node name="Open" type="Button" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Open"
 
-[node name="AnimationControls" type="VBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top"]
+[node name="AnimationControls" type="VBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top"]
 layout_mode = 2
 
-[node name="Btns" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls"]
+[node name="Btns" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls"]
 layout_mode = 2
 alignment = 1
 
-[node name="Play" type="Button" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/Btns"]
+[node name="Play" type="Button" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/Btns"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Toggles between Play and Pause."
 toggle_mode = true
 text = "Play"
 
-[node name="Stop" type="Button" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/Btns"]
+[node name="Stop" type="Button" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/Btns"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Stops animation and set frame to 0."
 text = "Stop"
 
-[node name="FrameStuff" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls"]
+[node name="FrameStuff" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls"]
 layout_mode = 2
 alignment = 1
 
-[node name="Frame" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/FrameStuff"]
+[node name="Frame" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff"]
 layout_mode = 2
 
-[node name="FrameLabel" type="Label" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/FrameStuff/Frame"]
+[node name="FrameLabel" type="Label" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/Frame"]
 layout_mode = 2
 text = "Frame:"
 
-[node name="Frame" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/FrameStuff/Frame"]
+[node name="Frame" type="SpinBox" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/Frame"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_default_cursor_shape = 2
@@ -119,16 +138,16 @@ rounded = true
 allow_greater = true
 alignment = 1
 
-[node name="MaxFrames" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/FrameStuff"]
+[node name="MaxFrames" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff"]
 layout_mode = 2
 size_flags_vertical = 4
 alignment = 1
 
-[node name="FrameLabel" type="Label" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/FrameStuff/MaxFrames"]
+[node name="FrameLabel" type="Label" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/MaxFrames"]
 layout_mode = 2
 text = "Frames:"
 
-[node name="Frames" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/FrameStuff/MaxFrames"]
+[node name="Frames" type="SpinBox" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/MaxFrames"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_default_cursor_shape = 2
@@ -137,20 +156,20 @@ rounded = true
 allow_greater = true
 alignment = 1
 
-[node name="SpeedDur" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls"]
+[node name="SpeedDur" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls"]
 layout_mode = 2
 alignment = 1
 
-[node name="FrameDuration" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur"]
+[node name="FrameDuration" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur"]
 layout_mode = 2
 alignment = 1
 
-[node name="FrameLabel" type="Label" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur/FrameDuration"]
+[node name="FrameLabel" type="Label" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/FrameDuration"]
 modulate = Color(1, 1, 1, 0.313726)
 layout_mode = 2
 text = "F. Duration:"
 
-[node name="Frame" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur/FrameDuration"]
+[node name="Frame" type="SpinBox" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/FrameDuration"]
 layout_mode = 2
 tooltip_text = "Unsupported by MF CE"
 mouse_default_cursor_shape = 2
@@ -161,14 +180,14 @@ alignment = 1
 editable = false
 suffix = "x"
 
-[node name="Speed" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur"]
+[node name="Speed" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur"]
 layout_mode = 2
 
-[node name="SpeedLabel" type="Label" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur/Speed"]
+[node name="SpeedLabel" type="Label" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/Speed"]
 layout_mode = 2
 text = "Speed:"
 
-[node name="Speed" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur/Speed"]
+[node name="Speed" type="SpinBox" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/Speed"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_default_cursor_shape = 2
@@ -177,120 +196,136 @@ step = 0.1
 allow_greater = true
 alignment = 1
 
-[node name="States" type="VBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls"]
+[node name="States" type="VBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls"]
 layout_mode = 2
 alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States"]
 layout_mode = 2
 alignment = 1
 
-[node name="Loop" type="CheckBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/HBoxContainer"]
+[node name="Loop" type="CheckBox" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Loop"
 alignment = 1
 
-[node name="Animation" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States"]
+[node name="Animation" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States"]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Animation"]
+[node name="Label" type="Label" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/Animation"]
 layout_mode = 2
 text = "Animation:"
 
-[node name="AnimOption" type="OptionButton" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Animation"]
+[node name="AnimOption" type="OptionButton" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/Animation"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Powerup" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States"]
+[node name="Powerup" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States"]
 layout_mode = 2
 alignment = 1
 
-[node name="Label2" type="Label" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Powerup"]
+[node name="Label2" type="Label" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/Powerup"]
 layout_mode = 2
 text = "Powerup:"
 
-[node name="StateSelect" type="OptionButton" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Powerup"]
+[node name="StateSelect" type="OptionButton" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/Powerup"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Color" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top"]
+[node name="Color" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top"]
 visible = false
 layout_mode = 2
 
-[node name="BGcolor" type="ColorPickerButton" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/Color"]
+[node name="BGcolor" type="ColorPickerButton" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "BG color"
 
-[node name="GridColor" type="ColorPickerButton" parent="CanvasLayer/Main/Panel/VBoxContainer2/Top/Color"]
+[node name="GridColor" type="ColorPickerButton" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "BG color"
 
-[node name="Bottom" type="VBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2"]
+[node name="Bottom" type="VBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter"]
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_vertical = 2
 alignment = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
 layout_mode = 2
 alignment = 1
 
-[node name="ReloadTexture" type="Button" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/HBoxContainer2"]
+[node name="ReloadTexture" type="Button" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reload texture"
 
-[node name="Rect2" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom"]
+[node name="Rect2" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
 layout_mode = 2
 alignment = 1
 
-[node name="RectX" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2"]
+[node name="RectX" type="SpinBox" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
 allow_greater = true
 allow_lesser = true
 
-[node name="RectY" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2"]
+[node name="RectY" type="SpinBox" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
 allow_greater = true
 allow_lesser = true
 
-[node name="RectW" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2"]
+[node name="RectW" type="SpinBox" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
 allow_greater = true
 allow_lesser = true
 
-[node name="RectH" type="SpinBox" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2"]
+[node name="RectH" type="SpinBox" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
 allow_greater = true
 allow_lesser = true
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
 layout_mode = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/HBoxContainer"]
+[node name="VSeparator" type="VSeparator" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+theme_override_styles/separator = SubResource("StyleBoxEmpty_lquwl")
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer"]
 texture_filter = 1
-custom_minimum_size = Vector2(300, 0)
+custom_minimum_size = Vector2(256, 0)
 layout_mode = 2
-size_flags_horizontal = 6
+size_flags_horizontal = 3
 size_flags_vertical = 4
 theme = SubResource("Theme_5vw27")
 
-[node name="SpriteView" type="TextureRect" parent="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/HBoxContainer/PanelContainer"]
+[node name="SpriteView" type="TextureRect" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 texture_filter = 1
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 2
+size_flags_vertical = 0
 expand_mode = 5
 stretch_mode = 5
 script = ExtResource("4_1bvp3")
+
+[node name="VSeparator2" type="VSeparator" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+theme_override_styles/separator = SubResource("StyleBoxEmpty_lquwl")
+
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_lquwl")
+
+[node name="Control" type="Control" parent="CanvasLayer/Main/FrameHSplitter"]
+layout_mode = 2
 
 [node name="SaveDialog" type="FileDialog" parent="CanvasLayer/Main"]
 title = "Open a Directory (Skin Root Folder)"
@@ -333,19 +368,20 @@ text = "MF CE SKIN EDITOR - SLOPPY EDITION! "
 
 [connection signal="animation_finished" from="Preview" to="CanvasLayer/Main" method="_anim_finished"]
 [connection signal="frame_changed" from="Preview" to="CanvasLayer/Main" method="_frame_changed"]
-[connection signal="pressed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/File/Save" to="CanvasLayer/Main" method="save_pressed"]
-[connection signal="pressed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/File/Open" to="CanvasLayer/Main" method="open_pressed"]
-[connection signal="toggled" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/Btns/Play" to="CanvasLayer/Main" method="play_toggled"]
-[connection signal="pressed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/Btns/Stop" to="CanvasLayer/Main" method="stop_pressed"]
-[connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/FrameStuff/Frame/Frame" to="CanvasLayer/Main" method="frame_val_changed"]
-[connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/FrameStuff/MaxFrames/Frames" to="CanvasLayer/Main" method="frames_val_changed"]
-[connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur/FrameDuration/Frame" to="CanvasLayer/Main" method="frame_val_changed"]
-[connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/SpeedDur/Speed/Speed" to="CanvasLayer/Main" method="speed_val_changed"]
-[connection signal="toggled" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/HBoxContainer/Loop" to="CanvasLayer/Main" method="loop_pressed"]
-[connection signal="item_selected" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Animation/AnimOption" to="CanvasLayer/Main" method="set_animation"]
-[connection signal="item_selected" from="CanvasLayer/Main/Panel/VBoxContainer2/Top/AnimationControls/States/Powerup/StateSelect" to="CanvasLayer/Main" method="set_state"]
-[connection signal="pressed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/HBoxContainer2/ReloadTexture" to="CanvasLayer/Main" method="reload_textures"]
-[connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2/RectX" to="CanvasLayer/Main" method="update_rect" binds= [0]]
-[connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2/RectY" to="CanvasLayer/Main" method="update_rect" binds= [1]]
-[connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2/RectW" to="CanvasLayer/Main" method="update_rect" binds= [2]]
-[connection signal="value_changed" from="CanvasLayer/Main/Panel/VBoxContainer2/Bottom/Rect2/RectH" to="CanvasLayer/Main" method="update_rect" binds= [3]]
+[connection signal="dragged" from="CanvasLayer/Main/FrameHSplitter" to="CanvasLayer/Main" method="_on_h_split_container_dragged"]
+[connection signal="pressed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File/Save" to="CanvasLayer/Main" method="save_pressed"]
+[connection signal="pressed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File/Open" to="CanvasLayer/Main" method="open_pressed"]
+[connection signal="toggled" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/Btns/Play" to="CanvasLayer/Main" method="play_toggled"]
+[connection signal="pressed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/Btns/Stop" to="CanvasLayer/Main" method="stop_pressed"]
+[connection signal="value_changed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/Frame/Frame" to="CanvasLayer/Main" method="frame_val_changed"]
+[connection signal="value_changed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/MaxFrames/Frames" to="CanvasLayer/Main" method="frames_val_changed"]
+[connection signal="value_changed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/FrameDuration/Frame" to="CanvasLayer/Main" method="frame_val_changed"]
+[connection signal="value_changed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/Speed/Speed" to="CanvasLayer/Main" method="speed_val_changed"]
+[connection signal="toggled" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/HBoxContainer/Loop" to="CanvasLayer/Main" method="loop_pressed"]
+[connection signal="item_selected" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/Animation/AnimOption" to="CanvasLayer/Main" method="set_animation"]
+[connection signal="item_selected" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/Powerup/StateSelect" to="CanvasLayer/Main" method="set_state"]
+[connection signal="pressed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2/ReloadTexture" to="CanvasLayer/Main" method="reload_textures"]
+[connection signal="value_changed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectX" to="CanvasLayer/Main" method="update_rect" binds= [0]]
+[connection signal="value_changed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectY" to="CanvasLayer/Main" method="update_rect" binds= [1]]
+[connection signal="value_changed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectW" to="CanvasLayer/Main" method="update_rect" binds= [2]]
+[connection signal="value_changed" from="CanvasLayer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectH" to="CanvasLayer/Main" method="update_rect" binds= [3]]
