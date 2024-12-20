@@ -173,6 +173,7 @@ unique_name_in_owner = true
 layout_mode = 2
 mouse_default_cursor_shape = 2
 min_value = -2.0
+step = 0.1
 allow_greater = true
 alignment = 1
 
@@ -292,7 +293,7 @@ stretch_mode = 5
 script = ExtResource("4_1bvp3")
 
 [node name="SaveDialog" type="FileDialog" parent="CanvasLayer/Main"]
-title = "Open a Directory"
+title = "Open a Directory (Skin Root Folder)"
 ok_button_text = "Select Current Folder"
 file_mode = 2
 access = 2
@@ -300,7 +301,7 @@ filters = PackedStringArray("")
 show_hidden_files = true
 
 [node name="OpenDialog" type="FileDialog" parent="CanvasLayer/Main"]
-title = "Open a Directory"
+title = "Open a Directory (Skin Root Folder)"
 ok_button_text = "Select Current Folder"
 file_mode = 2
 access = 2

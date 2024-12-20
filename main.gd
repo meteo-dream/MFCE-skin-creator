@@ -124,7 +124,7 @@ func frame_val_changed(value: float) -> void:
 
 ## Calls when "speed" spinbox changed
 func speed_val_changed(value: float) -> void:
-	set_anim_speed(int(value))
+	set_anim_speed(float(value))
 
 ## Calls when "frames" spinbox changed
 func frames_val_changed(value: float) -> void:
@@ -174,8 +174,8 @@ func set_frames(value: int) -> void:
 	_last_frame_amount = value
 
 ## Setter for current speed of selected animation, changes "speed" spinbox value. 
-func set_anim_speed(value: int) -> void:
-	value = clampi(value, 0, 120)
+func set_anim_speed(value: float) -> void:
+	value = clampf(value, 0.0, 120.0)
 	
 	spinbox_speed.value = value
 	
