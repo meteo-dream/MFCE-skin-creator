@@ -28,7 +28,8 @@ const ANIMS: Array[String] = [
 	"p_jump",
 	"p_fall",
 	"look_up",
-	"stomp" ]
+	"stomp"
+]
 
 const STATES: Array[String] = [
 	"small",
