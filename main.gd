@@ -224,6 +224,8 @@ func set_animation(idx: int) -> void:
 func set_state(idx: int) -> void:
 	var state: String = state_option.get_item_text(idx)
 	
+	#if !skin_settings.has(state):
+	#	return OS.alert("Please make sure ")
 	current_skin_setting = skin_settings[state]
 	preview.sprite_frames = current_skin_setting.gen_animated_sprites()
 	#state_option.select(state)
@@ -362,6 +364,6 @@ func _on_h_split_container_dragged(_offset: int) -> void:
 
 func _on_window_resized() -> void:
 	var size_x = %FrameHSplitter.size.x
-	print(size_x)
+	#print(size_x)
 	if %FrameHSplitter.split_offset < -size_x + 384:
 		%FrameHSplitter.split_offset = -size_x + 384

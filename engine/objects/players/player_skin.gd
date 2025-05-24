@@ -15,20 +15,22 @@ const ANIMS: Array[String] = [
 	"hold_default",
 	"hold_fall",
 	"hold_jump",
+	"hold_look_up",
+	"hold_swim",
 	"hold_walk",
-	"kick",
+	"idle",
 	"jump",
+	"kick",
+	"look_up",
+	"p_run",
+	"p_fall",
+	"p_jump",
 	"skid",
 	"slide",
 	"swim",
 	"walk",
 	"warp",
 	"win",
-	"p_run",
-	"p_jump",
-	"p_fall",
-	"look_up",
-	"stomp"
 ]
 
 const STATES: Array[String] = [
@@ -39,7 +41,7 @@ const STATES: Array[String] = [
 	"fireball",
 	"boomerang",
 	"beetroot",
-	"frog"
+	"frog",
 ]
 
 const RECT_ZERO: Rect2 = Rect2(0,0,0,0)
@@ -201,7 +203,7 @@ func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 		frames.set_animation_loop(anim, animation_loops[anim])
 		frames.set_animation_speed(anim, animation_speeds[anim])
 		
-		var img_file := res_path + "/" + ".png"
+		var img_file := res_path + "/" + anim + ".png"
 		if !FileAccess.file_exists(img_file):
 			print("No image for: ", anim)
 			frames.remove_animation(anim)

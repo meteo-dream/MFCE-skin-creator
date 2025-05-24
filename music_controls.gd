@@ -51,7 +51,7 @@ func _on_mute_toggled(toggled_on: bool) -> void:
 	else:
 		$Mute.icon = mute_icon
 	AudioServer.set_bus_mute(AudioServer.get_bus_index(&"Music"), toggled_on)
-	player.stream_paused = !toggled_on
+	player.stream_paused = toggled_on
 
 
 func _on_h_slider_value_changed(value: float) -> void:

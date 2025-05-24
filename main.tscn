@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://byxkkvyv24cbb"]
+[gd_scene load_steps=23 format=3 uid="uid://byxkkvyv24cbb"]
 
 [ext_resource type="Script" uid="uid://d26h506i5dbi6" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://bcxcbi4ltmp25" path="res://scene.gd" id="2_0xm2m"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://c2n0hseqy4ilt" path="res://icons/TransitionEnd.svg" id="6_4c57u"]
 [ext_resource type="Texture2D" uid="uid://bja8gtdnquhf0" path="res://icons/mute.png" id="6_dg77c"]
 [ext_resource type="Texture2D" uid="uid://b3fn56t2mfves" path="res://icons/AudioStreamPlayer.png" id="7_ycdy4"]
+[ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://spinbox.gd" id="10_dg77c"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_lquwl"]
 animations = [{
@@ -217,18 +218,76 @@ alignment = 1
 [node name="Save" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Save the skin to filesystem."
 shortcut = SubResource("Shortcut_4c57u")
 text = "Save"
 
 [node name="Open" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Edit an existing skin from filesystem."
 text = "Open"
 
 [node name="New" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Create a new skin at the specified location."
 text = "New"
+
+[node name="HSeparator4" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_efxa6")
+
+[node name="Color" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 1
+
+[node name="BGcolor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer/BGcolor"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Background Color"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MarginContainer2" type="MarginContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 1
+theme_override_constants/margin_right = 5
+
+[node name="GridColor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer2"]
+layout_mode = 2
+text = "BG color"
+color = Color(0.223529, 0.223529, 0.223529, 1)
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer2/GridColor"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Grid Color"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator3" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_efxa6")
 
 [node name="AnimationControls" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top"]
 layout_mode = 2
@@ -247,7 +306,7 @@ text = "Play"
 [node name="Stop" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/Btns"]
 unique_name_in_owner = true
 layout_mode = 2
-tooltip_text = "Stops animation and set frame to 0."
+tooltip_text = "Stop animation and set frame to 0."
 text = "Stop"
 
 [node name="FrameStuff" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls"]
@@ -264,11 +323,12 @@ text = "Frame:"
 [node name="Frame" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/Frame"]
 unique_name_in_owner = true
 layout_mode = 2
-mouse_default_cursor_shape = 2
+tooltip_text = "Selected index of an animation frame to edit."
 min_value = -2.0
 rounded = true
 allow_greater = true
 alignment = 1
+script = ExtResource("10_dg77c")
 
 [node name="MaxFrames" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff"]
 layout_mode = 2
@@ -277,12 +337,11 @@ alignment = 1
 
 [node name="FrameLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/MaxFrames"]
 layout_mode = 2
-text = "Total:"
+text = "Total Frames:"
 
 [node name="Frames" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/MaxFrames"]
 unique_name_in_owner = true
 layout_mode = 2
-mouse_default_cursor_shape = 2
 min_value = -2.0
 rounded = true
 allow_greater = true
@@ -303,7 +362,6 @@ text = "Frame Duration:"
 [node name="Duration" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/FrameDuration"]
 layout_mode = 2
 tooltip_text = "Unsupported by MF CE"
-mouse_default_cursor_shape = 2
 step = 0.01
 value = 1.0
 allow_greater = true
@@ -311,6 +369,7 @@ alignment = 1
 editable = false
 prefix = "x"
 custom_arrow_step = 0.1
+script = ExtResource("10_dg77c")
 
 [node name="Speed" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur"]
 layout_mode = 2
@@ -322,12 +381,12 @@ text = "Speed:"
 [node name="Speed" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/Speed"]
 unique_name_in_owner = true
 layout_mode = 2
-mouse_default_cursor_shape = 2
+tooltip_text = "Animation speed, in FPS. Saved as a part of the skin."
 min_value = -2.0
 max_value = 120.0
 step = 0.1
 alignment = 1
-suffix = "FPS"
+script = ExtResource("10_dg77c")
 
 [node name="States" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls"]
 layout_mode = 2
@@ -367,20 +426,6 @@ text = "Powerup:"
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Color" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top"]
-visible = false
-layout_mode = 2
-
-[node name="BGcolor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "BG color"
-
-[node name="GridColor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "BG color"
-
 [node name="Bottom" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter"]
 layout_mode = 2
 size_flags_vertical = 2
@@ -393,6 +438,7 @@ alignment = 1
 [node name="ReloadTexture" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Load the updated textures from filesystem."
 text = "Reload texture"
 
 [node name="Rect2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
@@ -402,26 +448,34 @@ alignment = 1
 [node name="RectX" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "X Position of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+script = ExtResource("10_dg77c")
 
 [node name="RectY" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Y Position of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+script = ExtResource("10_dg77c")
 
 [node name="RectW" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Width of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+script = ExtResource("10_dg77c")
 
 [node name="RectH" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Height of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+script = ExtResource("10_dg77c")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
 layout_mode = 2
@@ -469,6 +523,7 @@ file_mode = 2
 access = 2
 filters = PackedStringArray("")
 show_hidden_files = true
+use_native_dialog = true
 
 [node name="OpenDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main"]
 title = "Open a Directory"
@@ -476,6 +531,7 @@ ok_button_text = "Select Current Folder"
 mode_overrides_title = false
 file_mode = 2
 access = 2
+use_native_dialog = true
 
 [node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main"]
 layout_mode = 1
@@ -525,7 +581,7 @@ horizontal_alignment = 2
 disable_3d = true
 title = "About"
 initial_position = 2
-size = Vector2i(640, 240)
+size = Vector2i(640, 400)
 visible = false
 
 [node name="Panel" type="Panel" parent="CanvasLayer/Window"]
@@ -547,8 +603,51 @@ theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/Window/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Window/MarginContainer"]
 layout_mode = 2
+
+[node name="Control" type="HBoxContainer" parent="CanvasLayer/Window/MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="LinkButton" type="LinkButton" parent="CanvasLayer/Window/MarginContainer/VBoxContainer/Control"]
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
+text = "GitHub Repository (MIT License)"
+uri = "https://github.com/SuperDooJMan/MFCE-skin-creator"
+
+[node name="LinkButton2" type="LinkButton" parent="CanvasLayer/Window/MarginContainer/VBoxContainer/Control"]
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
+text = "Mario Forever Community Edition"
+uri = "https://mfce.rnx.su"
+
+[node name="Control2" type="HBoxContainer" parent="CanvasLayer/Window/MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="LinkButton" type="LinkButton" parent="CanvasLayer/Window/MarginContainer/VBoxContainer/Control2"]
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
+text = "Skins Documentation for MFCE"
+uri = "https://gist.github.com/jue131/e425619bc898df9feaa56cde6588216e"
+
+[node name="LinkButton2" type="LinkButton" parent="CanvasLayer/Window/MarginContainer/VBoxContainer/Control2"]
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
+text = "Thunder Engine (on GitHub)"
+uri = "https://github.com/Thunder-Engine-Dev/thunder-engine"
+
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/Window/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/Window/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
 focus_mode = 2
 theme_override_constants/line_separation = -3
 bbcode_enabled = true
@@ -568,7 +667,7 @@ Soundtrack used:[/center]
 7. October by Doc1429
 8. Echoing by Banana (Christof Mühlan)
 9. Fastbass by Estrayk (Carlos del Alamo) & Evelred (Mateo Pascual)
-10. Windgs by Hirvih (Eetu Ojanen)
+10. Wings by Hirvih (Eetu Ojanen)
 11. Music for Chips by Xerxes (Klaus Lunde)
 12. Winning by RepellandMold & Hip
 13. Scales of Joy by Mel o'Dee (Heiko Klueh)
