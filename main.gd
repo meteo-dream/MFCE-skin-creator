@@ -9,7 +9,7 @@ var current_skin_setting: PlayerSkin
 var current_folder_skin: String
 
 @onready var preview: AnimatedSprite2D = %Preview
-@onready var scene: Node2D = get_parent().get_parent()
+@onready var scene: Node2D = get_tree().current_scene
 
 @onready var spinbox_frame: SpinBox = %Frame
 @onready var spinbox_speed: SpinBox = %Speed
@@ -32,9 +32,11 @@ var current_frame: AtlasTexture
 func _ready() -> void:
 	_set_controls_working(false)
 	
+	save_dialog.title = "Save Directory (Skin Root Folder)"
 	save_dialog.dir_selected.connect(save_file)
+	open_dialog.title = "Open a Directory (Skin Root Folder)"
 	open_dialog.dir_selected.connect(open_file)
-	open_dialog.popup_centered()
+	#open_dialog.popup_centered()
 	
 	for anim in PlayerSkin.ANIMS:
 		anim_option.add_item(anim)
@@ -42,7 +44,7 @@ func _ready() -> void:
 	for state in PlayerSkin.STATES:
 		state_option.add_item(state)
 	
-	get_viewport().gui_focus_changed
+	#get_viewport().gui_focus_changed
 	
 	get_tree().root.min_size = Vector2(320, 256)
 	get_tree().root.size_changed.connect(_on_window_resized)
@@ -132,6 +134,10 @@ func speed_val_changed(value: float) -> void:
 ## Calls when "frames" spinbox changed
 func frames_val_changed(value: float) -> void:
 	set_frames(int(value))
+
+## Calls when "duration" spinbox changed
+func duration_val_changed(value: float) -> void:
+	set_duration(float(value))
 #region SpinboxSetters
 
 # Use this setters to set a value
@@ -185,7 +191,18 @@ func set_anim_speed(value: float) -> void:
 	current_skin_setting.animation_speeds[preview.animation] = value
 	
 	if preview.animation:
-		preview.sprite_frames.set_animation_speed(preview.animation, value) 
+		preview.sprite_frames.set_animation_speed(preview.animation, value)
+
+## Setter for current duration of selected animation, changes "duration" spinbox value. 
+func set_duration(value: float) -> void:
+	value = clampf(value, 0.0, 120.0)
+	
+	spinbox_speed.value = value
+	
+	current_skin_setting.animation_speeds[preview.animation] = value
+	
+	if preview.animation:
+		preview.sprite_frames.set_animation_speed(preview.animation, value)
 #endregion SpinboxSetters
 
 ## Calls when "Animation" option button changes selected item.
@@ -296,10 +313,13 @@ func save_file(path: String) -> void:
 
 ## Opens folder where skins located.
 func open_file(path: String) -> void:
-	print("Loading folder conent: %s" % path)
+	print("Loading folder content: %s" % path)
 	current_folder_skin = path
 	
+	var has_basic_struct: bool
 	for dir in DirAccess.get_directories_at(current_folder_skin):
+		if dir == PlayerSkin.STATES[0]:
+			has_basic_struct = true
 		var settings_path := path + "/" + dir + "/" + "skin_settings.tres"
 		
 		if !FileAccess.file_exists(settings_path):
@@ -308,11 +328,20 @@ func open_file(path: String) -> void:
 		
 		skin_settings[dir] = ResourceLoader.load(settings_path, "Resource", ResourceLoader.CACHE_MODE_REPLACE)
 	
+	if !has_basic_struct:
+		OS.alert("The folder specified does not contain a directory named '%s'" % PlayerSkin.STATES[0])
+		open_dialog.popup_centered.call_deferred()
+		return
 	set_state(0)
 	
 	_set_controls_working(true)
 	
 	# TODO: Make validation for resource
+
+
+func new_pressed() -> void:
+	pass # Replace with function body.
+
 
 ## Disbales animation that unavalible for current state.
 func update_anim_options() -> void:
@@ -333,5 +362,6 @@ func _on_h_split_container_dragged(_offset: int) -> void:
 
 func _on_window_resized() -> void:
 	var size_x = %FrameHSplitter.size.x
+	print(size_x)
 	if %FrameHSplitter.split_offset < -size_x + 384:
 		%FrameHSplitter.split_offset = -size_x + 384

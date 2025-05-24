@@ -1,0 +1,7 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://v1w0idka4k4r"]
+
+[ext_resource type="StyleBox" uid="uid://pnshqcemw7pp" path="res://default_style_box_flat.tres" id="1_e7bfs"]
+
+[resource]
+Button/styles/focus = ExtResource("1_e7bfs")
+LineEdit/styles/focus = ExtResource("1_e7bfs")

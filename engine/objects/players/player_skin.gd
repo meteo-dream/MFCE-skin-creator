@@ -38,7 +38,8 @@ const STATES: Array[String] = [
 	"green_lui",
 	"fireball",
 	"boomerang",
-	"beetroot"
+	"beetroot",
+	"frog"
 ]
 
 const RECT_ZERO: Rect2 = Rect2(0,0,0,0)
@@ -179,6 +180,7 @@ const RECT_ZERO: Rect2 = Rect2(0,0,0,0)
 	"warp": true,
 	"win": true,
 }
+@export var animation_durations: Dictionary = {}
 
 var baked_frames: SpriteFrames
 
@@ -199,7 +201,7 @@ func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 		frames.set_animation_loop(anim, animation_loops[anim])
 		frames.set_animation_speed(anim, animation_speeds[anim])
 		
-		var img_file := res_path + "/" + anim + ".png"
+		var img_file := res_path + "/" + ".png"
 		if !FileAccess.file_exists(img_file):
 			print("No image for: ", anim)
 			frames.remove_animation(anim)
