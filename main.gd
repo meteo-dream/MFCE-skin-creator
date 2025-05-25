@@ -100,10 +100,10 @@ func open_pressed() -> void:
 ## Called when "play" button toggled.
 func play_toggled(toggle: bool) -> void:
 	if toggle:
-		%Play.text = "Pause"
+		%Play.text = "Pause Animation"
 		preview.play()
 	else:
-		%Play.text = "Play"
+		%Play.text = "Play Animation"
 		preview.pause()
 		_update_preview()
 
@@ -345,7 +345,7 @@ func new_pressed() -> void:
 	pass # Replace with function body.
 
 
-## Disbales animation that unavalible for current state.
+## Disables animation that unavalible for current state.
 func update_anim_options() -> void:
 	var frames: SpriteFrames = current_skin_setting.gen_animated_sprites()
 	preview.sprite_frames = frames

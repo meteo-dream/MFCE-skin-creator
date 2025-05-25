@@ -6,11 +6,11 @@
 [ext_resource type="Script" uid="uid://btm26l65p0wxt" path="res://sprite_preview.gd" id="4_1bvp3"]
 [ext_resource type="Texture2D" uid="uid://dxquylec62jfl" path="res://alpha_text.png" id="4_7mycd"]
 [ext_resource type="Script" uid="uid://b04ty5ewju1ij" path="res://music_controls.gd" id="4_efxa6"]
-[ext_resource type="Theme" uid="uid://v1w0idka4k4r" path="res://default_theme.tres" id="4_kek77"]
 [ext_resource type="Texture2D" uid="uid://m868e85gd744" path="res://icons/Loop.svg" id="5_kek77"]
 [ext_resource type="Texture2D" uid="uid://c2n0hseqy4ilt" path="res://icons/TransitionEnd.svg" id="6_4c57u"]
 [ext_resource type="Texture2D" uid="uid://bja8gtdnquhf0" path="res://icons/mute.png" id="6_dg77c"]
 [ext_resource type="Texture2D" uid="uid://b3fn56t2mfves" path="res://icons/AudioStreamPlayer.png" id="7_ycdy4"]
+[ext_resource type="Script" uid="uid://dt707ah351fv8" path="res://color_pick_button.gd" id="9_dg77c"]
 [ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://spinbox.gd" id="10_dg77c"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_lquwl"]
@@ -139,6 +139,22 @@ drag_area_highlight_in_editor = true
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="ZoomLevel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = 5.0
+offset_top = 3.0
+offset_right = 80.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.847059, 0.847059, 0.847059, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 14
+text = "%.1f %%"
+
 [node name="FrameVSplitter" type="VSplitContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel"]
 unique_name_in_owner = true
 layout_mode = 1
@@ -168,7 +184,6 @@ script = ExtResource("4_efxa6")
 layout_mode = 2
 tooltip_text = "Mute"
 focus_mode = 0
-theme = ExtResource("4_kek77")
 theme_override_icons/icon = ExtResource("6_dg77c")
 toggle_mode = true
 icon = ExtResource("7_ycdy4")
@@ -179,7 +194,9 @@ layout_mode = 2
 [node name="HSlider" type="HSlider" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/MusicControls/CenterContainer"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
+tooltip_text = "Volume"
 focus_mode = 0
+mouse_force_pass_scroll_events = false
 mouse_default_cursor_shape = 10
 max_value = 1.0
 step = 0.01
@@ -204,6 +221,7 @@ bus = &"Music"
 
 [node name="About" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/MusicControls"]
 layout_mode = 2
+tooltip_text = "About this program"
 theme_override_fonts/font = SubResource("FontVariation_efxa6")
 text = "About"
 
@@ -249,6 +267,9 @@ theme_override_constants/margin_right = 1
 
 [node name="BGcolor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer"]
 layout_mode = 2
+tooltip_text = "Click to change background color. Right click to reset."
+edit_alpha = false
+script = ExtResource("9_dg77c")
 
 [node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer/BGcolor"]
 layout_mode = 1
@@ -258,6 +279,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
 text = "Background Color"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -270,8 +293,10 @@ theme_override_constants/margin_right = 5
 
 [node name="GridColor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer2"]
 layout_mode = 2
+tooltip_text = "Click to change grid color. Right click to reset."
 text = "BG color"
-color = Color(0.223529, 0.223529, 0.223529, 1)
+color = Color(0.305882, 0.305882, 0.305882, 1)
+script = ExtResource("9_dg77c")
 
 [node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer2/GridColor"]
 layout_mode = 1
@@ -281,6 +306,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
 text = "Grid Color"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -300,13 +327,15 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Toggles between Play and Pause."
+theme_override_fonts/font = SubResource("FontVariation_efxa6")
 toggle_mode = true
-text = "Play"
+text = "Play Animation"
 
 [node name="Stop" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/Btns"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Stop animation and set frame to 0."
+theme_override_fonts/font = SubResource("FontVariation_efxa6")
 text = "Stop"
 
 [node name="FrameStuff" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls"]
@@ -342,6 +371,7 @@ text = "Total Frames:"
 [node name="Frames" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/MaxFrames"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_default_cursor_shape = 2
 min_value = -2.0
 rounded = true
 allow_greater = true
@@ -413,6 +443,11 @@ text = "Animation:"
 [node name="AnimOption" type="OptionButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/Animation"]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="FillBlanks" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/Animation"]
+layout_mode = 2
+tooltip_text = "Load the updated textures from filesystem."
+text = "Fill blanks"
 
 [node name="Powerup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States"]
 layout_mode = 2
@@ -539,13 +574,17 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -196.0
-offset_top = 21.0
+offset_top = 3.0
 offset_right = -5.0
-offset_bottom = 70.0
+offset_bottom = 69.0
 grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.796078)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 14
 text = "R - Reset View
-Hold LMB / Shift - Panning"
+Hold LMB / Shift - Panning
+Mouse Wheel - Zoom"
 horizontal_alignment = 2
 
 [node name="Label2" type="Label" parent="CanvasLayer/VBoxContainer/Main"]
@@ -560,22 +599,6 @@ offset_top = -23.0
 grow_horizontal = 0
 grow_vertical = 0
 text = "MF CE SKIN EDITOR - SLOPPY EDITION! "
-
-[node name="ZoomLevel" type="Label" parent="CanvasLayer/VBoxContainer/Main"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -180.0
-offset_right = -5.0
-offset_bottom = 23.0
-grow_horizontal = 0
-theme_override_colors/font_color = Color(0.847059, 0.847059, 0.847059, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 14
-text = "%.1f %%"
-horizontal_alignment = 2
 
 [node name="Window" type="Window" parent="CanvasLayer"]
 disable_3d = true
@@ -691,12 +714,14 @@ selection_enabled = true
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File/Save" to="CanvasLayer/VBoxContainer/Main" method="save_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File/Open" to="CanvasLayer/VBoxContainer/Main" method="open_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/File/New" to="CanvasLayer/VBoxContainer/Main" method="new_pressed"]
+[connection signal="color_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer/BGcolor" to="." method="_on_bg_color_changed"]
+[connection signal="color_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/Color/MarginContainer2/GridColor" to="." method="_on_grid_color_changed"]
 [connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/Btns/Play" to="CanvasLayer/VBoxContainer/Main" method="play_toggled"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/Btns/Stop" to="CanvasLayer/VBoxContainer/Main" method="stop_pressed"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/Frame/Frame" to="CanvasLayer/VBoxContainer/Main" method="frame_val_changed"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/FrameStuff/MaxFrames/Frames" to="CanvasLayer/VBoxContainer/Main" method="frames_val_changed"]
-[connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/FrameDuration/Duration" to="CanvasLayer/VBoxContainer/Main" method="duration_val_changed"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/FrameDuration/Duration" to="CanvasLayer/VBoxContainer/Main" method="frame_val_changed"]
+[connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/FrameDuration/Duration" to="CanvasLayer/VBoxContainer/Main" method="duration_val_changed"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/SpeedDur/Speed/Speed" to="CanvasLayer/VBoxContainer/Main" method="speed_val_changed"]
 [connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/HBoxContainer/Loop" to="CanvasLayer/VBoxContainer/Main" method="loop_pressed"]
 [connection signal="item_selected" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Top/AnimationControls/States/Animation/AnimOption" to="CanvasLayer/VBoxContainer/Main" method="set_animation"]

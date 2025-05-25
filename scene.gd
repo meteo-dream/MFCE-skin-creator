@@ -57,3 +57,11 @@ func _draw():
 #func _physics_process(delta: float) -> void:
 	#if Engine.is_editor_hint():
 		#return
+
+
+func _on_bg_color_changed(_color: Color) -> void:
+	RenderingServer.set_default_clear_color(_color)
+
+
+func _on_grid_color_changed(_color: Color) -> void:
+	color = _color

@@ -29,15 +29,38 @@ const mute_icon = preload("res://icons/AudioStreamPlayer.png")
 @onready var player: AudioStreamPlayer = $AudioStreamPlayer
 
 @onready var volume: float = $CenterContainer/HSlider.value
-var is_looping: bool
 var index: int
+var config: Dictionary = {}
 
 func _ready() -> void:
+	var json = FileAccess.get_file_as_string("user://config.json")
+	if json:
+		var dict = JSON.parse_string(json)
+		if dict && dict is Dictionary: config = dict
+	init_config_values.call_deferred()
 	_on_h_slider_value_changed(volume)
+	if config.get("is_looping", false):
+		index = config.get("index", 0)
 	play_music()
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_EXIT_TREE:
+		config.volume = volume
+		config.index = index
+		var json: String = JSON.stringify(config)
+		
+		var file: FileAccess = FileAccess.open("user://config.json", FileAccess.WRITE)
+		file.store_string(json)
+		file.close()
+
+func init_config_values() -> void:
+	$Loop.button_pressed = config.get("is_looping", false)
+	$Mute.button_pressed = config.get("is_muted", false)
+	_on_mute_toggled($Mute.button_pressed)
+	$CenterContainer/HSlider.value = config.get("volume", volume)
+
 func go_next() -> void:
-	index = wrapi(index + 1, 0, 17)
+	index = wrapi(index + 1, 0, PLAYLIST.size())
 
 func play_music() -> void:
 	player.stream = PLAYLIST[index]
@@ -52,6 +75,8 @@ func _on_mute_toggled(toggled_on: bool) -> void:
 		$Mute.icon = mute_icon
 	AudioServer.set_bus_mute(AudioServer.get_bus_index(&"Music"), toggled_on)
 	player.stream_paused = toggled_on
+	config.is_muted = toggled_on
+	$Next.disabled = toggled_on
 
 
 func _on_h_slider_value_changed(value: float) -> void:
@@ -60,7 +85,7 @@ func _on_h_slider_value_changed(value: float) -> void:
 
 
 func _on_loop_toggled(toggled_on: bool) -> void:
-	is_looping = toggled_on
+	config.is_looping = toggled_on
 
 
 func _on_next_pressed() -> void:
@@ -69,6 +94,6 @@ func _on_next_pressed() -> void:
 
 
 func _on_audio_stream_player_finished() -> void:
-	if !is_looping:
+	if !config.get("is_looping"):
 		go_next()
 	play_music()
