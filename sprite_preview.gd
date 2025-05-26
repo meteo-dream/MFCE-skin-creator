@@ -10,6 +10,7 @@ var rect_draw: Rect2 = Rect2(0,0,3,3) :
 
 #func _process(delta: float) -> void:
 	# TODO: Fix rel_rect displaying incorrectly with EXPAND_FIT_HEIGHT
+	#if !texture: return
 	#is_huge = (
 		#64 + %FrameVSplitter/Top.size.y + (size.x / texture.get_size().x) * texture.get_size().y >
 		#get_tree().root.size.y
@@ -24,6 +25,7 @@ var rect_draw: Rect2 = Rect2(0,0,3,3) :
 func _draw() -> void:
 	if !texture:
 		return
+	if texture.get_size().x == 0 || texture.get_size().y == 0: return
 	var rel_rect: Rect2 = rect_draw
 	var scale_rel: Vector2 = Vector2(
 		(size.x / texture.get_size().x),

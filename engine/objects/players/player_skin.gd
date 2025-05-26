@@ -205,6 +205,11 @@ func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 		
 		frames.set_animation_loop(anim, animation_loops[anim])
 		frames.set_animation_speed(anim, animation_speeds[anim])
+		if !anim in animation_durations.keys():
+			animation_durations[anim] = []
+		if len(animation_durations[anim]) < len(animation_regions[anim]):
+			animation_durations[anim].resize(len(animation_regions[anim]))
+			animation_durations[anim].fill(1.0)
 		
 		var img_file := res_path + "/" + anim + ".png"
 		if !FileAccess.file_exists(img_file):
@@ -215,16 +220,17 @@ func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 		var image: Image = Image.load_from_file(img_file)
 		var img_texture := ImageTexture.create_from_image(image)
 		
-		for anim_reg in animation_regions[anim]:
+		for i in len(animation_regions[anim]):
+			var anim_region = animation_regions[anim][i]
 			
-			if anim_reg == RECT_ZERO:
+			if anim_region == RECT_ZERO:
 				print("Rect is zero for: ", anim)
 			
 			var atlas := AtlasTexture.new()
 			atlas.atlas = img_texture
-			atlas.region = anim_reg
+			atlas.region = anim_region
 			
-			frames.add_frame(anim, atlas)
+			frames.add_frame(anim, atlas, animation_durations[anim][i])
 	
 	baked_frames = frames
 	return frames

@@ -13,6 +13,13 @@ var color: Color = Color.DIM_GRAY :
 		queue_redraw()
 		color = value
 
+@export
+var show_collisions: bool:
+	set(value):
+		show_collisions = value
+		$Preview/CollisionsRect.update_rect()
+		$Preview/CollisionsRect.queue_redraw()
+
 func _init() -> void:
 	var user_screen: Rect2i = DisplayServer.screen_get_usable_rect()
 	if user_screen.size.y < ProjectSettings.get_setting("display/window/size/viewport_height"):
@@ -50,18 +57,13 @@ func _draw():
 	draw_line(Vector2(vp_size.x, 0),Vector2(-vp_size.x, 0), Color.RED)
 
 
-#func _process(delta: float) -> void:
-	#if Engine.is_editor_hint():
-		#return
-#
-#func _physics_process(delta: float) -> void:
-	#if Engine.is_editor_hint():
-		#return
-
-
 func _on_bg_color_changed(_color: Color) -> void:
 	RenderingServer.set_default_clear_color(_color)
 
 
 func _on_grid_color_changed(_color: Color) -> void:
 	color = _color
+
+
+func _on_collisions_toggled(toggled_on: bool) -> void:
+	show_collisions = toggled_on

@@ -19,6 +19,10 @@ config/features=PackedStringArray("4.4", "Mobile")
 run/low_processor_mode=true
 config/icon="res://icon.svg"
 
+[autoload]
+
+Util="*res://scripts/Util.gd"
+
 [display]
 
 window/size/viewport_width=1280

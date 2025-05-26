@@ -1,7 +1,7 @@
 extends Camera2D
 
 var zoom_min := 0.5
-var zoom_max := 16.0
+var zoom_max := 32.0
 const ZOOM_INCREMENT: float = 6
 var zoom_speed := 0.1
 
