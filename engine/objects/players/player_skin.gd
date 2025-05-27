@@ -196,6 +196,7 @@ func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 	
 	var frames := SpriteFrames.new()
 	var res_path := resource_path.get_base_dir()
+
 	
 	for anim in ANIMS:
 		if !animation_regions.keys().has(anim):
@@ -212,12 +213,24 @@ func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 			animation_durations[anim].fill(1.0)
 		
 		var img_file := res_path + "/" + anim + ".png"
+		var image: Image
 		if !FileAccess.file_exists(img_file):
 			print("No image for: ", anim)
-			frames.remove_animation(anim)
-			continue
+			if anim != "appear":
+				frames.remove_animation(anim)
+				continue
+			else:
+				var state := res_path.get_slice("/", res_path.get_slice_count("/") - 1)
+				var base_img: Texture2D = AnimGenerator.TEXTURES.small
+				if AnimGenerator.TEXTURES.has(state):
+					base_img = AnimGenerator.TEXTURES[state]
+				image = AnimGenerator.gen_animation_image(
+					anim,
+					AnimGenerator.get_offset_dict(state),
+					base_img.get_image()
+				)
 		
-		var image: Image = Image.load_from_file(img_file)
+		if !image: image = Image.load_from_file(img_file)
 		var img_texture := ImageTexture.create_from_image(image)
 		
 		for i in len(animation_regions[anim]):

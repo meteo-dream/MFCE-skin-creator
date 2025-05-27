@@ -5,6 +5,7 @@ extends Control
 @onready var new_save_dialog: FileDialog = $NewSaveDialog
 @onready var confirm_dialog: ConfirmationDialog = %ConfirmationDialog
 @onready var confirm_new_state: ConfirmationDialog = %ConfirmationNewState
+@onready var image_creation_dialog: AcceptDialog = %ImageCreationDialog
 
 var skin_settings: Dictionary
 var current_skin_setting: PlayerSkin
@@ -13,7 +14,6 @@ var current_folder_skin: String
 
 @onready var preview: AnimatedSprite2D = %Preview
 @onready var scene: Node2D = get_tree().current_scene
-@onready var player_animation_generator: AnimGenerator = %PlayerAnimationGenerator
 @onready var sprite_view: SpriteView = %SpriteView
 
 @onready var spinbox_frame: SpinBox = %Frame
@@ -39,6 +39,20 @@ var no_frame_del_popup: bool
 
 func _ready() -> void:
 	_set_controls_working(false)
+	#anim_option.get_popup().prefer_native_menu = true
+	#state_option.get_popup().prefer_native_menu = true
+	anim_option.gui_input.connect(func(event: InputEvent):
+		if anim_option.disabled: return
+		if event is InputEventMouseButton && event.is_pressed():
+			if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				var idx = _get_option_scrolled_index(anim_option, 1)
+				anim_option.select(idx)
+				set_animation(idx)
+			elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				var idx = _get_option_scrolled_index(anim_option, -1)
+				anim_option.select(idx)
+				set_animation(idx)
+	)
 	
 	save_dialog.title = "Save Directory (Skin Root Folder)"
 	save_dialog.dir_selected.connect(save_file)
@@ -82,6 +96,13 @@ func _update_animations() -> void:
 	set_frame(prev_frame)
 	update_anim_time()
 	_set_controls_working(true)
+
+func _get_option_scrolled_index(_option: OptionButton, by: int) -> int:
+	for i in _option.item_count:
+		var idx = wrapi(_option.get_selected_id() + by + (i * signi(by)), 0, _option.item_count)
+		if !_option.is_item_disabled(idx):
+			return idx
+	return _option.get_selected_id()
 
 ## Disables/Enables controls for editing.
 func _set_controls_working(val: bool) -> void:
@@ -147,8 +168,18 @@ func loop_pressed(toggle: bool) -> void:
 	current_skin_setting.animation_loops[preview.animation] = toggle
 	preview.sprite_frames.set_animation_loop(preview.animation, toggle)
 
+func _on_fill_blanks_pressed() -> void:
+	confirm_new_state.dialog_text = confirm_state_text % [
+		current_folder_skin.path_join(state_option.get_item_text(state_option.get_selected_id()))
+	]
+	confirm_new_state.popup_centered()
+
 func reload_textures() -> void:
 	_update_animations()
+
+func _on_browse_pressed() -> void:
+	print("Browsing: " + current_folder_skin.path_join(current_skin_setting.name))
+	OS.shell_open(current_folder_skin.path_join(current_skin_setting.name))
 #endregion FileButtons
 
 #region AnimationButtons
@@ -266,13 +297,18 @@ func set_animation(idx: int) -> void:
 	play_toggled(false)
 	%Play.button_pressed = false
 
+var _last_state: int = -1
+
 ## Calls when "Powerup" A.K.A (State) option button changes selected item.
 func set_state(idx: int) -> void:
 	var state: String = state_option.get_item_text(idx)
 	
 	if !skin_settings.has(state):
 		pending_state = idx
+		if _last_state != -1:
+			state_option.select(_last_state)
 		return ask_about_missing_state()
+	_last_state = idx
 	current_skin_setting = skin_settings[state]
 	preview.sprite_frames = current_skin_setting.gen_animated_sprites()
 	#state_option.select(state)
@@ -290,7 +326,8 @@ func set_state(idx: int) -> void:
 ## Updates preview(animated sprite).
 func _update_preview() -> void:
 	var frame := preview.frame
-	var texture := preview.sprite_frames.get_frame_texture(anim_option.get_item_text(anim_option.selected), frame)
+	var item_text := anim_option.get_item_text(anim_option.selected)
+	var texture := preview.sprite_frames.get_frame_texture(item_text, frame)
 	
 	if texture is AtlasTexture:
 		sprite_view.texture = texture.atlas
@@ -356,12 +393,11 @@ func save_file(path: String) -> void:
 	current_folder_skin = path
 	for skin in skin_settings.keys():
 		var full_path: String = path + "/" + skin + "/"
-		print(skin)
+		print("Saving skin: " + skin)
 		var dir_acc: DirAccess = DirAccess.open(path)
 		if !dir_acc.dir_exists(skin):
 			dir_acc.make_dir(skin)
 		ResourceSaver.save(skin_settings[skin], full_path + "/skin_settings.tres")
-
 
 ## Opens folder where skins located.
 func open_file(path: String) -> void:
@@ -372,13 +408,9 @@ func open_file(path: String) -> void:
 	for dir in DirAccess.get_directories_at(current_folder_skin):
 		if dir == PlayerSkin.STATES[0]:
 			has_basic_struct = true
-		var settings_path := path + "/" + dir + "/" + "skin_settings.tres"
 		
-		if !FileAccess.file_exists(settings_path):
-			print("No skin for: " + settings_path)
+		if load_skin_settings_from_file(dir, path):
 			continue
-		
-		skin_settings[dir] = ResourceLoader.load(settings_path, "Resource", ResourceLoader.CACHE_MODE_REPLACE)
 	
 	if !has_basic_struct:
 		OS.alert("Please select a skin root directory that contains suit folders.")
@@ -386,18 +418,40 @@ func open_file(path: String) -> void:
 		open_dialog.popup_centered.call_deferred()
 		return
 	set_state(0)
+	state_option.select(0)
 	
 	_set_controls_working(true)
+
+## Loads skin_settings.tres from file system. Returns true if failed.
+func load_skin_settings_from_file(suit: String, path: String) -> bool:
+	var settings_path := path + "/" + suit + "/" + "skin_settings.tres"
+		
+	if !FileAccess.file_exists(settings_path):
+		print("No skin for: " + settings_path)
+		return true
 	
-	# TODO: Make validation for resource
+	skin_settings[suit] = ResourceLoader.load(settings_path, "Resource", ResourceLoader.CACHE_MODE_REPLACE)
+	return false
 
-	#
-
+## Creates new skin in a specified folder.
 func new_save_file(path: String) -> void:
-	var strin: String = player_animation_generator.gen_all_suits(path)
-	OS.alert(strin)
-	if strin == "Success":
-		_set_controls_working(true)
+	if DirAccess.dir_exists_absolute(path.path_join("small")):
+		return OS.alert("Directory is not empty!")
+	print("Creating new skin at: %s" % path)
+	var err: String = AnimGenerator.gen_image_files("small", path)
+	image_creation_dialog.dialog_text = err
+	image_creation_dialog.popup_centered()
+	if "Error" in err: return
+	
+	skin_settings = {}
+	current_folder_skin = path
+	pending_state = 0
+	_on_dialog_new_settings_confirmed()
+	
+	set_state(0)
+	state_option.select(0)
+	
+	_set_controls_working(true)
 
 
 ## Disables animation that unavalible for current state.
@@ -413,7 +467,7 @@ func update_anim_options() -> void:
 		else:
 			anim_option.set_item_disabled(i, false)
 
-
+## Updates animation duration display counter.
 func update_anim_time() -> void:
 	if !preview.animation || !preview.sprite_frames:
 		%AnimTime.text = "-"
@@ -433,7 +487,7 @@ func update_anim_time() -> void:
 		return
 	%AnimTime.text = "%s sec" % String.num(number, 4)
 
-
+## Logic for side panel resizing.
 func _on_h_split_container_dragged(_offset: int) -> void:
 	_on_window_resized()
 
@@ -442,14 +496,8 @@ func _on_window_resized() -> void:
 	if %FrameHSplitter.split_offset < -size_x + 384:
 		%FrameHSplitter.split_offset = -size_x + 384
 
-
-func _on_fill_blanks_pressed() -> void:
-	confirm_new_state.dialog_text = confirm_state_text % [
-		current_folder_skin.path_join(state_option.get_item_text(state_option.get_selected_id()))
-	]
-	confirm_new_state.popup_centered()
-
-
+#region ModalBoxActions
+## Displayed when decreasing total frames count
 func _on_fill_blanks_ok_pressed() -> void:
 	if !%ModalWindow.visible: return
 	if %DontAskAgain.button_pressed:
@@ -457,25 +505,32 @@ func _on_fill_blanks_ok_pressed() -> void:
 	set_frames(pending_frames)
 	%ModalWindow.hide()
 
-
+## "This suit is incomplete. Create default animation settings?"
 func ask_about_missing_state() -> void:
 	if confirm_dialog.visible: return
-	confirm_dialog.canceled.connect(func() -> void:
-		pending_state = -1
-	, CONNECT_ONE_SHOT)
 	confirm_dialog.popup_centered()
 
-
-func _on_browse_pressed() -> void:
-	OS.shell_open(current_folder_skin.path_join(preview.animation))
-
-
+## The "This action will create placeholder image files..." confirmation action
 func _on_dialog_new_state_confirmed() -> void:
-	pass # Replace with function body.
+	var suit_name := current_skin_setting.name
+	var out := AnimGenerator.gen_image_files(suit_name, current_folder_skin)
+	#load_skin_settings_from_file(suit_name, current_folder_skin)
+	#current_skin_setting = skin_settings[suit_name]
+	_update_animations()
+	update_anim_options()
+	image_creation_dialog.dialog_text = out
+	image_creation_dialog.popup_centered()
 
-
+## The "This suit is incomplete..." confirmation action
 func _on_dialog_new_settings_confirmed() -> void:
-	var str_state = state_option.get_item_text(pending_state)
-	%PlayerAnimationGenerator.gen_image_files(str_state, current_folder_skin.path_join(str_state))
+	var item := state_option.get_item_text(pending_state)
+	var er := AnimGenerator.copy_settings(item, current_folder_skin)
+	if er != "Success":
+		return OS.alert(er)
+	
+	if load_skin_settings_from_file(item, current_folder_skin):
+		return
+	
+	state_option.select(pending_state)
 	set_state(pending_state)
-	pending_state = -1
+#endregion ModalBoxActions

@@ -1,10 +1,9 @@
-[gd_scene load_steps=28 format=3 uid="uid://byxkkvyv24cbb"]
+[gd_scene load_steps=31 format=3 uid="uid://byxkkvyv24cbb"]
 
 [ext_resource type="Script" uid="uid://d26h506i5dbi6" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://bcxcbi4ltmp25" path="res://scene.gd" id="2_0xm2m"]
 [ext_resource type="Script" uid="uid://gs5vwgysp4d5" path="res://camera.gd" id="2_h2yge"]
 [ext_resource type="Script" uid="uid://cuo1farb8s61y" path="res://collisions_rect.gd" id="2_w48qg"]
-[ext_resource type="Script" uid="uid://b4r2sdicrq42a" path="res://engine/objects/players/player_animation_generator.gd" id="3_ycdy4"]
 [ext_resource type="Script" uid="uid://btm26l65p0wxt" path="res://sprite_preview.gd" id="4_1bvp3"]
 [ext_resource type="Texture2D" uid="uid://dxquylec62jfl" path="res://alpha_text.png" id="4_7mycd"]
 [ext_resource type="Script" uid="uid://b04ty5ewju1ij" path="res://music_controls.gd" id="4_efxa6"]
@@ -72,6 +71,20 @@ bg_color = Color(0.192157, 0.192157, 0.192157, 1)
 corner_detail = 1
 anti_aliasing = false
 
+[sub_resource type="InputEventKey" id="InputEventKey_vivmo"]
+device = -1
+keycode = 4194309
+
+[sub_resource type="Shortcut" id="Shortcut_2cqfq"]
+events = [SubResource("InputEventKey_vivmo")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_yaehf"]
+device = -1
+keycode = 4194305
+
+[sub_resource type="Shortcut" id="Shortcut_074og"]
+events = [SubResource("InputEventKey_yaehf")]
+
 [node name="Scene" type="Node2D"]
 script = ExtResource("2_0xm2m")
 color = Color(0.411765, 0.411765, 0.411765, 0.752941)
@@ -87,10 +100,6 @@ script = ExtResource("2_w48qg")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("2_h2yge")
-
-[node name="PlayerAnimationGenerator" type="Node" parent="."]
-unique_name_in_owner = true
-script = ExtResource("3_ycdy4")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -283,14 +292,16 @@ text = "Open"
 [node name="Save" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
 unique_name_in_owner = true
 layout_mode = 2
-tooltip_text = "Save the skin to filesystem."
+tooltip_text = "Save the skin to filesystem.
+Only settings for the skin are saved (regions, speed, etc.), images are untouched."
 shortcut = SubResource("Shortcut_4c57u")
 text = "Save"
 
 [node name="SaveAs" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
 unique_name_in_owner = true
 layout_mode = 2
-tooltip_text = "Save the skin to filesystem."
+tooltip_text = "Save the skin to filesystem, with a directory selection dialog.
+Only settings for the skin are saved (regions, speed, etc.), images are untouched."
 shortcut = SubResource("Shortcut_vivmo")
 text = "Save As"
 
@@ -566,6 +577,7 @@ layout_mode = 2
 tooltip_text = "X Position of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+update_on_text_changed = true
 script = ExtResource("10_dg77c")
 
 [node name="RectY" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
@@ -574,6 +586,7 @@ layout_mode = 2
 tooltip_text = "Y Position of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+update_on_text_changed = true
 script = ExtResource("10_dg77c")
 
 [node name="RectW" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
@@ -582,6 +595,7 @@ layout_mode = 2
 tooltip_text = "Width of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+update_on_text_changed = true
 script = ExtResource("10_dg77c")
 
 [node name="RectH" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
@@ -590,6 +604,7 @@ layout_mode = 2
 tooltip_text = "Height of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+update_on_text_changed = true
 script = ExtResource("10_dg77c")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
@@ -861,6 +876,7 @@ size_flags_horizontal = 3
 [node name="OK" type="Button" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+shortcut = SubResource("Shortcut_2cqfq")
 text = "OK"
 
 [node name="Control2" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
@@ -870,6 +886,7 @@ size_flags_horizontal = 3
 [node name="Cancel" type="Button" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+shortcut = SubResource("Shortcut_074og")
 text = "Cancel"
 
 [node name="Control3" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
@@ -891,6 +908,15 @@ size = Vector2i(480, 158)
 dialog_text = "This action will create placeholder image files for each missing animation at
 %s.
 Existing files will not be overriden. Continue?"
+dialog_autowrap = true
+
+[node name="ImageCreationDialog" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+title = "Skin Texture Creation"
+initial_position = 2
+size = Vector2i(320, 100)
+unresizable = true
+dialog_text = "Success"
 dialog_autowrap = true
 
 [connection signal="animation_finished" from="Preview" to="CanvasLayer/VBoxContainer/Main" method="_anim_finished"]
