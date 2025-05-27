@@ -3,6 +3,7 @@ extends Control
 @onready var save_dialog: FileDialog = $SaveDialog
 @onready var open_dialog: FileDialog = $OpenDialog
 @onready var new_save_dialog: FileDialog = $NewSaveDialog
+@onready var modal_window: Window = %ModalWindow
 @onready var confirm_dialog: ConfirmationDialog = %ConfirmationDialog
 @onready var confirm_new_state: ConfirmationDialog = %ConfirmationNewState
 @onready var image_creation_dialog: AcceptDialog = %ImageCreationDialog
@@ -217,16 +218,21 @@ func set_frame(value: int) -> void:
 	
 	_update_preview()
 
-var _last_frame_amount: int 
+var _last_frame_amount: int
+var _frame_setter_cooldown: bool
+
+func _process(_delta: float) -> void:
+	if _frame_setter_cooldown:
+		if modal_window.visible: return
+		_frame_setter_cooldown = false
 
 ## Setter for current amount of frames in current animation, changes "frames" spinbox value.
 func set_frames(value: int) -> void:
 	value = max(value, 1)
-	if %ModalWindow.visible: return
-	if _last_frame_amount > value && !no_frame_del_popup:
-		%DontAskAgain.visible = true
-		%ModalWindow.size = Vector2i(100, 100)
-		%ModalWindow.popup_centered()
+	if modal_window.visible: return
+	if !_frame_setter_cooldown && _last_frame_amount > value && !no_frame_del_popup:
+		modal_window.size = Vector2i(100, 100)
+		modal_window.popup_centered()
 		pending_frames = value
 		spinbox_frames.value = _last_frame_amount
 		return
@@ -499,11 +505,13 @@ func _on_window_resized() -> void:
 #region ModalBoxActions
 ## Displayed when decreasing total frames count
 func _on_fill_blanks_ok_pressed() -> void:
-	if !%ModalWindow.visible: return
+	if !modal_window.visible: return
 	if %DontAskAgain.button_pressed:
 		no_frame_del_popup = true
+	modal_window.hide()
+	print("Reducing total frame count to %d" % pending_frames)
+	_frame_setter_cooldown = true
 	set_frames(pending_frames)
-	%ModalWindow.hide()
 
 ## "This suit is incomplete. Create default animation settings?"
 func ask_about_missing_state() -> void:
