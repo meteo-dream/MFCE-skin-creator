@@ -1,17 +1,33 @@
 extends Control
 
+const PROJECT_NAME := "MF: CE Skin Editor v%s"
+
+const BAD_NAMES = [
+	"object", "script", "_init", "_enter_tree", "_exit_tree", "_ready",
+	"_process", "extends", "refcounted", "func ", "func()",
+]
+const SETTINGS_DICT_NAMES = [
+	"animation_speeds", "animation_regions", "animation_loops", "animation_durations",
+]
+@onready var version_label: Label = %VersionLabel
+@onready var version_string: String = ProjectSettings.get_setting("application/config/version", "")
+
 @onready var save_dialog: FileDialog = $SaveDialog
 @onready var open_dialog: FileDialog = $OpenDialog
 @onready var new_save_dialog: FileDialog = $NewSaveDialog
+
 @onready var modal_window: Window = %ModalWindow
 @onready var confirm_dialog: ConfirmationDialog = %ConfirmationDialog
 @onready var confirm_new_state: ConfirmationDialog = %ConfirmationNewState
 @onready var image_creation_dialog: AcceptDialog = %ImageCreationDialog
+@onready var options_dialog: Window = %OptionsDialog
 
 var skin_settings: Dictionary
 var current_skin_setting: PlayerSkin
+var misc_files: Dictionary
 
 var current_folder_skin: String
+var skin_name: String
 
 @onready var preview: AnimatedSprite2D = %Preview
 @onready var scene: Node2D = get_tree().current_scene
@@ -40,8 +56,14 @@ var no_frame_del_popup: bool
 
 func _ready() -> void:
 	_set_controls_working(false)
-	#anim_option.get_popup().prefer_native_menu = true
-	#state_option.get_popup().prefer_native_menu = true
+	if DisplayServer.get_swap_cancel_ok():
+		var options_par = options_dialog.get_node("MarginContainer/VBoxContainer3/HBoxContainer")
+		options_par.move_child(options_par.get_node("OK"), 1)
+		options_par.move_child(options_par.get_node("Cancel"), 3)
+		var modal_par = modal_window.get_node("MarginContainer/VBoxContainer/HBoxContainer")
+		modal_par.move_child(modal_par.get_node("OK"), 1)
+		modal_par.move_child(modal_par.get_node("Cancel"), 3)
+	
 	anim_option.gui_input.connect(func(event: InputEvent):
 		if anim_option.disabled: return
 		if event is InputEventMouseButton && event.is_pressed():
@@ -73,6 +95,8 @@ func _ready() -> void:
 	
 	get_tree().root.min_size = Vector2(400, 400)
 	get_tree().root.size_changed.connect(_on_window_resized)
+	
+	version_label.text = PROJECT_NAME % [version_string]
 
 
 func _anim_finished() -> void:
@@ -127,6 +151,7 @@ func _set_controls_working(val: bool) -> void:
 	%ReloadTexture.disabled = !val
 	%Browse.disabled = !val
 	%FillBlanks.disabled = !val
+	%Options.disabled = !val
 
 #region FileButtons
 ## Called when "save" button is pressed.
@@ -238,6 +263,7 @@ func set_frames(value: int) -> void:
 		return
 	spinbox_frames.value = value
 	
+	# BUG: This should be a loop
 	if _last_frame_amount < value:
 		print("Adding a new frame!")
 		if preview.animation:
@@ -397,13 +423,18 @@ func update_rect(value: float, rect_comp: RECT_COMP) -> void:
 ## Saves folders where skins located.
 func save_file(path: String) -> void:
 	current_folder_skin = path
+	skin_name = path.get_slice("/", path.get_slice_count("/") - 1)
+	version_label.text = PROJECT_NAME % [version_string] + ("\n" + current_folder_skin)
+	reset_options_dialog()
 	for skin in skin_settings.keys():
 		var full_path: String = path + "/" + skin + "/"
 		print("Saving skin: " + skin)
 		var dir_acc: DirAccess = DirAccess.open(path)
 		if !dir_acc.dir_exists(skin):
 			dir_acc.make_dir(skin)
-		ResourceSaver.save(skin_settings[skin], full_path + "/skin_settings.tres")
+		var err = ResourceSaver.save(skin_settings[skin], full_path + "/skin_settings.tres")
+		if err:
+			OS.alert("Error: " + error_string(err), "Save Failed!")
 
 ## Opens folder where skins located.
 func open_file(path: String) -> void:
@@ -411,7 +442,7 @@ func open_file(path: String) -> void:
 	current_folder_skin = path
 	
 	var has_basic_struct: bool
-	for dir in DirAccess.get_directories_at(current_folder_skin):
+	for dir in DirAccess.get_directories_at(path):
 		if dir == PlayerSkin.STATES[0]:
 			has_basic_struct = true
 		
@@ -420,24 +451,19 @@ func open_file(path: String) -> void:
 	
 	if !has_basic_struct:
 		OS.alert("Please select a skin root directory that contains suit folders.")
-		open_dialog.current_dir = current_folder_skin
+		open_dialog.current_dir = path
 		open_dialog.popup_centered.call_deferred()
 		return
+	
+	load_misc_files(path)
+	
+	skin_name = path.get_slice("/", path.get_slice_count("/") - 1)
+	reset_options_dialog()
 	set_state(0)
 	state_option.select(0)
+	version_label.text = PROJECT_NAME % [version_string] + ("\n" + current_folder_skin)
 	
 	_set_controls_working(true)
-
-## Loads skin_settings.tres from file system. Returns true if failed.
-func load_skin_settings_from_file(suit: String, path: String) -> bool:
-	var settings_path := path + "/" + suit + "/" + "skin_settings.tres"
-		
-	if !FileAccess.file_exists(settings_path):
-		print("No skin for: " + settings_path)
-		return true
-	
-	skin_settings[suit] = ResourceLoader.load(settings_path, "Resource", ResourceLoader.CACHE_MODE_REPLACE)
-	return false
 
 ## Creates new skin in a specified folder.
 func new_save_file(path: String) -> void:
@@ -449,16 +475,110 @@ func new_save_file(path: String) -> void:
 	image_creation_dialog.popup_centered()
 	if "Error" in err: return
 	
+	# Resetting all variables in case a previous skin was loaded
 	skin_settings = {}
 	current_folder_skin = path
 	pending_state = 0
+	misc_files = {}
+	load_misc_files(path)
 	_on_dialog_new_settings_confirmed()
 	
+	skin_name = path.get_slice("/", path.get_slice_count("/") - 1)
+	reset_options_dialog()
 	set_state(0)
 	state_option.select(0)
+	version_label.text = PROJECT_NAME % [version_string] + ("\n" + current_folder_skin)
 	
 	_set_controls_working(true)
 
+## Loads skin_settings.tres from file system. Returns true if failed.
+func load_skin_settings_from_file(suit: String, path: String) -> bool:
+	var settings_path := path + "/" + suit + "/" + "skin_settings.tres"
+		
+	if !FileAccess.file_exists(settings_path):
+		print("No skin for: " + settings_path)
+		return true
+	
+	skin_settings[suit] = _load_skin_settings(settings_path, suit)
+	return false
+
+# We are parsing the file manually to avoid malicious code execution, while still maintaining
+# compatibility with old skins! Although any mention of scripts is now ignored.
+func _load_skin_settings(path: String, power: String) -> PlayerSkin:
+	var output := PlayerSkin.new()
+	var file = FileAccess.open(path, FileAccess.READ)
+	if !file:
+		OS.alert("Error accessing skin settings at:
+	%s" % path)
+		return null
+	if file.get_length() > 2_097_152:
+		OS.alert("Error: File is larger than the limit of 2 MB:
+	%s" % path)
+		return null
+	
+	var reading_buffer: String
+	var dict_index_buffer: Dictionary = {}
+	
+	while !file.eof_reached():
+		var line = file.get_line()
+		if reading_buffer.is_empty():
+			for i in SETTINGS_DICT_NAMES:
+				if line.begins_with(i) && !i in dict_index_buffer:
+					reading_buffer = i
+					dict_index_buffer[reading_buffer] = []
+		if reading_buffer.is_empty():
+			continue
+		var starting_pos: int
+		if len(dict_index_buffer[reading_buffer]) == 0:
+			var ind_start = line.find("{")
+			if ind_start >= 0:
+				dict_index_buffer[reading_buffer].append(file.get_position() - len(line) + ind_start - 1)
+				starting_pos = ind_start
+		if len(dict_index_buffer[reading_buffer]) == 1:
+			var ind_start = line.find("}", starting_pos)
+			if ind_start >= 0:
+				dict_index_buffer[reading_buffer].append(file.get_position() - len(line) + ind_start - 1)
+				reading_buffer = ""
+				continue
+	
+	for i in dict_index_buffer:
+		if len(dict_index_buffer[i]) != 2:
+			print("Array size mismatch: %s" % i)
+			continue
+		file.seek(dict_index_buffer[i][0])
+		
+		var dict_str: String = file.get_buffer(dict_index_buffer[i][1] - dict_index_buffer[i][0]).get_string_from_utf8()
+		if !dict_str: continue
+		
+		dict_str += "}"
+		var clean_dict: String = dict_str
+		for bad_string in BAD_NAMES:
+			clean_dict = clean_dict.replacen(bad_string, "")
+		var parsed = str_to_var(clean_dict)
+		#print(parsed)
+		if parsed && parsed is Dictionary:
+			output[i] = parsed
+		else:
+			print_rich("[color=orange][Skins Manager] Warning: %s: Field %s is invalid. Loaded defaults.[/color]" % [power, i])
+	
+	output.name = power
+	output.res_path = path.get_base_dir()
+	return output
+
+func load_misc_files(path: String) -> void:
+	misc_files.name = ""
+	if FileAccess.file_exists(path.path_join("name.txt")):
+		misc_files.name = FileAccess.get_file_as_string(path.path_join("name.txt")).left(15)
+	misc_files.story = ["", "", ""]
+	var file_path = path.path_join("story.txt")
+	if FileAccess.file_exists(file_path):
+		var file = FileAccess.open(file_path, FileAccess.READ)
+		if file:
+			for i in 3:
+				if file.eof_reached(): break
+				var _line = file.get_line().left(15 if i < 2 else 50)
+				if _line:
+					misc_files.story[i] = _line
 
 ## Disables animation that unavalible for current state.
 func update_anim_options() -> void:
@@ -541,4 +661,43 @@ func _on_dialog_new_settings_confirmed() -> void:
 	
 	state_option.select(pending_state)
 	set_state(pending_state)
+
+## Skin Options button
+func options_pressed() -> void:
+	options_dialog.popup_centered()
+
+func reset_options_dialog() -> void:
+	options_dialog.hide()
+	%DisplayNameLine.placeholder_text = skin_name.to_upper()
+	%DisplayNameLine.text = misc_files.name
+	%TheyLine.text = misc_files.story[0]
+	%ThemLine.text = misc_files.story[1]
+	%DescriptionLine.text = misc_files.story[2]
+
+func options_confirmed() -> void:
+	options_dialog.hide()
+	
+	if %DisplayNameLine.text != misc_files.name:
+		misc_files.name = %DisplayNameLine.text
+		var file = FileAccess.open(current_folder_skin.path_join("name.txt"), FileAccess.WRITE)
+		file.store_line(misc_files.name)
+		file.close()
+	if (
+		%TheyLine.text != misc_files.story[0] ||
+		%ThemLine.text != misc_files.story[1] ||
+		%DescriptionLine.text != misc_files.story[2]
+	):
+		misc_files.story[0] = %TheyLine.text
+		misc_files.story[1] = %ThemLine.text
+		misc_files.story[2] = %DescriptionLine.text
+		var file = FileAccess.open(current_folder_skin.path_join("story.txt"), FileAccess.WRITE)
+		file.store_line(misc_files.story[0])
+		file.store_line(misc_files.story[1])
+		file.store_line(misc_files.story[2])
+		file.close()
+
 #endregion ModalBoxActions
+
+
+func _on_display_name_line_text_changed(new_text: String) -> void:
+	%DisplayNameLine.text = new_text.to_upper()

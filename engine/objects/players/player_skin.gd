@@ -188,6 +188,7 @@ const RECT_ZERO: Rect2 = Rect2(0,0,0,0)
 @export var animation_durations: Dictionary = {}
 
 var baked_frames: SpriteFrames
+var res_path: String
 
 func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 	if baked_frames:
@@ -195,8 +196,6 @@ func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 			return baked_frames
 	
 	var frames := SpriteFrames.new()
-	var res_path := resource_path.get_base_dir()
-
 	
 	for anim in ANIMS:
 		if !animation_regions.keys().has(anim):

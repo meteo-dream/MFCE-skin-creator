@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://byxkkvyv24cbb"]
+[gd_scene load_steps=32 format=3 uid="uid://byxkkvyv24cbb"]
 
 [ext_resource type="Script" uid="uid://d26h506i5dbi6" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://bcxcbi4ltmp25" path="res://scene.gd" id="2_0xm2m"]
@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://b3fn56t2mfves" path="res://icons/AudioStreamPlayer.png" id="7_ycdy4"]
 [ext_resource type="Script" uid="uid://dt707ah351fv8" path="res://color_pick_button.gd" id="9_dg77c"]
 [ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://spinbox.gd" id="10_dg77c"]
+[ext_resource type="FontFile" uid="uid://c642yw1llh7ke" path="res://fonts/tahomabd.ttf" id="15_vivmo"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_lquwl"]
 animations = [{
@@ -71,19 +72,19 @@ bg_color = Color(0.192157, 0.192157, 0.192157, 1)
 corner_detail = 1
 anti_aliasing = false
 
-[sub_resource type="InputEventKey" id="InputEventKey_vivmo"]
-device = -1
-keycode = 4194309
-
-[sub_resource type="Shortcut" id="Shortcut_2cqfq"]
-events = [SubResource("InputEventKey_vivmo")]
-
 [sub_resource type="InputEventKey" id="InputEventKey_yaehf"]
 device = -1
 keycode = 4194305
 
 [sub_resource type="Shortcut" id="Shortcut_074og"]
 events = [SubResource("InputEventKey_yaehf")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_vivmo"]
+device = -1
+keycode = 4194309
+
+[sub_resource type="Shortcut" id="Shortcut_2cqfq"]
+events = [SubResource("InputEventKey_vivmo")]
 
 [node name="Scene" type="Node2D"]
 script = ExtResource("2_0xm2m")
@@ -304,6 +305,14 @@ tooltip_text = "Save the skin to filesystem, with a directory selection dialog.
 Only settings for the skin are saved (regions, speed, etc.), images are untouched."
 shortcut = SubResource("Shortcut_vivmo")
 text = "Save As"
+
+[node name="Options" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Save the skin to filesystem, with a directory selection dialog.
+Only settings for the skin are saved (regions, speed, etc.), images are untouched."
+shortcut = SubResource("Shortcut_vivmo")
+text = "Options"
 
 [node name="HSeparator4" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
 layout_mode = 2
@@ -555,16 +564,13 @@ text = "Browse"
 [node name="ReloadTexture" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
-tooltip_text = "Load the updated textures from filesystem.
-Warning: This resets all the unsaved data."
+tooltip_text = "Load the updated textures from filesystem."
 text = "Reload texture"
 
 [node name="Autoreload" type="CheckBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
-tooltip_text = "Reload the texture automatically each time the application receives focus.
-Warning: This resets all the unsaved data."
+tooltip_text = "Reload the texture automatically each time the application receives focus."
 text = "Autoreload"
 
 [node name="Rect2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
@@ -662,9 +668,7 @@ use_native_dialog = true
 auto_translate_mode = 1
 disable_3d = true
 title = "Open a Directory"
-ok_button_text = "Select Current Folder"
 mode_overrides_title = false
-file_mode = 2
 access = 2
 filters = PackedStringArray("")
 show_hidden_files = true
@@ -698,18 +702,21 @@ Hold LMB / Shift - Panning
 Mouse Wheel - Zoom"
 horizontal_alignment = 2
 
-[node name="Label2" type="Label" parent="CanvasLayer/VBoxContainer/Main"]
+[node name="VersionLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main"]
+unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
+anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -299.0
 offset_top = -23.0
-grow_horizontal = 0
+offset_right = -8.0
+grow_horizontal = 2
 grow_vertical = 0
-text = "MF CE SKIN EDITOR - SLOPPY EDITION! "
+text = "MFCE Skin Editor"
+horizontal_alignment = 2
+clip_text = true
+text_overrun_behavior = 1
 
 [node name="Window" type="Window" parent="CanvasLayer"]
 disable_3d = true
@@ -869,21 +876,21 @@ alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="OK" type="Button" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-shortcut = SubResource("Shortcut_2cqfq")
-text = "OK"
-
-[node name="Control2" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
 [node name="Cancel" type="Button" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 shortcut = SubResource("Shortcut_074og")
 text = "Cancel"
+
+[node name="Control2" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OK" type="Button" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+shortcut = SubResource("Shortcut_2cqfq")
+text = "OK"
 
 [node name="Control3" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
@@ -915,6 +922,142 @@ unresizable = true
 dialog_text = "Success"
 dialog_autowrap = true
 
+[node name="OptionsDialog" type="Window" parent="."]
+unique_name_in_owner = true
+disable_3d = true
+title = "Skin Options"
+position = Vector2i(100, 120)
+size = Vector2i(328, 245)
+visible = false
+wrap_controls = true
+
+[node name="Panel" type="Panel" parent="OptionsDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_efxa6")
+
+[node name="MarginContainer" type="MarginContainer" parent="OptionsDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="OptionsDialog/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer2"]
+layout_mode = 2
+text = "Display Name:"
+
+[node name="DisplayNameLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer2"]
+unique_name_in_owner = true
+texture_filter = 1
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("15_vivmo")
+max_length = 15
+emoji_menu_enabled = false
+drag_and_drop_selection_enabled = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer"]
+layout_mode = 2
+text = "Pronouns (Story Text):"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer"]
+layout_mode = 2
+
+[node name="TheyLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
+theme_override_fonts/font = ExtResource("15_vivmo")
+placeholder_text = "they"
+max_length = 15
+drag_and_drop_selection_enabled = false
+
+[node name="ThemLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
+theme_override_fonts/font = ExtResource("15_vivmo")
+placeholder_text = "them"
+max_length = 15
+drag_and_drop_selection_enabled = false
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer3"]
+layout_mode = 2
+text = "Description (Story Text):"
+
+[node name="DescriptionLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
+theme_override_fonts/font = ExtResource("15_vivmo")
+theme_override_font_sizes/font_size = 16
+placeholder_text = "the intrepid and determined plumber"
+max_length = 50
+emoji_menu_enabled = false
+drag_and_drop_selection_enabled = false
+
+[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+custom_minimum_size = Vector2(320, 40)
+layout_mode = 2
+text = "See more skin options in MF:CE under Tweaks/Skin Setup/Skin Tweaks"
+autowrap_mode = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+layout_mode = 2
+size_flags_vertical = 10
+alignment = 1
+
+[node name="Control" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Cancel" type="Button" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+shortcut = SubResource("Shortcut_074og")
+text = "Cancel"
+
+[node name="Control2" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OK" type="Button" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+shortcut = SubResource("Shortcut_2cqfq")
+text = "Save"
+
+[node name="Control3" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [connection signal="animation_finished" from="Preview" to="CanvasLayer/VBoxContainer/Main" method="_anim_finished"]
 [connection signal="frame_changed" from="Preview" to="CanvasLayer/VBoxContainer/Main" method="_frame_changed"]
 [connection signal="dragged" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter" to="CanvasLayer/VBoxContainer/Main" method="_on_h_split_container_dragged"]
@@ -928,6 +1071,7 @@ dialog_autowrap = true
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File/Open" to="CanvasLayer/VBoxContainer/Main" method="open_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File/Save" to="CanvasLayer/VBoxContainer/Main" method="save_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File/SaveAs" to="CanvasLayer/VBoxContainer/Main" method="save_as_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File/Options" to="CanvasLayer/VBoxContainer/Main" method="options_pressed"]
 [connection signal="color_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer/BGcolor" to="." method="_on_bg_color_changed"]
 [connection signal="color_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer2/GridColor" to="." method="_on_grid_color_changed"]
 [connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/Btns/Play" to="CanvasLayer/VBoxContainer/Main" method="play_toggled"]
@@ -949,7 +1093,10 @@ dialog_autowrap = true
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectH" to="CanvasLayer/VBoxContainer/Main" method="update_rect" binds= [3]]
 [connection signal="close_requested" from="CanvasLayer/Window" to="CanvasLayer/Window" method="hide"]
 [connection signal="close_requested" from="CanvasLayer/ModalWindow" to="CanvasLayer/ModalWindow" method="hide"]
-[connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/OK" to="CanvasLayer/VBoxContainer/Main" method="_on_fill_blanks_ok_pressed"]
 [connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/Cancel" to="CanvasLayer/ModalWindow" method="hide"]
+[connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/OK" to="CanvasLayer/VBoxContainer/Main" method="_on_fill_blanks_ok_pressed"]
 [connection signal="confirmed" from="ConfirmationDialog" to="CanvasLayer/VBoxContainer/Main" method="_on_dialog_new_settings_confirmed"]
 [connection signal="confirmed" from="ConfirmationNewState" to="CanvasLayer/VBoxContainer/Main" method="_on_dialog_new_state_confirmed"]
+[connection signal="close_requested" from="OptionsDialog" to="CanvasLayer/VBoxContainer/Main" method="reset_options_dialog"]
+[connection signal="pressed" from="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer/Cancel" to="CanvasLayer/VBoxContainer/Main" method="reset_options_dialog"]
+[connection signal="pressed" from="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer/OK" to="CanvasLayer/VBoxContainer/Main" method="options_confirmed"]

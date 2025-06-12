@@ -23,7 +23,7 @@ const PLAYLIST = [
 	preload("res://music/bombastic-968.mod"),
 ]
 const PL_VOL = [
-	0.0, 2.0, 0.0, -1.0, 2.0,   0.0, 0.0, -2.0, 0.0, 2.0, 4.5,   -1.2, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0
+	0.0, 2.0, 0.0, -1.0, 2.0,   0.0, 0.0, -2.0, 0.0, 2.0, 4.5,   -1.2, -1.0, 0.0, 0.0, 0.0, -1.2, -1.0
 ]
 
 const mute_icon = preload("res://icons/AudioStreamPlayer.png")
