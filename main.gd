@@ -155,25 +155,43 @@ func _set_controls_working(val: bool) -> void:
 	%FillBlanks.disabled = !val
 	%Options.disabled = !val
 
+
+func show_one_dialog(dialog: Window) -> void:
+	if dialog.visible:
+		if dialog.mode == Window.MODE_MINIMIZED:
+			dialog.mode = Window.MODE_WINDOWED
+		dialog.grab_focus()
+		return
+	dialog.show()
+
+func popup_one_dialog(dialog: Window) -> void:
+	if dialog.visible:
+		if dialog.mode == Window.MODE_MINIMIZED:
+			dialog.mode = Window.MODE_WINDOWED
+		dialog.grab_focus()
+		return
+	dialog.popup_centered()
+
+
 #region FileButtons
 ## Called when "save" button is pressed.
 func save_pressed() -> void:
 	if !current_folder_skin:
-		save_dialog.popup_centered()
+		popup_one_dialog(save_dialog)
 	else:
 		save_file(current_folder_skin)
 
 ## Called when "save as" button is pressed.
 func save_as_pressed() -> void:
-	save_dialog.popup_centered()
+	popup_one_dialog(save_dialog)
 
 ## Called when "open" button is pressed.
 func open_pressed() -> void:
-	open_dialog.popup_centered()
+	popup_one_dialog(open_dialog)
 
 ## Called when "new" button is pressed.
 func new_pressed() -> void:
-	new_save_dialog.popup_centered()
+	popup_one_dialog(new_save_dialog)
 
 ## Called when "play" button toggled.
 func play_toggled(toggle: bool) -> void:
@@ -203,7 +221,7 @@ func _on_fill_blanks_pressed() -> void:
 		current_folder_skin.path_join(state_option.get_item_text(state_option.get_selected_id()))
 	]
 	remove_theme_stylebox_override(&"normal")
-	confirm_new_state.popup_centered()
+	popup_one_dialog(confirm_new_state)
 
 func reload_textures() -> void:
 	_update_animations()
@@ -253,6 +271,8 @@ var _last_frame_amount: int
 var _frame_setter_cooldown: bool
 
 func _process(_delta: float) -> void:
+	if Input.mouse_mode > Input.MOUSE_MODE_HIDDEN:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	if _frame_setter_cooldown:
 		if modal_window.visible: return
 		_frame_setter_cooldown = false
@@ -263,18 +283,21 @@ func set_frames(value: int) -> void:
 	if modal_window.visible: return
 	if !_frame_setter_cooldown && _last_frame_amount > value && !no_frame_del_popup:
 		modal_window.size = Vector2i(100, 100)
-		modal_window.popup_centered()
+		popup_one_dialog(modal_window)
 		pending_frames = value
 		spinbox_frames.value = _last_frame_amount
 		return
-	spinbox_frames.value = value
 	
+	if !preview.animation:
+		push_error("No preview animation; total frames will not change")
+		return
+	
+	spinbox_frames.value = value
 	prints(_last_frame_amount, value)
 	
-	# BUG: This should be a loop
 	if _last_frame_amount < value:
-		print("Adding a new frame!")
-		if preview.animation:
+		print("Adding new frames! Amount: %d" % [value - _last_frame_amount])
+		for i in abs(value - _last_frame_amount):
 			var new_atlas: AtlasTexture = preview.sprite_frames.get_frame_texture(preview.animation, preview.frame).duplicate()
 			current_skin_setting.animation_durations[preview.animation].append(1.0)
 			preview.sprite_frames.add_frame(
@@ -285,7 +308,8 @@ func set_frames(value: int) -> void:
 		update_anim_time()
 	
 	elif _last_frame_amount > value:
-		if preview.animation:
+		print("Deleting frames! Amount: %d" % [abs(value - _last_frame_amount)])
+		for i in abs(_last_frame_amount - value):
 			var max_frames: int = preview.sprite_frames.get_frame_count(preview.animation) - 1
 			preview.sprite_frames.remove_frame(preview.animation, max_frames)
 			current_skin_setting.animation_regions[preview.animation].pop_back()
@@ -676,12 +700,7 @@ func _on_dialog_new_settings_confirmed() -> void:
 
 ## Skin Options button
 func options_pressed() -> void:
-	if options_dialog.visible:
-		if options_dialog.mode == Window.MODE_MINIMIZED:
-			options_dialog.mode = Window.MODE_WINDOWED
-		options_dialog.grab_focus()
-		return
-	options_dialog.popup_centered()
+	popup_one_dialog(options_dialog)
 
 func reset_options_dialog() -> void:
 	options_dialog.hide()
@@ -721,9 +740,4 @@ func _on_display_name_line_text_changed(new_text: String) -> void:
 
 
 func _on_about_pressed() -> void:
-	if about_window.visible:
-		if about_window.mode == Window.MODE_MINIMIZED:
-			about_window.mode = Window.MODE_WINDOWED
-		about_window.grab_focus()
-		return
-	about_window.show()
+	show_one_dialog(about_window)
