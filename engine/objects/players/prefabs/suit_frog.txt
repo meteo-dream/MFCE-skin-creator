@@ -71,7 +71,7 @@ animation_loops = {
 "attack": false,
 "attack_air": false,
 "back": false,
-"climb": false,
+"climb": true,
 "crouch": false,
 "default": false,
 "fall": false,
