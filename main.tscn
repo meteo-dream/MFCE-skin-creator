@@ -1,18 +1,18 @@
 [gd_scene load_steps=32 format=3 uid="uid://byxkkvyv24cbb"]
 
 [ext_resource type="Script" uid="uid://d26h506i5dbi6" path="res://main.gd" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://bcxcbi4ltmp25" path="res://scene.gd" id="2_0xm2m"]
-[ext_resource type="Script" uid="uid://gs5vwgysp4d5" path="res://camera.gd" id="2_h2yge"]
-[ext_resource type="Script" uid="uid://cuo1farb8s61y" path="res://collisions_rect.gd" id="2_w48qg"]
-[ext_resource type="Script" uid="uid://btm26l65p0wxt" path="res://sprite_preview.gd" id="4_1bvp3"]
+[ext_resource type="Script" uid="uid://bcxcbi4ltmp25" path="res://scripts/scene.gd" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://gs5vwgysp4d5" path="res://scripts/camera.gd" id="2_h2yge"]
+[ext_resource type="Script" uid="uid://cuo1farb8s61y" path="res://scripts/collisions_rect.gd" id="2_w48qg"]
+[ext_resource type="Script" uid="uid://btm26l65p0wxt" path="res://scripts/sprite_preview.gd" id="4_1bvp3"]
 [ext_resource type="Texture2D" uid="uid://dxquylec62jfl" path="res://alpha_text.png" id="4_7mycd"]
-[ext_resource type="Script" uid="uid://b04ty5ewju1ij" path="res://music_controls.gd" id="4_efxa6"]
+[ext_resource type="Script" uid="uid://b04ty5ewju1ij" path="res://scripts/music_controls.gd" id="4_efxa6"]
 [ext_resource type="Texture2D" uid="uid://m868e85gd744" path="res://icons/Loop.svg" id="5_kek77"]
 [ext_resource type="Texture2D" uid="uid://c2n0hseqy4ilt" path="res://icons/TransitionEnd.svg" id="6_4c57u"]
 [ext_resource type="Texture2D" uid="uid://bja8gtdnquhf0" path="res://icons/mute.png" id="6_dg77c"]
 [ext_resource type="Texture2D" uid="uid://b3fn56t2mfves" path="res://icons/AudioStreamPlayer.png" id="7_ycdy4"]
-[ext_resource type="Script" uid="uid://dt707ah351fv8" path="res://color_pick_button.gd" id="9_dg77c"]
-[ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://spinbox.gd" id="10_dg77c"]
+[ext_resource type="Script" uid="uid://dt707ah351fv8" path="res://scripts/color_pick_button.gd" id="9_dg77c"]
+[ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://scripts/spinbox.gd" id="10_dg77c"]
 [ext_resource type="FontFile" uid="uid://c642yw1llh7ke" path="res://fonts/tahomabd.ttf" id="15_vivmo"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_lquwl"]
@@ -311,7 +311,6 @@ unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Save the skin to filesystem, with a directory selection dialog.
 Only settings for the skin are saved (regions, speed, etc.), images are untouched."
-shortcut = SubResource("Shortcut_vivmo")
 text = "Options"
 
 [node name="HSeparator4" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
@@ -543,7 +542,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Fill missing animation textures with placeholders."
-text = "Fill blanks"
+text = "Create Anims"
 
 [node name="Bottom" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter"]
 layout_mode = 2
@@ -571,6 +570,7 @@ text = "Reload texture"
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Reload the texture automatically each time the application receives focus."
+button_pressed = true
 text = "Autoreload"
 
 [node name="Rect2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
@@ -583,6 +583,7 @@ layout_mode = 2
 tooltip_text = "X Position of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+suffix = "px"
 script = ExtResource("10_dg77c")
 
 [node name="RectY" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
@@ -591,6 +592,7 @@ layout_mode = 2
 tooltip_text = "Y Position of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+suffix = "px"
 script = ExtResource("10_dg77c")
 
 [node name="RectW" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
@@ -599,6 +601,7 @@ layout_mode = 2
 tooltip_text = "Width of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+suffix = "px"
 script = ExtResource("10_dg77c")
 
 [node name="RectH" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
@@ -607,6 +610,7 @@ layout_mode = 2
 tooltip_text = "Height of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
+suffix = "px"
 script = ExtResource("10_dg77c")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
@@ -668,7 +672,9 @@ use_native_dialog = true
 auto_translate_mode = 1
 disable_3d = true
 title = "Open a Directory"
+ok_button_text = "Select Current Folder"
 mode_overrides_title = false
+file_mode = 2
 access = 2
 filters = PackedStringArray("")
 show_hidden_files = true
@@ -718,14 +724,15 @@ horizontal_alignment = 2
 clip_text = true
 text_overrun_behavior = 1
 
-[node name="Window" type="Window" parent="CanvasLayer"]
+[node name="AboutWindow" type="Window" parent="CanvasLayer"]
+unique_name_in_owner = true
 disable_3d = true
 title = "About"
 initial_position = 2
 size = Vector2i(640, 400)
 visible = false
 
-[node name="Panel" type="Panel" parent="CanvasLayer/Window"]
+[node name="Panel" type="Panel" parent="CanvasLayer/AboutWindow"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -733,7 +740,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_efxa6")
 
-[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/Window"]
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/AboutWindow"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -744,49 +751,49 @@ theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Window/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/AboutWindow/MarginContainer"]
 layout_mode = 2
 
-[node name="Control" type="HBoxContainer" parent="CanvasLayer/Window/MarginContainer/VBoxContainer"]
+[node name="Control" type="HBoxContainer" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer"]
 layout_mode = 2
 alignment = 1
 
-[node name="LinkButton" type="LinkButton" parent="CanvasLayer/Window/MarginContainer/VBoxContainer/Control"]
+[node name="LinkButton" type="LinkButton" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer/Control"]
 layout_mode = 2
 size_flags_horizontal = 2
 theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
 text = "GitHub Repository (MIT License)"
-uri = "https://github.com/SuperDooJMan/MFCE-skin-creator"
+uri = "https://github.com/meteo-dream/MFCE-skin-creator"
 
-[node name="LinkButton2" type="LinkButton" parent="CanvasLayer/Window/MarginContainer/VBoxContainer/Control"]
+[node name="LinkButton2" type="LinkButton" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer/Control"]
 layout_mode = 2
 size_flags_horizontal = 2
 theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
 text = "Mario Forever Community Edition"
 uri = "https://mfce.rnx.su"
 
-[node name="Control2" type="HBoxContainer" parent="CanvasLayer/Window/MarginContainer/VBoxContainer"]
+[node name="Control2" type="HBoxContainer" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer"]
 layout_mode = 2
 alignment = 1
 
-[node name="LinkButton" type="LinkButton" parent="CanvasLayer/Window/MarginContainer/VBoxContainer/Control2"]
+[node name="LinkButton" type="LinkButton" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer/Control2"]
 layout_mode = 2
 size_flags_horizontal = 2
 theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
 text = "Skins Documentation for MFCE"
 uri = "https://gist.github.com/jue131/e425619bc898df9feaa56cde6588216e"
 
-[node name="LinkButton2" type="LinkButton" parent="CanvasLayer/Window/MarginContainer/VBoxContainer/Control2"]
+[node name="LinkButton2" type="LinkButton" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer/Control2"]
 layout_mode = 2
 size_flags_horizontal = 2
 theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
 text = "Thunder Engine (on GitHub)"
 uri = "https://github.com/Thunder-Engine-Dev/thunder-engine"
 
-[node name="HSeparator" type="HSeparator" parent="CanvasLayer/Window/MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/Window/MarginContainer/VBoxContainer"]
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 2
@@ -1066,7 +1073,7 @@ size_flags_horizontal = 3
 [connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls/Loop" to="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" method="_on_loop_toggled"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls/Next" to="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" method="_on_next_pressed"]
 [connection signal="finished" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls/AudioStreamPlayer" to="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" method="_on_audio_stream_player_finished"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls/About" to="CanvasLayer/Window" method="show"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls/About" to="CanvasLayer/VBoxContainer/Main" method="_on_about_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File/New" to="CanvasLayer/VBoxContainer/Main" method="new_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File/Open" to="CanvasLayer/VBoxContainer/Main" method="open_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File/Save" to="CanvasLayer/VBoxContainer/Main" method="save_pressed"]
@@ -1091,7 +1098,7 @@ size_flags_horizontal = 3
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectY" to="CanvasLayer/VBoxContainer/Main" method="update_rect" binds= [1]]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectW" to="CanvasLayer/VBoxContainer/Main" method="update_rect" binds= [2]]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectH" to="CanvasLayer/VBoxContainer/Main" method="update_rect" binds= [3]]
-[connection signal="close_requested" from="CanvasLayer/Window" to="CanvasLayer/Window" method="hide"]
+[connection signal="close_requested" from="CanvasLayer/AboutWindow" to="CanvasLayer/AboutWindow" method="hide"]
 [connection signal="close_requested" from="CanvasLayer/ModalWindow" to="CanvasLayer/ModalWindow" method="hide"]
 [connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/Cancel" to="CanvasLayer/ModalWindow" method="hide"]
 [connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/OK" to="CanvasLayer/VBoxContainer/Main" method="_on_fill_blanks_ok_pressed"]

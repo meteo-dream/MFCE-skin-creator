@@ -10,13 +10,12 @@ config_version=5
 
 [application]
 
-config/name="mario forever community edition: SUPER skin editor! (Sloppy edition)"
+config/name="Mario Forever Community Edition Skin Editor"
 config/version="1.0.1"
 run/main_scene="res://main.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="MeteoDream/Skin Editor"
 config/features=PackedStringArray("4.4", "Mobile")
-run/low_processor_mode=true
 config/icon="res://icon.svg"
 
 [audio]

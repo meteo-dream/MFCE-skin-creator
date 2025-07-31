@@ -1,33 +1,26 @@
-[gd_resource type="Resource" script_class="PlayerSkin" load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://engine/objects/players/player_skin.gd" id="1_nxsgi"]
-
-[resource]
-script = ExtResource("1_nxsgi")
-name = &"small"
 animation_speeds = {
-"appear": 30.0,
+"appear": 30,
 "attack": 15,
 "attack_air": 15,
 "back": 0,
-"climb": 0,
-"crouch": 0.0,
+"climb": 5,
+"crouch": 0,
 "default": 0,
 "fall": 0,
-"grab": 5.0,
-"hold_crouch": 0.0,
-"hold_default": 0.0,
-"hold_fall": 0.0,
+"grab": 5,
+"hold_crouch": 0,
+"hold_default": 0,
+"hold_fall": 0,
 "hold_jump": 0,
-"hold_look_up": 0.0,
+"hold_look_up": 0,
 "hold_swim": 8,
-"hold_walk": 6.0,
-"idle": 4.0,
+"hold_walk": 6,
+"idle": 5,
 "jump": 0,
 "kick": 4,
 "look_up": 0,
 "p_fall": 0,
-"p_jump": 0.0,
+"p_jump": 0,
 "p_run": 8,
 "skid": 0,
 "slide": 0,

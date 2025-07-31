@@ -42,17 +42,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			dragging = false
 	
 	elif event is InputEventMouseButton:
-		#var zoom_delta: float = 0
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom_in()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom_out()
-			
-		#zoom.x += zoom_delta
-		#zoom.y += zoom_delta
-			#
-		#zoom = clamp(zoom, Vector2.ONE * 0.5, Vector2.ONE * 15.0)
-			
 		
 		if Input.is_action_pressed("ui_drag_camera"):
 			launch_dir = Vector2.ZERO

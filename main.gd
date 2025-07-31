@@ -21,6 +21,7 @@ const SETTINGS_DICT_NAMES = [
 @onready var confirm_new_state: ConfirmationDialog = %ConfirmationNewState
 @onready var image_creation_dialog: AcceptDialog = %ImageCreationDialog
 @onready var options_dialog: Window = %OptionsDialog
+@onready var about_window: Window = %AboutWindow
 
 var skin_settings: Dictionary
 var current_skin_setting: PlayerSkin
@@ -112,6 +113,7 @@ func _notification(what: int) -> void:
 		if !%Autoreload.button_pressed: return
 		if current_skin_setting:
 			_update_animations()
+			update_anim_options()
 
 
 func _update_animations() -> void:
@@ -183,25 +185,29 @@ func play_toggled(toggle: bool) -> void:
 		preview.pause()
 		_update_preview()
 
-## Called when "stop" button pressed.
+## Called when "stop" button gets pressed.
 func stop_pressed() -> void:
 	preview.stop()
 	_update_preview()
 	play_toggled(false)
 	%Play.button_pressed = false
 
+## Called when "loop" checkbox gets toggled.
 func loop_pressed(toggle: bool) -> void:
 	current_skin_setting.animation_loops[preview.animation] = toggle
 	preview.sprite_frames.set_animation_loop(preview.animation, toggle)
 
+## Called when "create anims" button gets pressed.
 func _on_fill_blanks_pressed() -> void:
 	confirm_new_state.dialog_text = confirm_state_text % [
 		current_folder_skin.path_join(state_option.get_item_text(state_option.get_selected_id()))
 	]
+	remove_theme_stylebox_override(&"normal")
 	confirm_new_state.popup_centered()
 
 func reload_textures() -> void:
 	_update_animations()
+	update_anim_options()
 
 func _on_browse_pressed() -> void:
 	print("Browsing: " + current_folder_skin.path_join(current_skin_setting.name))
@@ -262,6 +268,8 @@ func set_frames(value: int) -> void:
 		spinbox_frames.value = _last_frame_amount
 		return
 	spinbox_frames.value = value
+	
+	prints(_last_frame_amount, value)
 	
 	# BUG: This should be a loop
 	if _last_frame_amount < value:
@@ -359,6 +367,9 @@ func set_state(idx: int) -> void:
 func _update_preview() -> void:
 	var frame := preview.frame
 	var item_text := anim_option.get_item_text(anim_option.selected)
+	if !preview.sprite_frames.has_animation(item_text):
+		push_warning("Preview update fail: Animation '%s' doesn't exist." % [item_text])
+		return
 	var texture := preview.sprite_frames.get_frame_texture(item_text, frame)
 	
 	if texture is AtlasTexture:
@@ -565,6 +576,7 @@ func _load_skin_settings(path: String, power: String) -> PlayerSkin:
 	output.res_path = path.get_base_dir()
 	return output
 
+## Loads txt files
 func load_misc_files(path: String) -> void:
 	misc_files.name = ""
 	if FileAccess.file_exists(path.path_join("name.txt")):
@@ -580,7 +592,7 @@ func load_misc_files(path: String) -> void:
 				if _line:
 					misc_files.story[i] = _line
 
-## Disables animation that unavalible for current state.
+## Disables animations that are unavailable for current state.
 func update_anim_options() -> void:
 	var frames: SpriteFrames = current_skin_setting.gen_animated_sprites()
 	preview.sprite_frames = frames
@@ -664,6 +676,11 @@ func _on_dialog_new_settings_confirmed() -> void:
 
 ## Skin Options button
 func options_pressed() -> void:
+	if options_dialog.visible:
+		if options_dialog.mode == Window.MODE_MINIMIZED:
+			options_dialog.mode = Window.MODE_WINDOWED
+		options_dialog.grab_focus()
+		return
 	options_dialog.popup_centered()
 
 func reset_options_dialog() -> void:
@@ -701,3 +718,12 @@ func options_confirmed() -> void:
 
 func _on_display_name_line_text_changed(new_text: String) -> void:
 	%DisplayNameLine.text = new_text.to_upper()
+
+
+func _on_about_pressed() -> void:
+	if about_window.visible:
+		if about_window.mode == Window.MODE_MINIMIZED:
+			about_window.mode = Window.MODE_WINDOWED
+		about_window.grab_focus()
+		return
+	about_window.show()
