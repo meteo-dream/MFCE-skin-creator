@@ -282,13 +282,13 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Create a new skin at the specified location."
-text = "New"
+text = "New..."
 
 [node name="Open" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Edit an existing skin from filesystem."
-text = "Open"
+text = "Open..."
 
 [node name="Save" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
 unique_name_in_owner = true
@@ -304,14 +304,14 @@ layout_mode = 2
 tooltip_text = "Save the skin to filesystem, with a directory selection dialog.
 Only settings for the skin are saved (regions, speed, etc.), images are untouched."
 shortcut = SubResource("Shortcut_vivmo")
-text = "Save As"
+text = "Save As..."
 
 [node name="Options" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Save the skin to filesystem, with a directory selection dialog.
 Only settings for the skin are saved (regions, speed, etc.), images are untouched."
-text = "Options"
+text = "Options..."
 
 [node name="HSeparator4" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
 layout_mode = 2
@@ -538,11 +538,23 @@ text = "Powerup:"
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="FillBlanks" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Powerup"]
+[node name="ImageCreation" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States"]
+layout_mode = 2
+alignment = 1
+
+[node name="BrowseOverrides" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/ImageCreation"]
+layout_mode = 2
+tooltip_text = "Open the directory where overrides for the \"placeholder\" images can be set.
+They are used for making missing animations.
+You can replace spritesheet images and set up the offsets, which will be used
+for slicing into individual animation textures."
+text = "Browse Overrides..."
+
+[node name="FillBlanks" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/ImageCreation"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Fill missing animation textures with placeholders."
-text = "Create Anims"
+text = "Create Missing Anims..."
 
 [node name="Bottom" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter"]
 layout_mode = 2
@@ -558,13 +570,13 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Open the animation folder on your filesystem."
-text = "Browse"
+text = "Browse..."
 
 [node name="ReloadTexture" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Load the updated textures from filesystem."
-text = "Reload texture"
+text = "Reload Texture"
 
 [node name="Autoreload" type="CheckBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
 unique_name_in_owner = true
@@ -1091,7 +1103,8 @@ size_flags_horizontal = 3
 [connection signal="item_selected" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Animation/AnimOption" to="CanvasLayer/VBoxContainer/Main" method="set_animation"]
 [connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Animation/Loop" to="CanvasLayer/VBoxContainer/Main" method="loop_pressed"]
 [connection signal="item_selected" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Powerup/StateSelect" to="CanvasLayer/VBoxContainer/Main" method="set_state"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Powerup/FillBlanks" to="CanvasLayer/VBoxContainer/Main" method="_on_fill_blanks_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/ImageCreation/BrowseOverrides" to="CanvasLayer/VBoxContainer/Main" method="_on_browse_overrides_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/ImageCreation/FillBlanks" to="CanvasLayer/VBoxContainer/Main" method="_on_fill_blanks_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2/Browse" to="CanvasLayer/VBoxContainer/Main" method="_on_browse_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2/ReloadTexture" to="CanvasLayer/VBoxContainer/Main" method="reload_textures"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectX" to="CanvasLayer/VBoxContainer/Main" method="update_rect" binds= [0]]

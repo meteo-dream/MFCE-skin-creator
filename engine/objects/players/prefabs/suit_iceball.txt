@@ -25,6 +25,7 @@ animation_speeds = {
 "skid": 0,
 "slide": 0,
 "swim": 8,
+"swim_idle": 8,
 "walk": 6,
 "warp": 0,
 "win": 0
@@ -56,6 +57,7 @@ animation_regions = {
 "skid": [Rect2(0, 0, 48, 64)],
 "slide": [Rect2(0, 0, 48, 64)],
 "swim": [Rect2(0, 0, 48, 64), Rect2(48, 0, 48, 64), Rect2(96, 0, 48, 64), Rect2(0, 0, 48, 64), Rect2(48, 0, 48, 64), Rect2(96, 0, 48, 64), Rect2(144, 0, 48, 64), Rect2(0, 0, 48, 64)],
+"swim_idle": [Rect2(0, 0, 48, 64), Rect2(48, 0, 48, 64)],
 "walk": [Rect2(0, 0, 48, 64), Rect2(48, 0, 48, 64), Rect2(96, 0, 48, 64)],
 "warp": [Rect2(0, 0, 48, 64)],
 "win": [Rect2(0, 0, 48, 64)]
@@ -87,6 +89,7 @@ animation_loops = {
 "skid": false,
 "slide": false,
 "swim": true,
+"swim_idle": true,
 "walk": true,
 "warp": true,
 "win": true
@@ -118,6 +121,7 @@ animation_durations = {
 "skid": [1.0],
 "slide": [1.0],
 "swim": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+"swim_idle": [1.0, 1.0],
 "walk": [1.0, 1.0, 1.0],
 "warp": [1.0],
 "win": [1.0]

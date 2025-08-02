@@ -1,4 +1,5 @@
 extends Control
+class_name Main
 
 const PROJECT_NAME := "MF: CE Skin Editor v%s"
 
@@ -9,6 +10,7 @@ const BAD_NAMES = [
 const SETTINGS_DICT_NAMES = [
 	"animation_speeds", "animation_regions", "animation_loops", "animation_durations",
 ]
+
 @onready var version_label: Label = %VersionLabel
 @onready var version_string: String = ProjectSettings.get_setting("application/config/version", "")
 
@@ -57,6 +59,7 @@ var no_frame_del_popup: bool
 
 func _ready() -> void:
 	_set_controls_working(false)
+	
 	if DisplayServer.get_swap_cancel_ok():
 		var options_par = options_dialog.get_node("MarginContainer/VBoxContainer3/HBoxContainer")
 		options_par.move_child(options_par.get_node("OK"), 1)
@@ -228,9 +231,15 @@ func reload_textures() -> void:
 	update_anim_options()
 
 func _on_browse_pressed() -> void:
-	print("Browsing: " + current_folder_skin.path_join(current_skin_setting.name))
-	OS.shell_open(current_folder_skin.path_join(current_skin_setting.name))
+	var _path := current_folder_skin.path_join(current_skin_setting.name)
+	print("Browsing: " + _path)
+	OS.shell_open(_path)
+
+func _on_browse_overrides_pressed() -> void:
+	print("Browsing: " + AnimOverrides.OVERRIDES_DIR)
+	OS.shell_open(OS.get_user_data_dir().path_join("slicing_overrides"))
 #endregion FileButtons
+
 
 #region AnimationButtons
 ## Calls when "frame" spinbox changed.
@@ -293,7 +302,7 @@ func set_frames(value: int) -> void:
 		return
 	
 	spinbox_frames.value = value
-	prints(_last_frame_amount, value)
+	#prints(_last_frame_amount, value)
 	
 	if _last_frame_amount < value:
 		print("Adding new frames! Amount: %d" % [value - _last_frame_amount])

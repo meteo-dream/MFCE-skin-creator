@@ -21,136 +21,7 @@ const SETTINGS: Dictionary = {
 	"iceball": ("res://engine/objects/players/prefabs/suit_iceball.txt"),
 	"frog": ("res://engine/objects/players/prefabs/suit_frog.txt"),
 }
-const OFFSETS_SMALL: Dictionary = {
-	"appear": [Rect2(32*3, 0, 32, 64), Rect2(32*4, 0, 32, 64), Rect2(32*0, 0, 32, 64)],
-	"attack": [Rect2(32*5, 0, 32, 64)],
-	"attack_air": [Rect2(32*8, 0, 32, 64), Rect2(32*9, 0, 32, 64), Rect2(32*10, 0, 32, 64)],
-	"back": [Rect2(32*16, 0, 32, 64)],
-	"climb": [Rect2(32*12, 0, 32, 64), Rect2(32*12, 64, 32, 64)],
-	"crouch": [Rect2(32*7, 0, 32, 64)],
-	"default": [Rect2(32*0, 0, 32, 64)],
-	"fall": [Rect2(32*6, 0, 32, 64)],
-	"grab": [Rect2(32*3, 64, 32, 64), Rect2(32*4, 64, 32, 64)],
-	"hold_crouch": [Rect2(32*6, 64, 32, 64)],
-	"hold_default": [Rect2(32*0, 64, 32, 64)],
-	"hold_fall": [Rect2(32*1, 64, 32, 64)],
-	"hold_jump": [Rect2(32*1, 64, 32, 64)],
-	"hold_look_up": [Rect2(32*0, 64, 32, 64)],
-	"hold_swim": [Rect2(32*8, 0, 32, 64), Rect2(32*11, 0, 32, 64)],
-	"hold_walk": [Rect2(32*1, 64, 32, 64), Rect2(32*2, 64, 32, 64), Rect2(32*0, 64, 32, 64)],
-	"idle": [Rect2(32*0, 0, 32, 64)],
-	"jump": [Rect2(32*6, 0, 32, 64)],
-	"kick": [Rect2(32*5, 64, 32, 64)],
-	"look_up": [Rect2(32*0, 0, 32, 64)],
-	"p_run": [Rect2(32*1, 0, 32, 64), Rect2(32*2, 0, 32, 64), Rect2(32*0, 0, 32, 64)],
-	"p_fall": [Rect2(32*6, 0, 32, 64)],
-	"p_jump": [Rect2(32*6, 0, 32, 64)],
-	"skid": [Rect2(32*15, 0, 32, 64)],
-	"slide": [Rect2(32*13, 0, 32, 64)],
-	"swim": [Rect2(32*8, 0, 32, 64), Rect2(32*9, 0, 32, 64), Rect2(32*10, 0, 32, 64), Rect2(32*11, 0, 32, 64)],
-	"walk": [Rect2(32*1, 0, 32, 64), Rect2(32*2, 0, 32, 64), Rect2(32*0, 0, 32, 64)],
-	"warp": [Rect2(32*14, 0, 32, 64)],
-	"win": [Rect2(32*16, 64, 32, 64)],
-}
-const OFFSETS_SUPER: Dictionary = {
-	"appear": [Rect2(48*3, 0, 48, 64), Rect2(48*4, 0, 48, 64), Rect2(48*2, 0, 48, 64)],
-	"attack": [Rect2(48*5, 0, 48, 64)],
-	"attack_air": [Rect2(48*8, 0, 48, 64), Rect2(48*9, 0, 48, 64), Rect2(48*10, 0, 48, 64)],
-	"back": [Rect2(48*16, 0, 48, 64)],
-	"climb": [Rect2(48*12, 0, 48, 64), Rect2(48*12, 64, 48, 64)],
-	"crouch": [Rect2(48*7, 0, 48, 64)],
-	"default": [Rect2(48*0, 0, 48, 64)],
-	"fall": [Rect2(48*6, 0, 48, 64)],
-	"grab": [Rect2(48*3, 64, 48, 64), Rect2(48*4, 64, 48, 64)],
-	"hold_crouch": [Rect2(48*6, 64, 48, 64)],
-	"hold_default": [Rect2(48*0, 64, 48, 64)],
-	"hold_fall": [Rect2(48*1, 64, 48, 64)],
-	"hold_jump": [Rect2(48*1, 64, 48, 64)],
-	"hold_look_up": [Rect2(48*0, 64, 48, 64)],
-	"hold_swim": [Rect2(48*8, 0, 48, 64), Rect2(48*11, 0, 48, 64)],
-	"hold_walk": [Rect2(48*1, 64, 48, 64), Rect2(48*2, 64, 48, 64), Rect2(48*0, 64, 48, 64)],
-	"idle": [Rect2(48*0, 0, 48, 64)],
-	"jump": [Rect2(48*6, 0, 48, 64)],
-	"kick": [Rect2(48*5, 64, 48, 64)],
-	"look_up": [Rect2(48*0, 0, 48, 64)],
-	"p_run": [Rect2(48*1, 0, 48, 64), Rect2(48*2, 0, 48, 64), Rect2(48*0, 0, 48, 64)],
-	"p_fall": [Rect2(48*6, 0, 48, 64)],
-	"p_jump": [Rect2(48*6, 0, 48, 64)],
-	"skid": [Rect2(48*15, 0, 48, 64)],
-	"slide": [Rect2(48*13, 0, 48, 64)],
-	"swim": [Rect2(48*8, 0, 48, 64), Rect2(48*9, 0, 48, 64), Rect2(48*10, 0, 48, 64), Rect2(48*11, 0, 48, 64)],
-	"walk": [Rect2(48*1, 0, 48, 64), Rect2(48*2, 0, 48, 64), Rect2(48*0, 0, 48, 64)],
-	"warp": [Rect2(48*14, 0, 48, 64)],
-	"win": [Rect2(48*16, 64, 48, 64)],
-}
-const OFFSETS_FULL: Dictionary = {
-	"appear": [Rect2(48*3, 0, 48, 64), Rect2(48*2, 0, 48, 64)],
-	"attack": [Rect2(48*4, 0, 48, 64)],
-	"attack_air": [Rect2(48*7, 0, 48, 64), Rect2(48*8, 0, 48, 64), Rect2(48*9, 0, 48, 64)],
-	"back": [Rect2(48*15, 0, 48, 64)],
-	"climb": [Rect2(48*11, 0, 48, 64), Rect2(48*11, 64, 48, 64)],
-	"crouch": [Rect2(48*6, 0, 48, 64)],
-	"default": [Rect2(48*0, 0, 48, 64)],
-	"fall": [Rect2(48*5, 0, 48, 64)],
-	"grab": [Rect2(48*3, 64, 48, 64), Rect2(48*4, 64, 48, 64)],
-	"hold_crouch": [Rect2(48*6, 64, 48, 64)],
-	"hold_default": [Rect2(48*0, 64, 48, 64)],
-	"hold_fall": [Rect2(48*1, 64, 48, 64)],
-	"hold_jump": [Rect2(48*1, 64, 48, 64)],
-	"hold_look_up": [Rect2(48*0, 64, 48, 64)],
-	"hold_swim": [Rect2(48*7, 0, 48, 64), Rect2(48*10, 0, 48, 64)],
-	"hold_walk": [Rect2(48*1, 64, 48, 64), Rect2(48*2, 64, 48, 64), Rect2(48*0, 64, 48, 64)],
-	"idle": [Rect2(48*0, 0, 48, 64)],
-	"jump": [Rect2(48*5, 0, 48, 64)],
-	"kick": [Rect2(48*5, 64, 48, 64)],
-	"look_up": [Rect2(48*0, 0, 48, 64)],
-	"p_run": [Rect2(48*1, 0, 48, 64), Rect2(48*2, 0, 48, 64), Rect2(48*0, 0, 48, 64)],
-	"p_fall": [Rect2(48*5, 0, 48, 64)],
-	"p_jump": [Rect2(48*5, 0, 48, 64)],
-	"skid": [Rect2(48*14, 0, 48, 64)],
-	"slide": [Rect2(48*12, 0, 48, 64)],
-	"swim": [Rect2(48*7, 0, 48, 64), Rect2(48*8, 0, 48, 64), Rect2(48*9, 0, 48, 64), Rect2(48*10, 0, 48, 64)],
-	"walk": [Rect2(48*1, 0, 48, 64), Rect2(48*2, 0, 48, 64), Rect2(48*0, 0, 48, 64)],
-	"warp": [Rect2(48*13, 0, 48, 64)],
-	"win": [Rect2(48*15, 64, 48, 64)],
-}
-const OFFSETS_FROG: Dictionary = {
-	"appear": [Rect2(48*3, 0, 48, 72), Rect2(48*4, 0, 48, 72), Rect2(48*5, 0, 48, 72), Rect2(48*6, 0, 48, 72), Rect2(48*6, 72, 48, 72)],
-	"attack": [Rect2(48*2, 0, 48, 72)],
-	"attack_air": [Rect2(48*7, 0, 48, 72), Rect2(48*8, 0, 48, 72), Rect2(48*9, 0, 48, 72)],
-	"back": [Rect2(48*15, 0, 48, 72)],
-	"climb": [Rect2(48*11, 0, 48, 72), Rect2(48*10, 0, 48, 72)],
-	"crouch": [Rect2(48*0, 0, 48, 72)],
-	"default": [Rect2(48*0, 0, 48, 72)],
-	"fall": [Rect2(48*2, 0, 48, 72)],
-	"grab": [Rect2(48*3, 72, 48, 72), Rect2(48*4, 72, 48, 72)],
-	"hold_crouch": [Rect2(48*0, 72, 48, 72)],
-	"hold_default": [Rect2(48*0, 72, 48, 72)],
-	"hold_fall": [Rect2(48*1, 72, 48, 72)],
-	"hold_jump": [Rect2(48*1, 72, 48, 72)],
-	"hold_look_up": [Rect2(48*0, 72, 48, 72)],
-	"hold_swim": [Rect2(48*1, 72, 48, 72)],
-	"hold_walk": [Rect2(48*1, 72, 48, 72), Rect2(48*2, 72, 48, 72), Rect2(48*0, 72, 48, 72)],
-	"idle": [Rect2(48*0, 0, 48, 72)],
-	"jump": [Rect2(48*2, 0, 48, 72)],
-	"kick": [Rect2(48*5, 72, 48, 72)],
-	"look_up": [Rect2(48*0, 0, 48, 72)],
-	"p_run": [Rect2(48*0, 0, 48, 72), Rect2(48*1, 0, 48, 72), Rect2(48*2, 0, 48, 72)],
-	"p_fall": [Rect2(48*2, 0, 48, 72)],
-	"p_jump": [Rect2(48*2, 0, 48, 72)],
-	"skid": [Rect2(48*0, 0, 48, 72)],
-	"slide": [Rect2(48*12, 0, 48, 72)],
-	"swim": [Rect2(48*7, 0, 48, 72), Rect2(48*8, 0, 48, 72), Rect2(48*9, 0, 48, 72)],
-	"walk": [Rect2(48*0, 0, 48, 72), Rect2(48*1, 0, 48, 72), Rect2(48*2, 0, 48, 72)],
-	"warp": [Rect2(48*13, 0, 48, 72)],
-	"win": [Rect2(48*15, 72, 48, 72)],
-	"swim_down": [Rect2(48*9, 72, 48, 72), Rect2(48*10, 72, 48, 72), Rect2(48*11, 72, 48, 72)],
-	"swim_up": [Rect2(48*12, 72, 48, 72), Rect2(48*13, 72, 48, 72), Rect2(48*14, 72, 48, 72)],
-	"swim_idle": [Rect2(48*7, 72, 48, 72), Rect2(48*8, 72, 48, 72)],
-}
 
-func _ready() -> void:
-	pass
 
 static func copy_settings(suit: String, path: String) -> String:
 	if !suit in SETTINGS:
@@ -166,10 +37,14 @@ static func copy_settings(suit: String, path: String) -> String:
 	file.store_string(txt)
 	return "Success"
 
+
 static func gen_image_files(suit: String, path: String) -> String:
 	if !suit in TEXTURES:
 		return "Error: " + error_string(ERR_INVALID_PARAMETER)
-	var img: Image = TEXTURES[suit].get_image()
+	var img: Image = Image.load_from_file(AnimOverrides.OVERRIDES_DIR.path_join(suit + ".png"))
+	if !img:
+		print("Error loading overriden image. Using defaults.")
+		img = TEXTURES[suit].get_image()
 	var _offsets: Dictionary = get_offset_dict(suit)
 	var created_count: int = 0
 	for i: String in _offsets.keys():
@@ -189,6 +64,7 @@ static func gen_image_files(suit: String, path: String) -> String:
 		return "Successfully created %d images for %s suit" % [created_count, suit]
 	return "No images have been created"
 
+
 static func gen_animation_image(anim_name: String, _offsets: Dictionary, sprite_sheet: Image) -> Image:
 	var offset: Array = _offsets[anim_name]
 	var merged_rect := Rect2(Vector2i.ZERO, Vector2i(0, offset[0].size.y))
@@ -204,9 +80,85 @@ static func gen_animation_image(anim_name: String, _offsets: Dictionary, sprite_
 		next_pos.x += offset[0].size.x
 	return out
 
-static func get_offset_dict(suit: String) -> Dictionary:
-	match suit:
-		"small": return OFFSETS_SMALL
-		"super": return OFFSETS_SUPER
-		"frog":  return OFFSETS_FROG
-	return OFFSETS_FULL
+
+static func get_offset_dict(suit: String, ignore_overrides: bool = false) -> Dictionary:
+	if !ignore_overrides && FileAccess.file_exists(AnimOverrides._get_override_path(suit, false)):
+		var new_offsets := load_offsets_from_file(AnimOverrides._get_override_path(suit, false))
+		if !new_offsets.is_empty() && new_offsets.get("offsets"):
+			return new_offsets.offsets
+		else:
+			printerr("The override offsets_%s.tres is invalid!" % suit)
+	
+	if suit in ["small", "super", "frog"]:
+		return load_offsets_from_file(AnimOverrides.OFFSETS_PATH % suit)
+	return load_offsets_from_file(AnimOverrides.OFFSETS_PATH % "full")
+
+
+static func load_offsets_from_file(path: String) -> Dictionary:
+	var output := {}
+	var file = FileAccess.open(path, FileAccess.READ)
+	if !file: return {}
+	
+	var reading_buffer: String
+	var dict_index_buffer: Dictionary = {}
+	const OFFSETS_STR = "offsets"
+	
+	while !file.eof_reached():
+		var line = file.get_line()
+		if reading_buffer.is_empty():
+			if line.begins_with(OFFSETS_STR) && !OFFSETS_STR in dict_index_buffer:
+				reading_buffer = OFFSETS_STR
+				dict_index_buffer[reading_buffer] = []
+		if reading_buffer.is_empty():
+			continue
+		var starting_pos: int
+		if len(dict_index_buffer[reading_buffer]) == 0:
+			var ind_start = line.find("{")
+			if ind_start >= 0:
+				dict_index_buffer[reading_buffer].append(file.get_position() - len(line) + ind_start - 1)
+				starting_pos = ind_start
+		if len(dict_index_buffer[reading_buffer]) == 1:
+			var ind_start = line.find("}", starting_pos)
+			if ind_start >= 0:
+				dict_index_buffer[reading_buffer].append(file.get_position() - len(line) + ind_start - 1)
+				reading_buffer = ""
+				continue
+	
+	for i in dict_index_buffer:
+		file.seek(dict_index_buffer[i][0])
+		
+		var dict_str: String = file.get_buffer(dict_index_buffer[i][1] - dict_index_buffer[i][0]).get_string_from_utf8()
+		if !dict_str: continue
+		
+		dict_str += "}"
+		var clean_dict: String = dict_str
+		for bad_string in Main.BAD_NAMES:
+			clean_dict = clean_dict.replacen(bad_string, "")
+		
+		var _i: int = 0
+		while _i < len(clean_dict):
+			if clean_dict.substr(_i, 5) != "Rect2":
+				_i += 1
+				continue
+			var _opening := clean_dict.find("(", _i + 1)
+			var subst := clean_dict.substr(_opening + 1, clean_dict.find(")", _i + 1) - _opening - 1)
+			var parsed_rect_str := ",".join(Array(subst.split(",")).map(
+				func(elem: String):
+					var expression := Expression.new()
+					expression.parse(elem)
+					if expression.has_execute_failed():
+						return elem
+					return expression.execute()
+			))
+			#print(parsed_rect_str)
+			clean_dict = Util.replace_first(clean_dict, subst, parsed_rect_str)
+			
+			_i += 1
+			
+		var parsed = str_to_var(clean_dict)
+		#print(parsed)
+		if parsed && parsed is Dictionary:
+			output[i] = parsed
+	
+	return output
+	

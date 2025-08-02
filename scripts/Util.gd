@@ -15,3 +15,8 @@ func _disconnect(sig: Signal, callable: Callable) -> bool:
 	if !sig.is_connected(callable): return true
 	sig.disconnect(callable)
 	return false
+
+func replace_first(from: String, what: String, forwhat: String):
+	var idx = from.find(what)
+	if idx == -1: return from
+	return from.substr(0, idx) + forwhat + from.substr(idx + what.length())
