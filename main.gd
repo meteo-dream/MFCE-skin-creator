@@ -706,6 +706,14 @@ func _on_dialog_new_settings_confirmed() -> void:
 	
 	state_option.select(pending_state)
 	set_state(pending_state)
+	var enabled_count: int = 0
+	for i in anim_option.item_count:
+		if !anim_option.is_item_disabled(i):
+			enabled_count += 1
+		if enabled_count >= 2:
+			return
+	
+	_on_dialog_new_state_confirmed()
 
 ## Skin Options button
 func options_pressed() -> void:
