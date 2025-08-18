@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://byxkkvyv24cbb"]
+[gd_scene load_steps=33 format=3 uid="uid://byxkkvyv24cbb"]
 
 [ext_resource type="Script" uid="uid://d26h506i5dbi6" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://bcxcbi4ltmp25" path="res://scripts/scene.gd" id="2_0xm2m"]
@@ -22,6 +22,10 @@ animations = [{
 "name": &"default",
 "speed": 120.0
 }]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vivmo"]
+bg_color = Color(0.19, 0.19, 0.19, 1)
+corner_detail = 1
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kek77"]
 
@@ -115,16 +119,16 @@ theme_override_constants/separation = 0
 [node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/VBoxContainer"]
 visible = false
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/PanelContainer"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/separation = 4
 
 [node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/PanelContainer/HBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 0
 theme_override_styles/separator = SubResource("StyleBoxEmpty_kek77")
 
 [node name="MenuButton" type="MenuButton" parent="CanvasLayer/VBoxContainer/PanelContainer/HBoxContainer"]
@@ -946,7 +950,7 @@ unique_name_in_owner = true
 disable_3d = true
 title = "Skin Options"
 position = Vector2i(100, 120)
-size = Vector2i(328, 245)
+size = Vector2i(348, 220)
 visible = false
 wrap_controls = true
 
@@ -996,8 +1000,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer"]
+custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
-text = "Pronouns (Story Text):"
+text = "Pronouns & Alias (Story Text):"
+autowrap_mode = 2
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer"]
 layout_mode = 2
@@ -1016,28 +1022,42 @@ drag_and_drop_selection_enabled = false
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.1
 theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
 theme_override_fonts/font = ExtResource("15_vivmo")
 placeholder_text = "them"
-max_length = 15
+max_length = 25
 drag_and_drop_selection_enabled = false
 
-[node name="VBoxContainer3" type="VBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+[node name="VBoxContainer3" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer3"]
+[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3"]
+visible = false
 layout_mode = 2
 text = "Description (Story Text):"
 
-[node name="DescriptionLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer3"]
+[node name="TheirLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
+theme_override_fonts/font = ExtResource("15_vivmo")
+placeholder_text = "their"
+max_length = 25
+drag_and_drop_selection_enabled = false
+
+[node name="DescriptionLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.1
 theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
 theme_override_fonts/font = ExtResource("15_vivmo")
 theme_override_font_sizes/font_size = 16
-placeholder_text = "the intrepid and determined plumber"
+placeholder_text = "plumber"
 max_length = 50
 emoji_menu_enabled = false
 drag_and_drop_selection_enabled = false
@@ -1045,7 +1065,7 @@ drag_and_drop_selection_enabled = false
 [node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
 custom_minimum_size = Vector2(320, 40)
 layout_mode = 2
-text = "See more skin options in MF:CE under Tweaks/Skin Setup/Skin Tweaks"
+text = "See more skin options in MF:CE under Tweaks/Skin Setup/Skin Tweaks"
 autowrap_mode = 3
 
 [node name="HBoxContainer" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3"]

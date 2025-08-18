@@ -614,12 +614,12 @@ func load_misc_files(path: String) -> void:
 	misc_files.name = ""
 	if FileAccess.file_exists(path.path_join("name.txt")):
 		misc_files.name = FileAccess.get_file_as_string(path.path_join("name.txt")).left(15)
-	misc_files.story = ["", "", ""]
+	misc_files.story = ["", "", "", ""]
 	var file_path = path.path_join("story.txt")
 	if FileAccess.file_exists(file_path):
 		var file = FileAccess.open(file_path, FileAccess.READ)
 		if file:
-			for i in 3:
+			for i in 4:
 				if file.eof_reached(): break
 				var _line = file.get_line().left(15 if i < 2 else 50)
 				if _line:
@@ -721,13 +721,16 @@ func options_pressed() -> void:
 
 func reset_options_dialog() -> void:
 	options_dialog.hide()
+	if !misc_files: return
 	%DisplayNameLine.placeholder_text = skin_name.to_upper()
 	%DisplayNameLine.text = misc_files.name
 	%TheyLine.text = misc_files.story[0]
 	%ThemLine.text = misc_files.story[1]
 	%DescriptionLine.text = misc_files.story[2]
+	%TheirLine.text = misc_files.story[3]
 
 func options_confirmed() -> void:
+	if !misc_files: return
 	options_dialog.hide()
 	
 	if %DisplayNameLine.text != misc_files.name:
@@ -738,15 +741,18 @@ func options_confirmed() -> void:
 	if (
 		%TheyLine.text != misc_files.story[0] ||
 		%ThemLine.text != misc_files.story[1] ||
-		%DescriptionLine.text != misc_files.story[2]
+		%DescriptionLine.text != misc_files.story[2] ||
+		%TheirLine.text != misc_files.story[3]
 	):
 		misc_files.story[0] = %TheyLine.text
 		misc_files.story[1] = %ThemLine.text
 		misc_files.story[2] = %DescriptionLine.text
+		misc_files.story[3] = %TheirLine.text
 		var file = FileAccess.open(current_folder_skin.path_join("story.txt"), FileAccess.WRITE)
 		file.store_line(misc_files.story[0])
 		file.store_line(misc_files.story[1])
 		file.store_line(misc_files.story[2])
+		file.store_line(misc_files.story[3])
 		file.close()
 
 #endregion ModalBoxActions
