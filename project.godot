@@ -15,7 +15,8 @@ config/version="1.0.3"
 run/main_scene="res://main.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="MeteoDream/Skin Editor"
-config/features=PackedStringArray("4.4", "Mobile")
+config/auto_accept_quit=false
+config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
 [audio]
@@ -39,6 +40,8 @@ enabled=PackedStringArray("res://addons/godot-openmpt/plugin.cfg")
 
 [gui]
 
+common/snap_controls_to_pixels=false
+common/text_edit_undo_stack_max_size=512
 theme/custom="uid://v1w0idka4k4r"
 
 [input]
@@ -85,6 +88,6 @@ ui_zoom_extra={
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+shader_compiler/shader_cache/enabled=false
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 2d/snap/snap_2d_transforms_to_pixel=true
-2d/snap/snap_2d_vertices_to_pixel=true

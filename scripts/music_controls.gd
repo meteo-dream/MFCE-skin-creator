@@ -50,6 +50,7 @@ func _notification(what: int) -> void:
 		config.index = index
 		config.bg_color = $"../Color/MarginContainer/BGcolor".color.to_html(false)
 		config.grid_color = $"../Color/MarginContainer2/GridColor".color.to_html()
+		config.zoom = %Camera2D.zoom.x
 		var json: String = JSON.stringify(config)
 		
 		var file: FileAccess = FileAccess.open("user://config.json", FileAccess.WRITE)
@@ -61,6 +62,11 @@ func init_config_values() -> void:
 	$Mute.button_pressed = config.get("is_muted", false)
 	_on_mute_toggled($Mute.button_pressed)
 	$CenterContainer/HSlider.value = config.get("volume", volume)
+	
+	%ZoomLevel.text = %Camera2D.zoom_template_text % [config.get("zoom", 1.0) * 100.0]
+	%Camera2D.zoom = Vector2.ONE * config.get("zoom", 1.0)
+	%Camera2D.reset_physics_interpolation()
+	
 	var grid_color = $"../Color/MarginContainer2/GridColor"
 	grid_color.color = Color.from_string(config.get("grid_color", ""), grid_color.color)
 	grid_color.color_changed.emit(grid_color.color)

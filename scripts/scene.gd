@@ -32,6 +32,11 @@ func _init() -> void:
 			(user_screen.size / 2) - (DisplayServer.window_get_size() / 2) + (wind_size / 2)
 		)
 
+func _notification(what: int) -> void:
+	if Engine.is_editor_hint(): return
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		get_tree().quit()
+
 func _draw():
 	var vp_size: = get_viewport_rect().size
 	var cam_pos: = Vector2.ZERO

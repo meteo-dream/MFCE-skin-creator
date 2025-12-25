@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://byxkkvyv24cbb"]
+[gd_scene load_steps=34 format=3 uid="uid://byxkkvyv24cbb"]
 
 [ext_resource type="Script" uid="uid://d26h506i5dbi6" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://bcxcbi4ltmp25" path="res://scripts/scene.gd" id="2_0xm2m"]
@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://b3fn56t2mfves" path="res://icons/AudioStreamPlayer.png" id="7_ycdy4"]
 [ext_resource type="Script" uid="uid://dt707ah351fv8" path="res://scripts/color_pick_button.gd" id="9_dg77c"]
 [ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://scripts/spinbox.gd" id="10_dg77c"]
+[ext_resource type="PackedScene" uid="uid://dq0ujh6mjag1y" path="res://about_window.tscn" id="14_vivmo"]
 [ext_resource type="FontFile" uid="uid://c642yw1llh7ke" path="res://fonts/tahomabd.ttf" id="15_vivmo"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_lquwl"]
@@ -104,6 +105,7 @@ offset = Vector2(0, -32)
 script = ExtResource("2_w48qg")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+unique_name_in_owner = true
 script = ExtResource("2_h2yge")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -315,7 +317,7 @@ unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Save the skin to filesystem, with a directory selection dialog.
 Only settings for the skin are saved (regions, speed, etc.), images are untouched."
-text = "Options..."
+text = "Options"
 
 [node name="HSeparator4" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
 layout_mode = 2
@@ -552,7 +554,7 @@ tooltip_text = "Open the directory where overrides for the \"placeholder\" image
 They are used for making missing animations.
 You can replace spritesheet images and set up the offsets, which will be used
 for slicing into individual animation textures."
-text = "Browse Overrides..."
+text = "Browse Overrides"
 
 [node name="FillBlanks" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/ImageCreation"]
 unique_name_in_owner = true
@@ -574,7 +576,7 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Open the animation folder on your filesystem."
-text = "Browse..."
+text = "Browse"
 
 [node name="ReloadTexture" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
 unique_name_in_owner = true
@@ -683,6 +685,7 @@ access = 2
 filters = PackedStringArray("")
 show_hidden_files = true
 use_native_dialog = true
+favorites_enabled = false
 
 [node name="NewSaveDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main"]
 auto_translate_mode = 1
@@ -695,6 +698,7 @@ access = 2
 filters = PackedStringArray("")
 show_hidden_files = true
 use_native_dialog = true
+favorites_enabled = false
 
 [node name="OpenDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main"]
 disable_3d = true
@@ -704,6 +708,7 @@ mode_overrides_title = false
 file_mode = 2
 access = 2
 use_native_dialog = true
+favorites_enabled = false
 
 [node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main"]
 layout_mode = 1
@@ -740,109 +745,8 @@ horizontal_alignment = 2
 clip_text = true
 text_overrun_behavior = 1
 
-[node name="AboutWindow" type="Window" parent="CanvasLayer"]
+[node name="AboutWindow" parent="CanvasLayer" instance=ExtResource("14_vivmo")]
 unique_name_in_owner = true
-disable_3d = true
-title = "About"
-initial_position = 2
-size = Vector2i(640, 400)
-visible = false
-
-[node name="Panel" type="Panel" parent="CanvasLayer/AboutWindow"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_efxa6")
-
-[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/AboutWindow"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 4
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 4
-theme_override_constants/margin_bottom = 4
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/AboutWindow/MarginContainer"]
-layout_mode = 2
-
-[node name="Control" type="HBoxContainer" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="LinkButton" type="LinkButton" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer/Control"]
-layout_mode = 2
-size_flags_horizontal = 2
-theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
-text = "GitHub Repository (MIT License)"
-uri = "https://github.com/meteo-dream/MFCE-skin-creator"
-
-[node name="LinkButton2" type="LinkButton" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer/Control"]
-layout_mode = 2
-size_flags_horizontal = 2
-theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
-text = "Mario Forever Community Edition"
-uri = "https://mfce.rnx.su"
-
-[node name="Control2" type="HBoxContainer" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="LinkButton" type="LinkButton" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer/Control2"]
-layout_mode = 2
-size_flags_horizontal = 2
-theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
-text = "Skins Documentation for MFCE"
-uri = "https://gist.github.com/jue131/e425619bc898df9feaa56cde6588216e"
-
-[node name="LinkButton2" type="LinkButton" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer/Control2"]
-layout_mode = 2
-size_flags_horizontal = 2
-theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
-text = "Thunder Engine (on GitHub)"
-uri = "https://github.com/Thunder-Engine-Dev/thunder-engine"
-
-[node name="HSeparator" type="HSeparator" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/AboutWindow/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-focus_mode = 2
-theme_override_constants/line_separation = -3
-bbcode_enabled = true
-text = "[center][b]Mario Forever Skin Editor[/b] - For use with Thunder Engine-based games, including Mario Forever: Community Edition
-
-Credits:
-SuperMany - Idea and base project
-JUE13 - Further improvements
-
-Soundtrack used:[/center]
-1. Another Worlds by Quadro (Cherdancev Michael)
-2. Blueberry (wig remix) by Karsten Obarski
-3. White Coffee by Zipp (Jacob Herbst) & Ragoon (Niclas Kings)
-4. Defy Groove by Scavy (Christophe Brand)
-5. Hanashiro by Dilik
-6. February by Doc1429
-7. October by Doc1429
-8. Echoing by Banana (Christof Mühlan)
-9. Fastbass by Estrayk (Carlos del Alamo) & Evelred (Mateo Pascual)
-10. Wings by Hirvih (Eetu Ojanen)
-11. Music for Chips by Xerxes (Klaus Lunde)
-12. Winning by RepellandMold & Hip
-13. Scales of Joy by Mel o'Dee (Heiko Klueh)
-14. Smile by Jogeir Liljedahl
-15. Coffee at Morning by SoDa7
-16. Desert Cream by Vincenzo (László Gyula Vincze)
-17. Cool Nightmare by Estrayk (Carlos del Alamo)
-18. Bombastic by RevisQ (Patryk Gegniewicz)
-
-"
-selection_enabled = true
 
 [node name="ModalWindow" type="Window" parent="CanvasLayer"]
 unique_name_in_owner = true
@@ -1131,7 +1035,6 @@ size_flags_horizontal = 3
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectY" to="CanvasLayer/VBoxContainer/Main" method="update_rect" binds= [1]]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectW" to="CanvasLayer/VBoxContainer/Main" method="update_rect" binds= [2]]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2/RectH" to="CanvasLayer/VBoxContainer/Main" method="update_rect" binds= [3]]
-[connection signal="close_requested" from="CanvasLayer/AboutWindow" to="CanvasLayer/AboutWindow" method="hide"]
 [connection signal="close_requested" from="CanvasLayer/ModalWindow" to="CanvasLayer/ModalWindow" method="hide"]
 [connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/Cancel" to="CanvasLayer/ModalWindow" method="hide"]
 [connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/OK" to="CanvasLayer/VBoxContainer/Main" method="_on_fill_blanks_ok_pressed"]

@@ -1,0 +1,112 @@
+[gd_scene load_steps=2 format=3 uid="uid://dq0ujh6mjag1y"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_efxa6"]
+bg_color = Color(0.192157, 0.192157, 0.192157, 1)
+corner_detail = 1
+anti_aliasing = false
+
+[node name="AboutWindow" type="Window"]
+auto_translate_mode = 1
+disable_3d = true
+title = "About"
+initial_position = 2
+size = Vector2i(640, 400)
+visible = false
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_efxa6")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="Control" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="LinkButton" type="LinkButton" parent="MarginContainer/VBoxContainer/Control"]
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
+text = "GitHub Repository (MIT License)"
+uri = "https://github.com/meteo-dream/MFCE-skin-creator"
+
+[node name="LinkButton2" type="LinkButton" parent="MarginContainer/VBoxContainer/Control"]
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
+text = "Mario Forever Community Edition"
+uri = "https://mfce.rnx.su"
+
+[node name="Control2" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="LinkButton" type="LinkButton" parent="MarginContainer/VBoxContainer/Control2"]
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
+text = "Skins Documentation for MFCE"
+uri = "https://gist.github.com/jue131/e425619bc898df9feaa56cde6588216e"
+
+[node name="LinkButton2" type="LinkButton" parent="MarginContainer/VBoxContainer/Control2"]
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
+text = "Thunder Engine (on GitHub)"
+uri = "https://github.com/Thunder-Engine-Dev/thunder-engine"
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 2
+theme_override_constants/line_separation = -3
+bbcode_enabled = true
+text = "[center][b]Mario Forever Skin Editor[/b] - For use with Thunder Engine-based games, including Mario Forever: Community Edition
+
+Credits:
+SuperMany - Idea and base project
+JUE13 - Further improvements
+
+Soundtrack used:[/center]
+1. Another Worlds by Quadro (Cherdancev Michael)
+2. Blueberry (wig remix) by Karsten Obarski
+3. White Coffee by Zipp (Jacob Herbst) & Ragoon (Niclas Kings)
+4. Defy Groove by Scavy (Christophe Brand)
+5. Hanashiro by Dilik
+6. February by Doc1429
+7. October by Doc1429
+8. Echoing by Banana (Christof Mühlan)
+9. Fastbass by Estrayk (Carlos del Alamo) & Evelred (Mateo Pascual)
+10. Wings by Hirvih (Eetu Ojanen)
+11. Music for Chips by Xerxes (Klaus Lunde)
+12. Winning by RepellandMold & Hip
+13. Scales of Joy by Mel o'Dee (Heiko Klueh)
+14. Smile by Jogeir Liljedahl
+15. Coffee at Morning by SoDa7
+16. Desert Cream by Vincenzo (László Gyula Vincze)
+17. Cool Nightmare by Estrayk (Carlos del Alamo)
+18. Bombastic by RevisQ (Patryk Gegniewicz)
+
+"
+selection_enabled = true
+
+[connection signal="close_requested" from="." to="." method="hide"]
