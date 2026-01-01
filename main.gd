@@ -167,6 +167,18 @@ func show_one_dialog(dialog: Window) -> void:
 		dialog.grab_focus()
 		return
 	dialog.show()
+	if dialog is FileDialog && !dialog.force_native:
+		return
+	if dialog.content_scale_factor != scene.editor_scale:
+		dialog.content_scale_factor = scene.editor_scale
+		dialog.size *= scene.editor_scale
+		dialog.min_size *= scene.editor_scale
+		var usable_size = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen(0)).size
+		if dialog.size.y > usable_size.y:
+			dialog.size.y = usable_size.y
+		if dialog.size.x > usable_size.x:
+			dialog.size.x = usable_size.x
+		dialog.move_to_center()
 
 func popup_one_dialog(dialog: Window) -> void:
 	if dialog.visible:
@@ -175,6 +187,18 @@ func popup_one_dialog(dialog: Window) -> void:
 		dialog.grab_focus()
 		return
 	dialog.popup_centered()
+	if dialog is FileDialog && !dialog.force_native:
+		return
+	if dialog.content_scale_factor != scene.editor_scale:
+		dialog.content_scale_factor = scene.editor_scale
+		dialog.size *= scene.editor_scale
+		dialog.min_size *= scene.editor_scale
+		var usable_size = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen(0)).size
+		if dialog.size.y > usable_size.y:
+			dialog.size.y = usable_size.y
+		if dialog.size.x > usable_size.x:
+			dialog.size.x = usable_size.x
+		dialog.move_to_center()
 
 
 #region FileButtons
@@ -527,7 +551,7 @@ func new_save_file(path: String) -> void:
 	print("Creating new skin at: %s" % path)
 	var err: String = AnimGenerator.gen_image_files("small", path)
 	image_creation_dialog.dialog_text = err
-	image_creation_dialog.popup_centered()
+	popup_one_dialog(image_creation_dialog)
 	if "Error" in err: return
 	
 	# Resetting all variables in case a previous skin was loaded
@@ -692,7 +716,7 @@ func _on_fill_blanks_ok_pressed() -> void:
 ## "This suit is incomplete. Create default animation settings?"
 func ask_about_missing_state() -> void:
 	if confirm_dialog.visible: return
-	confirm_dialog.popup_centered()
+	popup_one_dialog(confirm_dialog)
 
 ## The "This action will create placeholder image files..." confirmation action
 func _on_dialog_new_state_confirmed() -> void:
@@ -703,7 +727,7 @@ func _on_dialog_new_state_confirmed() -> void:
 	_update_animations()
 	update_anim_options()
 	image_creation_dialog.dialog_text = out
-	image_creation_dialog.popup_centered()
+	popup_one_dialog(image_creation_dialog)
 
 ## The "This suit is incomplete..." confirmation action
 func _on_dialog_new_settings_confirmed() -> void:
