@@ -200,6 +200,8 @@ func gen_animated_sprites(force_regen: bool = false) -> SpriteFrames:
 	for anim in ANIMS:
 		if !animation_regions.keys().has(anim):
 			continue
+		if !animation_regions[anim] || !animation_regions[anim] is Array:
+			continue
 		if !frames.has_animation(anim):
 			frames.add_animation(anim)
 		

@@ -13,6 +13,7 @@ config_version=5
 config/name="Mario Forever Community Edition Skin Editor"
 config/version="1.0.4"
 run/main_scene="res://main.tscn"
+run/enable_alt_space_menu=true
 config/use_custom_user_dir=true
 config/custom_user_dir_name="MeteoDream/Skin Editor"
 config/auto_accept_quit=false
