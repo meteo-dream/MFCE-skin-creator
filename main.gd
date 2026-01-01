@@ -54,6 +54,7 @@ var current_frame: AtlasTexture
 var pending_state: int
 var pending_frames: int
 var no_frame_del_popup: bool
+var unsaved_changes: bool
 
 @onready var confirm_state_text := confirm_new_state.dialog_text
 
@@ -252,7 +253,7 @@ func speed_val_changed(value: float) -> void:
 
 ## Calls when "frames" spinbox changed
 func frames_val_changed(value: float) -> void:
-	set_frames(int(value))
+	set_frames.call_deferred(int(value))
 
 ## Calls when "duration" spinbox changed
 func duration_val_changed(value: float) -> void:
@@ -302,7 +303,7 @@ func set_frames(value: int) -> void:
 		return
 	
 	spinbox_frames.value = value
-	#prints(_last_frame_amount, value)
+	prints(_last_frame_amount, value)
 	
 	if _last_frame_amount < value:
 		print("Adding new frames! Amount: %d" % [value - _last_frame_amount])
@@ -315,6 +316,8 @@ func set_frames(value: int) -> void:
 			)
 			current_skin_setting.animation_regions[preview.animation].push_back(new_atlas.region)
 		update_anim_time()
+		unsaved_changes = true
+		set_frame(value - 1)
 	
 	elif _last_frame_amount > value:
 		print("Deleting frames! Amount: %d" % [abs(value - _last_frame_amount)])
@@ -324,6 +327,10 @@ func set_frames(value: int) -> void:
 			current_skin_setting.animation_regions[preview.animation].pop_back()
 			current_skin_setting.animation_durations[preview.animation].pop_back()
 		update_anim_time()
+		unsaved_changes = true
+		prints("preview frame: ", spinbox_frame.value, value)
+		if int(spinbox_frame.value) >= value:
+			set_frame(value - 1)
 	
 	_last_frame_amount = value
 
@@ -470,6 +477,7 @@ func save_file(path: String) -> void:
 	skin_name = path.get_slice("/", path.get_slice_count("/") - 1)
 	version_label.text = PROJECT_NAME % [version_string] + ("\n" + current_folder_skin)
 	reset_options_dialog()
+	var mark_as_saved: bool = true
 	for skin in skin_settings.keys():
 		var full_path: String = path + "/" + skin + "/"
 		print("Saving skin: " + skin)
@@ -479,6 +487,9 @@ func save_file(path: String) -> void:
 		var err = ResourceSaver.save(skin_settings[skin], full_path + "/skin_settings.tres")
 		if err:
 			OS.alert("Error: " + error_string(err), "Save Failed!")
+			mark_as_saved = false
+			break
+	unsaved_changes = mark_as_saved
 
 ## Opens folder where skins located.
 func open_file(path: String) -> void:
