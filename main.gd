@@ -108,6 +108,9 @@ func _ready() -> void:
 	get_tree().root.size_changed.connect(_on_window_resized)
 	
 	version_label.text = PROJECT_NAME % [version_string]
+	
+	await get_tree().process_frame
+	_on_window_resized()
 
 
 func _update_anim_option_size(to: bool) -> void:

@@ -25,6 +25,7 @@ var editor_scale: float
 var w_min_size: Vector2i
 
 func _init() -> void:
+	if Engine.is_editor_hint(): return
 	var user_screen: Rect2i = DisplayServer.screen_get_usable_rect()
 	if user_screen.size.y < ProjectSettings.get_setting("display/window/size/viewport_height"):
 		var wind_size = DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
@@ -43,6 +44,7 @@ func _notification(what: int) -> void:
 
 
 func _ready() -> void:
+	if Engine.is_editor_hint(): return
 	process_loaded_config()
 
 func _draw():

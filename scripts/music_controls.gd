@@ -51,6 +51,9 @@ func _notification(what: int) -> void:
 		config.bg_color = $"../Color/MarginContainer/BGcolor".color.to_html(false)
 		config.grid_color = $"../Color/MarginContainer2/GridColor".color.to_html()
 		config.zoom = %Camera2D.zoom.x
+		config.campos_x = %Camera2D.position.x
+		config.campos_y = %Camera2D.position.y
+		config.sidebar_offset = %FrameHSplitter.split_offset
 		var json: String = JSON.stringify(config)
 		
 		var file: FileAccess = FileAccess.open("user://config.json", FileAccess.WRITE)
@@ -65,7 +68,10 @@ func init_config_values() -> void:
 	
 	%ZoomLevel.text = %Camera2D.zoom_template_text % [config.get("zoom", 1.0) * 100.0]
 	%Camera2D.zoom = Vector2.ONE * config.get("zoom", 1.0)
+	%Camera2D.position.x = config.get("campos_x", 0.0)
+	%Camera2D.position.y = config.get("campos_y", 0.0)
 	%Camera2D.reset_physics_interpolation()
+	%FrameHSplitter.split_offset = config.get("sidebar_offset", -460)
 	
 	var grid_color = $"../Color/MarginContainer2/GridColor"
 	grid_color.color = Color.from_string(config.get("grid_color", ""), grid_color.color)
