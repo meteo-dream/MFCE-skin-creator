@@ -43,7 +43,7 @@ static func gen_image_files(suit: String, path: String) -> String:
 		return "Error: " + error_string(ERR_INVALID_PARAMETER)
 	var img: Image = Image.load_from_file(AnimOverrides.OVERRIDES_DIR.path_join(suit + ".png"))
 	if !img:
-		print("Error loading overriden image. Using defaults.")
+		printerr("Error loading overriden image. Using defaults.")
 		img = TEXTURES[suit].get_image()
 	var _offsets: Dictionary = get_offset_dict(suit)
 	var created_count: int = 0

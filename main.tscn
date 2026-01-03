@@ -94,7 +94,6 @@ events = [SubResource("InputEventKey_vivmo")]
 [node name="Scene" type="Node2D"]
 script = ExtResource("2_0xm2m")
 color = Color(0.411765, 0.411765, 0.411765, 0.752941)
-editor_scale = null
 
 [node name="Preview" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
@@ -170,10 +169,10 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(384, 0)
 layout_mode = 1
 anchors_preset = -1
-anchor_right = 0.5
+anchor_right = 0.75
 anchor_bottom = 1.0
 grow_vertical = 2
-split_offset = -256
+split_offset = -460
 dragger_visibility = 2
 drag_area_highlight_in_editor = true
 

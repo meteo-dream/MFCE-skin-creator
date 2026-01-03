@@ -54,7 +54,11 @@ var current_frame: AtlasTexture
 var pending_state: int
 var pending_frames: int
 var no_frame_del_popup: bool
-var unsaved_changes: bool
+var unsaved_changes: bool#:
+	#set(to):
+		#var _start: String = "(*) " if to else ""
+		#DisplayServer.window_set_title(_start + ProjectSettings.get_setting("application/config/name"))
+		#unsaved_changes = to
 
 @onready var confirm_state_text := confirm_new_state.dialog_text
 
@@ -90,18 +94,30 @@ func _ready() -> void:
 	new_save_dialog.title = "Save Directory"
 	#open_dialog.popup_centered()
 	
+	var an_popup: PopupMenu = anim_option.get_popup()
+	an_popup.wrap_controls = false
 	for anim in PlayerSkin.ANIMS:
 		anim_option.add_item(anim)
+	an_popup.child_controls_changed()
+	anim_option.toggled.connect(_update_anim_option_size, CONNECT_DEFERRED)
 	
 	for state in PlayerSkin.STATES:
 		state_option.add_item(state)
-	
-	#get_viewport().gui_focus_changed
 	
 	get_tree().root.min_size = Vector2(400, 400)
 	get_tree().root.size_changed.connect(_on_window_resized)
 	
 	version_label.text = PROJECT_NAME % [version_string]
+
+
+func _update_anim_option_size(to: bool) -> void:
+	if !to: return
+	var current_screen: int = DisplayServer.window_get_current_screen()
+	var screen_size: Vector2i = DisplayServer.screen_get_usable_rect(current_screen).size
+	var an_popup: PopupMenu = anim_option.get_popup()
+	an_popup.child_controls_changed()
+	an_popup.min_size.y = min(an_popup.min_size.y, screen_size.y)
+	an_popup.size.y = min(an_popup.min_size.y, an_popup.size.y)
 
 
 func _anim_finished() -> void:
@@ -303,10 +319,14 @@ func set_frame(value: int) -> void:
 
 var _last_frame_amount: int
 var _frame_setter_cooldown: bool
+var _old_window_mode: DisplayServer.WindowMode
 
 func _process(_delta: float) -> void:
 	if Input.mouse_mode > Input.MOUSE_MODE_HIDDEN:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if DisplayServer.window_get_mode() != _old_window_mode:
+		_old_window_mode = DisplayServer.window_get_mode()
+		_on_window_resized()
 	if _frame_setter_cooldown:
 		if modal_window.visible: return
 		_frame_setter_cooldown = false
@@ -327,7 +347,7 @@ func set_frames(value: int) -> void:
 		return
 	
 	spinbox_frames.value = value
-	prints(_last_frame_amount, value)
+	#prints(_last_frame_amount, value)
 	
 	if _last_frame_amount < value:
 		print("Adding new frames! Amount: %d" % [value - _last_frame_amount])
@@ -362,6 +382,8 @@ func set_frames(value: int) -> void:
 func set_anim_speed(value: float) -> void:
 	value = clampf(value, 0.0, 120.0)
 	
+	#if spinbox_speed.value != value:
+	#	unsaved_changes = true
 	spinbox_speed.value = value
 	
 	current_skin_setting.animation_speeds[preview.animation] = value
@@ -374,6 +396,8 @@ func set_anim_speed(value: float) -> void:
 func set_duration(value: float) -> void:
 	value = clampf(value, 0.0, 120.0)
 	
+	#if spinbox_duration.value != value:
+	#	unsaved_changes = true
 	spinbox_duration.value = value
 	
 	current_skin_setting.animation_durations[preview.animation][preview.frame] = value

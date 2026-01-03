@@ -20,7 +20,7 @@ var show_collisions: bool:
 		$Preview/CollisionsRect.update_rect()
 		$Preview/CollisionsRect.queue_redraw()
 @export
-var editor_scale: float = 0.0
+var editor_scale: float
 
 var w_min_size: Vector2i
 
