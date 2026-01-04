@@ -688,7 +688,6 @@ access = 2
 filters = PackedStringArray("")
 show_hidden_files = true
 use_native_dialog = true
-favorites_enabled = false
 
 [node name="NewSaveDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main"]
 auto_translate_mode = 1
@@ -701,7 +700,6 @@ access = 2
 filters = PackedStringArray("")
 show_hidden_files = true
 use_native_dialog = true
-favorites_enabled = false
 
 [node name="OpenDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main"]
 disable_3d = true
@@ -711,7 +709,6 @@ mode_overrides_title = false
 file_mode = 2
 access = 2
 use_native_dialog = true
-favorites_enabled = false
 
 [node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main"]
 layout_mode = 1
