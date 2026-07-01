@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://byxkkvyv24cbb"]
+[gd_scene format=3 uid="uid://byxkkvyv24cbb"]
 
 [ext_resource type="Script" uid="uid://d26h506i5dbi6" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://bcxcbi4ltmp25" path="res://scripts/scene.gd" id="2_0xm2m"]
@@ -19,7 +19,7 @@
 [sub_resource type="SpriteFrames" id="SpriteFrames_lquwl"]
 animations = [{
 "frames": [],
-"loop": true,
+"loop": 1,
 "name": &"default",
 "speed": 120.0
 }]
@@ -91,26 +91,26 @@ keycode = 4194309
 [sub_resource type="Shortcut" id="Shortcut_2cqfq"]
 events = [SubResource("InputEventKey_vivmo")]
 
-[node name="Scene" type="Node2D"]
+[node name="Scene" type="Node2D" unique_id=1530488218]
 script = ExtResource("2_0xm2m")
 color = Color(0.411765, 0.411765, 0.411765, 0.752941)
 
-[node name="Preview" type="AnimatedSprite2D" parent="."]
+[node name="Preview" type="AnimatedSprite2D" parent="." unique_id=35786679]
 unique_name_in_owner = true
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_lquwl")
 offset = Vector2(0, -32)
 
-[node name="CollisionsRect" type="Node2D" parent="Preview"]
+[node name="CollisionsRect" type="Node2D" parent="Preview" unique_id=1471143693]
 script = ExtResource("2_w48qg")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2000608131]
 unique_name_in_owner = true
 script = ExtResource("2_h2yge")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=2082480263]
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer" unique_id=293313747]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -118,22 +118,22 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/VBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/VBoxContainer" unique_id=1456993922]
 visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/PanelContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/PanelContainer" unique_id=1321860420]
 custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/separation = 4
 
-[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/PanelContainer/HBoxContainer"]
+[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/PanelContainer/HBoxContainer" unique_id=909936037]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_kek77")
 
-[node name="MenuButton" type="MenuButton" parent="CanvasLayer/VBoxContainer/PanelContainer/HBoxContainer"]
+[node name="MenuButton" type="MenuButton" parent="CanvasLayer/VBoxContainer/PanelContainer/HBoxContainer" unique_id=1602085878]
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "Operations with skin files."
@@ -152,19 +152,19 @@ popup/item_4/separator = true
 popup/item_5/text = "Quit"
 popup/item_5/id = 5
 
-[node name="HSeparator" type="HSeparator" parent="CanvasLayer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/VBoxContainer" unique_id=1670692424]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 1
 theme_override_styles/separator = SubResource("StyleBoxLine_efxa6")
 
-[node name="Main" type="Control" parent="CanvasLayer/VBoxContainer"]
+[node name="Main" type="Control" parent="CanvasLayer/VBoxContainer" unique_id=979001912]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 1
 script = ExtResource("1_ig7tw")
 
-[node name="FrameHSplitter" type="HSplitContainer" parent="CanvasLayer/VBoxContainer/Main"]
+[node name="FrameHSplitter" type="HSplitContainer" parent="CanvasLayer/VBoxContainer/Main" unique_id=32566285]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(384, 0)
 layout_mode = 1
@@ -172,16 +172,17 @@ anchors_preset = -1
 anchor_right = 0.75
 anchor_bottom = 1.0
 grow_vertical = 2
-split_offset = -460
+split_offsets = PackedInt32Array(-460)
 dragger_visibility = 2
 drag_area_highlight_in_editor = true
+split_offset = -460
 
-[node name="Panel" type="Panel" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter"]
+[node name="Panel" type="Panel" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter" unique_id=187583685]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_force_pass_scroll_events = false
 
-[node name="ZoomLevel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel"]
+[node name="ZoomLevel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel" unique_id=655140185]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 1
@@ -197,7 +198,7 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 14
 text = "%.1f %%"
 
-[node name="FrameVSplitter" type="VSplitContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel"]
+[node name="FrameVSplitter" type="VSplitContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel" unique_id=419484325]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -209,29 +210,29 @@ theme_override_constants/autohide = 0
 theme_override_styles/split_bar_background = SubResource("StyleBoxFlat_w48qg")
 drag_area_highlight_in_editor = true
 
-[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter"]
+[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter" unique_id=1635981278]
 layout_mode = 2
 size_flags_vertical = 3
 follow_focus = true
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 4
 
-[node name="Top" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer"]
+[node name="Top" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer" unique_id=411359556]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="HSeparator" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top" unique_id=503770946]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_lquwl")
 
-[node name="MusicControls" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
+[node name="MusicControls" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top" unique_id=1169677878]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 1
 script = ExtResource("4_efxa6")
 
-[node name="Mute" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls"]
+[node name="Mute" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" unique_id=1469387840]
 layout_mode = 2
 tooltip_text = "Mute"
 focus_mode = 0
@@ -239,10 +240,10 @@ theme_override_icons/icon = ExtResource("6_dg77c")
 toggle_mode = true
 icon = ExtResource("7_ycdy4")
 
-[node name="CenterContainer" type="CenterContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls"]
+[node name="CenterContainer" type="CenterContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" unique_id=1395200287]
 layout_mode = 2
 
-[node name="HSlider" type="HSlider" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls/CenterContainer"]
+[node name="HSlider" type="HSlider" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls/CenterContainer" unique_id=732019406]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 tooltip_text = "Volume"
@@ -253,49 +254,49 @@ step = 0.01
 value = 0.3
 scrollable = false
 
-[node name="Loop" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls"]
+[node name="Loop" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" unique_id=801159978]
 layout_mode = 2
 tooltip_text = "If on, the track will loop, instead of switching to the next one"
 focus_mode = 0
 toggle_mode = true
 icon = ExtResource("5_kek77")
 
-[node name="Next" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls"]
+[node name="Next" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" unique_id=1275288027]
 layout_mode = 2
 tooltip_text = "Next track in playlist"
 focus_mode = 0
 icon = ExtResource("6_4c57u")
 
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls"]
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" unique_id=1459564633]
 bus = &"Music"
 
-[node name="About" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls"]
+[node name="About" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" unique_id=775133333]
 layout_mode = 2
 tooltip_text = "About this program"
 theme_override_fonts/font = SubResource("FontVariation_efxa6")
 text = "About"
 
-[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
+[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top" unique_id=1137782578]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxLine_efxa6")
 
-[node name="File" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
+[node name="File" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top" unique_id=1637909413]
 layout_mode = 2
 alignment = 1
 
-[node name="New" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
+[node name="New" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File" unique_id=1444230146]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Create a new skin at the specified location."
 text = "New..."
 
-[node name="Open" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
+[node name="Open" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File" unique_id=404025519]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Edit an existing skin from filesystem."
 text = "Open..."
 
-[node name="Save" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
+[node name="Save" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File" unique_id=894876054]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Save the skin to filesystem.
@@ -303,7 +304,7 @@ Only settings for the skin are saved (regions, speed, etc.), images are untouche
 shortcut = SubResource("Shortcut_4c57u")
 text = "Save"
 
-[node name="SaveAs" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
+[node name="SaveAs" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File" unique_id=1679317761]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Save the skin to filesystem, with a directory selection dialog.
@@ -311,33 +312,33 @@ Only settings for the skin are saved (regions, speed, etc.), images are untouche
 shortcut = SubResource("Shortcut_vivmo")
 text = "Save As..."
 
-[node name="Options" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File"]
+[node name="Options" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File" unique_id=877611516]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Save the skin to filesystem, with a directory selection dialog.
 Only settings for the skin are saved (regions, speed, etc.), images are untouched."
 text = "Options"
 
-[node name="HSeparator4" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
+[node name="HSeparator4" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top" unique_id=1127136634]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxLine_efxa6")
 
-[node name="Color" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
+[node name="Color" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top" unique_id=49620956]
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color"]
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color" unique_id=1809231639]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_right = 1
 
-[node name="BGcolor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer"]
+[node name="BGcolor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer" unique_id=1648146649]
 layout_mode = 2
 tooltip_text = "Click to change background color. Right click to reset."
 edit_alpha = false
 script = ExtResource("9_dg77c")
 
-[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer/BGcolor"]
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer/BGcolor" unique_id=445331024]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -351,20 +352,20 @@ text = "Background Color"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MarginContainer2" type="MarginContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color"]
+[node name="MarginContainer2" type="MarginContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color" unique_id=1294664007]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_left = 1
 theme_override_constants/margin_right = 5
 
-[node name="GridColor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer2"]
+[node name="GridColor" type="ColorPickerButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer2" unique_id=2017104987]
 layout_mode = 2
 tooltip_text = "Click to change grid color. Right click to reset."
 text = "BG color"
 color = Color(0.305882, 0.305882, 0.305882, 1)
 script = ExtResource("9_dg77c")
 
-[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer2/GridColor"]
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/Color/MarginContainer2/GridColor" unique_id=1351142054]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -378,18 +379,18 @@ text = "Grid Color"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HSeparator3" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
+[node name="HSeparator3" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top" unique_id=307322532]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxLine_efxa6")
 
-[node name="AnimationControls" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top"]
+[node name="AnimationControls" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top" unique_id=180462881]
 layout_mode = 2
 
-[node name="Btns" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls"]
+[node name="Btns" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls" unique_id=1220382359]
 layout_mode = 2
 alignment = 1
 
-[node name="AnimTime" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/Btns"]
+[node name="AnimTime" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/Btns" unique_id=844062073]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
@@ -401,7 +402,7 @@ text = "-"
 clip_text = true
 text_overrun_behavior = 1
 
-[node name="Play" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/Btns"]
+[node name="Play" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/Btns" unique_id=2078381543]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Toggles between Play and Pause."
@@ -409,31 +410,31 @@ theme_override_fonts/font = SubResource("FontVariation_efxa6")
 toggle_mode = true
 text = "Play"
 
-[node name="Stop" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/Btns"]
+[node name="Stop" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/Btns" unique_id=286631509]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Stop animation and set frame to 0."
 theme_override_fonts/font = SubResource("FontVariation_efxa6")
 text = "Stop"
 
-[node name="Collisions" type="CheckButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/Btns"]
+[node name="Collisions" type="CheckButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/Btns" unique_id=1798442558]
 layout_mode = 2
 tooltip_text = "Visual representation of player collisions in-game for reference."
 text = "Collision"
 
-[node name="FrameStuff" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls"]
+[node name="FrameStuff" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls" unique_id=700998393]
 layout_mode = 2
 alignment = 1
 
-[node name="Frame" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff"]
+[node name="Frame" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff" unique_id=212317026]
 layout_mode = 2
 
-[node name="FrameLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff/Frame"]
+[node name="FrameLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff/Frame" unique_id=891506676]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.670588, 1, 1, 1)
 text = "Frame:"
 
-[node name="Frame" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff/Frame"]
+[node name="Frame" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff/Frame" unique_id=366627422]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Selected index of an animation frame to edit."
@@ -444,16 +445,16 @@ allow_greater = true
 alignment = 1
 script = ExtResource("10_dg77c")
 
-[node name="MaxFrames" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff"]
+[node name="MaxFrames" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff" unique_id=1463762552]
 layout_mode = 2
 size_flags_vertical = 4
 alignment = 1
 
-[node name="FrameLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff/MaxFrames"]
+[node name="FrameLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff/MaxFrames" unique_id=198707351]
 layout_mode = 2
 text = "Total Frames:"
 
-[node name="Frames" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff/MaxFrames"]
+[node name="Frames" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/FrameStuff/MaxFrames" unique_id=903451961]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Total count of frames in the animation. Saved as a part of the skin."
@@ -463,19 +464,19 @@ rounded = true
 allow_greater = true
 alignment = 1
 
-[node name="SpeedDur" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls"]
+[node name="SpeedDur" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls" unique_id=1745567372]
 layout_mode = 2
 alignment = 1
 
-[node name="FrameDuration" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur"]
+[node name="FrameDuration" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur" unique_id=899585582]
 layout_mode = 2
 alignment = 1
 
-[node name="FrameLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur/FrameDuration"]
+[node name="FrameLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur/FrameDuration" unique_id=436357210]
 layout_mode = 2
 text = "Frame Duration:"
 
-[node name="Duration" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur/FrameDuration"]
+[node name="Duration" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur/FrameDuration" unique_id=1473202080]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "How much longer this frame should last compared to the
@@ -489,14 +490,14 @@ prefix = "x"
 custom_arrow_step = 0.1
 script = ExtResource("10_dg77c")
 
-[node name="Speed" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur"]
+[node name="Speed" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur" unique_id=1991216433]
 layout_mode = 2
 
-[node name="SpeedLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur/Speed"]
+[node name="SpeedLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur/Speed" unique_id=663645608]
 layout_mode = 2
 text = "Speed:"
 
-[node name="Speed" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur/Speed"]
+[node name="Speed" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/SpeedDur/Speed" unique_id=282452484]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Animation speed, in FPS. Saved as a part of the skin."
@@ -507,51 +508,52 @@ step = 0.1
 alignment = 1
 script = ExtResource("10_dg77c")
 
-[node name="HSeparator3" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls"]
+[node name="HSeparator3" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls" unique_id=839686882]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxLine_efxa6")
 
-[node name="States" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls"]
+[node name="States" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls" unique_id=455329340]
 layout_mode = 2
 alignment = 1
 
-[node name="Animation" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States"]
+[node name="Animation" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States" unique_id=105599318]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Animation"]
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Animation" unique_id=1900096751]
 layout_mode = 2
 text = "Animation:"
 
-[node name="AnimOption" type="OptionButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Animation"]
+[node name="AnimOption" type="OptionButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Animation" unique_id=708590300]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_force_pass_scroll_events = false
+search_bar_enabled = true
 
-[node name="Loop" type="CheckBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Animation"]
+[node name="Loop" type="CheckBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Animation" unique_id=1721691333]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Whether the animation should loop. Saved as a part of the skin."
 text = "Loop"
 alignment = 1
 
-[node name="Powerup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States"]
+[node name="Powerup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States" unique_id=76165833]
 layout_mode = 2
 alignment = 1
 
-[node name="Label2" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Powerup"]
+[node name="Label2" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Powerup" unique_id=1043635241]
 layout_mode = 2
 text = "Powerup:"
 
-[node name="StateSelect" type="OptionButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Powerup"]
+[node name="StateSelect" type="OptionButton" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/Powerup" unique_id=76889243]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ImageCreation" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States"]
+[node name="ImageCreation" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States" unique_id=220613921]
 layout_mode = 2
 alignment = 1
 
-[node name="BrowseOverrides" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/ImageCreation"]
+[node name="BrowseOverrides" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/ImageCreation" unique_id=408107494]
 layout_mode = 2
 tooltip_text = "Open the directory where overrides for the \"placeholder\" images can be set.
 They are used for making missing animations.
@@ -559,46 +561,46 @@ You can replace spritesheet images and set up the offsets, which will be used
 for slicing into individual animation textures."
 text = "Browse Overrides"
 
-[node name="FillBlanks" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/ImageCreation"]
+[node name="FillBlanks" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/AnimationControls/States/ImageCreation" unique_id=1445792884]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Fill missing animation textures with placeholders."
 text = "Create Missing Anims..."
 
-[node name="Bottom" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter"]
+[node name="Bottom" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter" unique_id=1063400281]
 layout_mode = 2
 size_flags_vertical = 3
 alignment = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom" unique_id=1967159273]
 layout_mode = 2
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="Browse" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
+[node name="Browse" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2" unique_id=271396639]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Open the animation folder on your filesystem."
 text = "Browse"
 
-[node name="ReloadTexture" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
+[node name="ReloadTexture" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2" unique_id=630502399]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Load the updated textures from filesystem."
 text = "Reload Texture"
 
-[node name="Autoreload" type="CheckBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2"]
+[node name="Autoreload" type="CheckBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/HBoxContainer2" unique_id=1713267871]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Reload the texture automatically each time the application receives focus."
 button_pressed = true
 text = "Autoreload"
 
-[node name="Rect2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
+[node name="Rect2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom" unique_id=52473335]
 layout_mode = 2
 alignment = 1
 
-[node name="RectX" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
+[node name="RectX" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2" unique_id=1649102891]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "X Position of the current frame in pixels."
@@ -607,7 +609,7 @@ allow_lesser = true
 suffix = "px"
 script = ExtResource("10_dg77c")
 
-[node name="RectY" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
+[node name="RectY" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2" unique_id=1119858287]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Y Position of the current frame in pixels."
@@ -616,7 +618,7 @@ allow_lesser = true
 suffix = "px"
 script = ExtResource("10_dg77c")
 
-[node name="RectW" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
+[node name="RectW" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2" unique_id=1678908302]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Width of the current frame in pixels."
@@ -625,7 +627,7 @@ allow_lesser = true
 suffix = "px"
 script = ExtResource("10_dg77c")
 
-[node name="RectH" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2"]
+[node name="RectH" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/Rect2" unique_id=1737086471]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Height of the current frame in pixels."
@@ -634,19 +636,19 @@ allow_lesser = true
 suffix = "px"
 script = ExtResource("10_dg77c")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
+[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom" unique_id=1134811208]
 layout_mode = 2
 size_flags_vertical = 3
 draw_focus_border = true
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 4
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/ScrollContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/ScrollContainer" unique_id=671202636]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/ScrollContainer/HBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/ScrollContainer/HBoxContainer" unique_id=334214039]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -655,13 +657,13 @@ theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/ScrollContainer/HBoxContainer/MarginContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/ScrollContainer/HBoxContainer/MarginContainer" unique_id=1515005224]
 texture_filter = 1
 custom_minimum_size = Vector2(256, 0)
 layout_mode = 2
 theme = SubResource("Theme_5vw27")
 
-[node name="SpriteView" type="TextureRect" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/ScrollContainer/HBoxContainer/MarginContainer/PanelContainer"]
+[node name="SpriteView" type="TextureRect" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom/ScrollContainer/HBoxContainer/MarginContainer/PanelContainer" unique_id=858484817]
 unique_name_in_owner = true
 texture_filter = 1
 layout_mode = 2
@@ -670,15 +672,15 @@ expand_mode = 5
 stretch_mode = 5
 script = ExtResource("4_1bvp3")
 
-[node name="HSeparator" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom"]
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/Bottom" unique_id=793508713]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_lquwl")
 
-[node name="Control" type="Control" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter"]
+[node name="Control" type="Control" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter" unique_id=1811709004]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="SaveDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main"]
+[node name="SaveDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=917671863]
 disable_3d = true
 title = "Open a Directory"
 ok_button_text = "Select Current Folder"
@@ -690,7 +692,7 @@ show_hidden_files = true
 use_native_dialog = true
 favorites_enabled = false
 
-[node name="NewSaveDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main"]
+[node name="NewSaveDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=190812995]
 auto_translate_mode = 1
 disable_3d = true
 title = "Open a Directory"
@@ -703,7 +705,7 @@ show_hidden_files = true
 use_native_dialog = true
 favorites_enabled = false
 
-[node name="OpenDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main"]
+[node name="OpenDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=922630150]
 disable_3d = true
 title = "Open a Directory"
 ok_button_text = "Select Current Folder"
@@ -713,7 +715,7 @@ access = 2
 use_native_dialog = true
 favorites_enabled = false
 
-[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main"]
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/Main" unique_id=1757986860]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -732,7 +734,7 @@ Hold LMB / Shift - Panning
 Mouse Wheel - Zoom"
 horizontal_alignment = 2
 
-[node name="VersionLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main"]
+[node name="VersionLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main" unique_id=1363235483]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 12
@@ -748,10 +750,10 @@ horizontal_alignment = 2
 clip_text = true
 text_overrun_behavior = 1
 
-[node name="AboutWindow" parent="CanvasLayer" instance=ExtResource("14_vivmo")]
+[node name="AboutWindow" parent="CanvasLayer" unique_id=1548420921 instance=ExtResource("14_vivmo")]
 unique_name_in_owner = true
 
-[node name="ModalWindow" type="Window" parent="CanvasLayer"]
+[node name="ModalWindow" type="Window" parent="CanvasLayer" unique_id=918499463]
 unique_name_in_owner = true
 auto_translate_mode = 1
 disable_3d = true
@@ -764,7 +766,7 @@ transient = true
 exclusive = true
 unresizable = true
 
-[node name="Panel" type="Panel" parent="CanvasLayer/ModalWindow"]
+[node name="Panel" type="Panel" parent="CanvasLayer/ModalWindow" unique_id=580430012]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -772,7 +774,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_efxa6")
 
-[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/ModalWindow"]
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/ModalWindow" unique_id=2054543102]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -783,57 +785,57 @@ theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/ModalWindow/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/ModalWindow/MarginContainer" unique_id=37431400]
 layout_mode = 2
 
-[node name="ModalLabel" type="Label" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer"]
+[node name="ModalLabel" type="Label" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer" unique_id=180331359]
 custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 text = "Warning: Decreasing frame count removes data associated with the frame. Continue?"
 autowrap_mode = 3
 
-[node name="DontAskAgain" type="CheckBox" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer"]
+[node name="DontAskAgain" type="CheckBox" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer" unique_id=921047742]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Don't show this again"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer" unique_id=1973719936]
 layout_mode = 2
 size_flags_vertical = 10
 alignment = 1
 
-[node name="Control" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="Control" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer" unique_id=515469553]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Cancel" type="Button" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="Cancel" type="Button" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer" unique_id=473654994]
 layout_mode = 2
 size_flags_horizontal = 3
 shortcut = SubResource("Shortcut_074og")
 text = "Cancel"
 
-[node name="Control2" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="Control2" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1242514269]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="OK" type="Button" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="OK" type="Button" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer" unique_id=368061766]
 layout_mode = 2
 size_flags_horizontal = 3
 shortcut = SubResource("Shortcut_2cqfq")
 text = "OK"
 
-[node name="Control3" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="Control3" type="Control" parent="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer" unique_id=15233669]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="." unique_id=1586470920]
 unique_name_in_owner = true
 initial_position = 2
 size = Vector2i(384, 132)
 dialog_text = "This suit is incomplete. Would you like to create
 default animation settings for this suit?"
 
-[node name="ConfirmationNewState" type="ConfirmationDialog" parent="."]
+[node name="ConfirmationNewState" type="ConfirmationDialog" parent="." unique_id=1518517240]
 unique_name_in_owner = true
 auto_translate_mode = 1
 initial_position = 2
@@ -843,7 +845,7 @@ dialog_text = "This action will create placeholder image files for each missing 
 Existing files will not be overriden. Continue?"
 dialog_autowrap = true
 
-[node name="ImageCreationDialog" type="AcceptDialog" parent="."]
+[node name="ImageCreationDialog" type="AcceptDialog" parent="." unique_id=513964468]
 unique_name_in_owner = true
 title = "Skin Texture Creation"
 initial_position = 2
@@ -852,7 +854,7 @@ unresizable = true
 dialog_text = "Success"
 dialog_autowrap = true
 
-[node name="OptionsDialog" type="Window" parent="."]
+[node name="OptionsDialog" type="Window" parent="." unique_id=1291975243]
 unique_name_in_owner = true
 disable_3d = true
 title = "Skin Options"
@@ -861,7 +863,7 @@ size = Vector2i(348, 220)
 visible = false
 min_size = Vector2i(348, 220)
 
-[node name="Panel" type="Panel" parent="OptionsDialog"]
+[node name="Panel" type="Panel" parent="OptionsDialog" unique_id=36603011]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -869,7 +871,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_efxa6")
 
-[node name="MarginContainer" type="MarginContainer" parent="OptionsDialog"]
+[node name="MarginContainer" type="MarginContainer" parent="OptionsDialog" unique_id=1232112345]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -880,18 +882,18 @@ theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="VBoxContainer3" type="VBoxContainer" parent="OptionsDialog/MarginContainer"]
+[node name="VBoxContainer3" type="VBoxContainer" parent="OptionsDialog/MarginContainer" unique_id=2054127997]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3" unique_id=2089386034]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer2"]
+[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer2" unique_id=759854812]
 layout_mode = 2
 text = "Display Name:"
 
-[node name="DisplayNameLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer2"]
+[node name="DisplayNameLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer2" unique_id=204626416]
 unique_name_in_owner = true
 texture_filter = 1
 custom_minimum_size = Vector2(0, 28)
@@ -902,20 +904,20 @@ max_length = 15
 emoji_menu_enabled = false
 drag_and_drop_selection_enabled = false
 
-[node name="VBoxContainer" type="VBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+[node name="VBoxContainer" type="VBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3" unique_id=1650148205]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer"]
+[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer" unique_id=1277924050]
 custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
 text = "Pronouns & Alias (Story Text):"
 autowrap_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer" unique_id=552096337]
 layout_mode = 2
 
-[node name="TheyLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/HBoxContainer2"]
+[node name="TheyLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/HBoxContainer2" unique_id=1987235848]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -925,7 +927,7 @@ placeholder_text = "they"
 max_length = 15
 drag_and_drop_selection_enabled = false
 
-[node name="ThemLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/HBoxContainer2"]
+[node name="ThemLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/HBoxContainer2" unique_id=1111816645]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -936,16 +938,16 @@ placeholder_text = "them"
 max_length = 25
 drag_and_drop_selection_enabled = false
 
-[node name="VBoxContainer3" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer"]
+[node name="VBoxContainer3" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer" unique_id=906585111]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3"]
+[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3" unique_id=493882775]
 visible = false
 layout_mode = 2
 text = "Description (Story Text):"
 
-[node name="TheirLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3"]
+[node name="TheirLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3" unique_id=1380007630]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -955,7 +957,7 @@ placeholder_text = "their"
 max_length = 25
 drag_and_drop_selection_enabled = false
 
-[node name="DescriptionLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3"]
+[node name="DescriptionLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3" unique_id=678866925]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
@@ -969,38 +971,38 @@ max_length = 50
 emoji_menu_enabled = false
 drag_and_drop_selection_enabled = false
 
-[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3" unique_id=699401759]
 custom_minimum_size = Vector2(320, 40)
 layout_mode = 2
 text = "See more skin options in MF:CE under Tweaks/Skin Setup/Skin Tweaks"
 autowrap_mode = 3
 
-[node name="HBoxContainer" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3"]
+[node name="HBoxContainer" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3" unique_id=808250710]
 layout_mode = 2
 size_flags_vertical = 10
 alignment = 1
 
-[node name="Control" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+[node name="Control" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=2125417842]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Cancel" type="Button" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+[node name="Cancel" type="Button" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=1559145428]
 layout_mode = 2
 size_flags_horizontal = 3
 shortcut = SubResource("Shortcut_074og")
 text = "Cancel"
 
-[node name="Control2" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+[node name="Control2" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=1105889118]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="OK" type="Button" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+[node name="OK" type="Button" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=1994688542]
 layout_mode = 2
 size_flags_horizontal = 3
 shortcut = SubResource("Shortcut_2cqfq")
 text = "Save"
 
-[node name="Control3" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer"]
+[node name="Control3" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=816082102]
 layout_mode = 2
 size_flags_horizontal = 3
 

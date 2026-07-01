@@ -8,6 +8,10 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="Mario Forever Community Edition Skin Editor"
@@ -17,7 +21,7 @@ run/enable_alt_space_menu=true
 config/use_custom_user_dir=true
 config/custom_user_dir_name="MeteoDream/Skin Editor"
 config/auto_accept_quit=false
-config/features=PackedStringArray("4.5", "Mobile")
+config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
 [audio]

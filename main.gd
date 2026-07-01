@@ -95,11 +95,12 @@ func _ready() -> void:
 	#open_dialog.popup_centered()
 	
 	var an_popup: PopupMenu = anim_option.get_popup()
-	an_popup.wrap_controls = false
+	an_popup.max_size = DisplayServer.screen_get_usable_rect().size
+	#an_popup.wrap_controls = false
 	for anim in PlayerSkin.ANIMS:
 		anim_option.add_item(anim)
-	an_popup.child_controls_changed()
-	anim_option.toggled.connect(_update_anim_option_size, CONNECT_DEFERRED)
+	#an_popup.child_controls_changed()
+	#anim_option.toggled.connect(_update_anim_option_size, CONNECT_DEFERRED)
 	
 	for state in PlayerSkin.STATES:
 		state_option.add_item(state)
@@ -118,7 +119,7 @@ func _update_anim_option_size(to: bool) -> void:
 	var current_screen: int = DisplayServer.window_get_current_screen()
 	var screen_size: Vector2i = DisplayServer.screen_get_usable_rect(current_screen).size
 	var an_popup: PopupMenu = anim_option.get_popup()
-	an_popup.child_controls_changed()
+	#an_popup.child_controls_changed()
 	an_popup.min_size.y = min(an_popup.min_size.y, screen_size.y)
 	an_popup.size.y = min(an_popup.min_size.y, an_popup.size.y)
 
@@ -726,8 +727,8 @@ func _on_h_split_container_dragged(_offset: int) -> void:
 
 func _on_window_resized() -> void:
 	var size_x = %FrameHSplitter.size.x
-	if %FrameHSplitter.split_offset < -size_x + 384:
-		%FrameHSplitter.split_offset = -size_x + 384
+	if %FrameHSplitter.split_offsets[0] < -size_x + 384:
+		%FrameHSplitter.split_offsets = PackedInt32Array([-size_x + 384])
 
 #region ModalBoxActions
 ## Displayed when decreasing total frames count

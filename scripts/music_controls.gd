@@ -1,26 +1,26 @@
 extends HBoxContainer
 
 const PLAYLIST = [
-	preload("res://music/QD-ANOTH.XM"),
-	preload("res://music/blueberry.xm"),
-	preload("res://music/coffee.xm"),
-	preload("res://music/defy_groove.mod"),
-	preload("res://music/dilik_-_hanashiro.compat.xm"),
+	preload("res://music/QD-ANOTH.mo3"),
+	preload("res://music/blueberry.mo3"),
+	preload("res://music/coffee.mo3"),
+	preload("res://music/defy_groove.mo3"),
+	preload("res://music/dilik_-_hanashiro.compat.mo3"),
 	
-	preload("res://music/doc1429_-_february.xm"),
-	preload("res://music/doc1429_-_october.xm"), 
-	preload("res://music/echoing.mod"), 
-	preload("res://music/fastbass.mod"), 
-	preload("res://music/hirvih_-_wings.mod"), 
-	preload("res://music/music_for_chips.xm"), 
+	preload("res://music/doc1429_-_february.mo3"),
+	preload("res://music/doc1429_-_october.mo3"), 
+	preload("res://music/echoing.mo3"), 
+	preload("res://music/fastbass.mo3"), 
+	preload("res://music/hirvih_-_wings.mo3"), 
+	preload("res://music/music_for_chips.mo3"), 
 
-	preload("res://music/rm_-_winning.mod"),
-	preload("res://music/scalesof.mod"),
-	preload("res://music/smile.mod"),
-	preload("res://music/soda7_-_coffee_at_morning.mod"),
-	preload("res://music/vincenzo_-_desert_cream.it"),
-	preload("res://music/cool_nightmare.mod"),
-	preload("res://music/bombastic-968.mod"),
+	preload("res://music/rm_-_winning.mo3"),
+	preload("res://music/scalesof.mo3"),
+	preload("res://music/smile.mo3"),
+	preload("res://music/soda7_-_coffee_at_morning.mo3"),
+	preload("res://music/vincenzo_-_desert_cream.mo3"),
+	preload("res://music/cool_nightmare.mo3"),
+	preload("res://music/bombastic-968.mo3"),
 ]
 const PL_VOL = [
 	0.0, 2.0, 0.0, -1.0, 2.0,   0.0, 0.0, -2.0, 0.0, 2.0, 4.5,   -1.2, -1.0, 0.0, 0.0, 0.0, -1.2, -1.0
@@ -53,7 +53,7 @@ func _notification(what: int) -> void:
 		config.zoom = %Camera2D.zoom.x
 		config.campos_x = %Camera2D.position.x
 		config.campos_y = %Camera2D.position.y
-		config.sidebar_offset = %FrameHSplitter.split_offset
+		config.sidebar_offset = %FrameHSplitter.split_offsets[0]
 		var json: String = JSON.stringify(config)
 		
 		var file: FileAccess = FileAccess.open("user://config.json", FileAccess.WRITE)
@@ -71,7 +71,7 @@ func init_config_values() -> void:
 	%Camera2D.position.x = config.get("campos_x", 0.0)
 	%Camera2D.position.y = config.get("campos_y", 0.0)
 	%Camera2D.reset_physics_interpolation()
-	%FrameHSplitter.split_offset = config.get("sidebar_offset", -460)
+	%FrameHSplitter.split_offsets = PackedInt32Array([config.get("sidebar_offset", -460)])
 	
 	var grid_color = $"../Color/MarginContainer2/GridColor"
 	grid_color.color = Color.from_string(config.get("grid_color", ""), grid_color.color)

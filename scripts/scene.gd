@@ -33,9 +33,7 @@ func _init() -> void:
 			ProjectSettings.get_setting("display/window/size/viewport_width"),
 			user_screen.size.y - 12 - wind_size.y
 		))
-		DisplayServer.window_set_position(
-			(user_screen.size / 2) - (DisplayServer.window_get_size() / 2) + (wind_size / 2)
-		)
+		get_tree().root.move_to_center()
 
 func _notification(what: int) -> void:
 	if Engine.is_editor_hint(): return
@@ -93,9 +91,7 @@ func process_loaded_config() -> void:
 		get_window().size = Vector2i(1920, 1540)
 		
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		get_window().position = (
-			(_scr_size / 2) - (get_window().size / 2)
-		)
+		get_tree().root.move_to_center()
 	
 	if editor_scale >= 0.5:
 		get_window().content_scale_factor = editor_scale

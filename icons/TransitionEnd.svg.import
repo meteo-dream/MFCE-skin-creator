@@ -15,4 +15,6 @@ dest_files=["res://.godot/imported/TransitionEnd.svg-07871b2e32541f74828014e767f
 base_scale=1.0
 saturation=1.0
 color_map={}
+fix_alpha_border=false
+premult_alpha=false
 compress=true
