@@ -24,15 +24,6 @@ animations = [{
 "speed": 120.0
 }]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vivmo"]
-bg_color = Color(0.19, 0.19, 0.19, 1)
-corner_detail = 1
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kek77"]
-
-[sub_resource type="StyleBoxLine" id="StyleBoxLine_efxa6"]
-color = Color(0.313726, 0.313726, 0.313726, 1)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w48qg"]
 bg_color = Color(0.6, 0.6, 0.6, 0.188235)
 corner_detail = 1
@@ -44,6 +35,9 @@ anti_aliasing = false
 [sub_resource type="FontVariation" id="FontVariation_efxa6"]
 spacing_top = -4
 spacing_bottom = -4
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_efxa6"]
+color = Color(0.313726, 0.313726, 0.313726, 1)
 
 [sub_resource type="InputEventKey" id="InputEventKey_kek77"]
 device = -1
@@ -117,46 +111,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
-
-[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/VBoxContainer" unique_id=1456993922]
-visible = false
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
-
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/PanelContainer" unique_id=1321860420]
-custom_minimum_size = Vector2(0, 28)
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 4
-
-[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/PanelContainer/HBoxContainer" unique_id=909936037]
-layout_mode = 2
-theme_override_styles/separator = SubResource("StyleBoxEmpty_kek77")
-
-[node name="MenuButton" type="MenuButton" parent="CanvasLayer/VBoxContainer/PanelContainer/HBoxContainer" unique_id=1602085878]
-layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Operations with skin files."
-text = "File"
-item_count = 6
-popup/item_0/text = "New Skin"
-popup/item_0/id = 0
-popup/item_1/text = "Open Skin..."
-popup/item_1/id = 1
-popup/item_2/text = "Save"
-popup/item_2/id = 2
-popup/item_3/text = "Save As..."
-popup/item_3/id = 3
-popup/item_4/id = 4
-popup/item_4/separator = true
-popup/item_5/text = "Quit"
-popup/item_5/id = 5
-
-[node name="HSeparator" type="HSeparator" parent="CanvasLayer/VBoxContainer" unique_id=1670692424]
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 1
-theme_override_styles/separator = SubResource("StyleBoxLine_efxa6")
 
 [node name="Main" type="Control" parent="CanvasLayer/VBoxContainer" unique_id=979001912]
 layout_mode = 2
