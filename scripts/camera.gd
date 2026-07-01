@@ -5,26 +5,16 @@ var zoom_max := 32.0
 const ZOOM_INCREMENT: float = 6
 var zoom_speed := 0.1
 
-var launch_dir: Vector2
-
-func _process(delta: float) -> void:
-	if launch_dir != Vector2.ZERO:
-		global_position += launch_dir
-		launch_dir = lerp(launch_dir, Vector2.ZERO, delta * 2)
-		
-		if launch_dir.is_zero_approx():
-			launch_dir = Vector2.ZERO
-
-var dragging: bool
 @onready var zoom_template_text = %ZoomLevel.text
+var has_user_moved: bool
 
 func _ready() -> void:
 	%ZoomLevel.text = zoom_template_text % [1 * 100.0]
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_reset_view"):
-		position = Vector2.ZERO
-		launch_dir = Vector2.ZERO
+		update_camera_position()
+		has_user_moved = false
 	
 	if event is InputEventMouseMotion:
 		if Input.is_action_pressed("ui_drag_camera"):
@@ -33,23 +23,23 @@ func _unhandled_input(event: InputEvent) -> void:
 			rel.y *= 1.0 / zoom.y
 			
 			global_position -= rel
-			launch_dir = Vector2.ZERO
-			dragging = true
-		elif Input.is_action_just_released("ui_drag_camera") && dragging:
-			launch_dir = -event.relative
-			launch_dir.x *= 1.0 / zoom.x
-			launch_dir.y *= 1.0 / zoom.y
-			dragging = false
+			if !has_user_moved && rel != Vector2.ZERO:
+				has_user_moved = true
 	
 	elif event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom_in()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom_out()
-		
-		if Input.is_action_pressed("ui_drag_camera"):
-			launch_dir = Vector2.ZERO
-	
+
+
+func update_camera_position() -> void:
+	position = Vector2(%FrameHSplitter/Panel.size.x / -2.0 / zoom.x, -32)
+
+func get_camera_position() -> Vector2:
+	return Vector2(%FrameHSplitter/Panel.size.x / -2.0 / zoom.x, -32)
+
+
 func zoom_in() -> void:
 	var _alt = int(!Input.is_action_pressed(&"ui_zoom_extra")) + 1
 	var current_zoom_step: float = round(log(zoom.x) * (12.0 * _alt) / log(2.0))
@@ -69,7 +59,7 @@ func zoom_out() -> void:
 	update_zoom(zoom, clamped_zoom * Vector2.ONE)
 
 func update_zoom(old_zoom: Vector2, new_zoom: Vector2) -> void:
-	var screen_width = get_viewport_rect().size.x
+	var screen_width = get_viewport_rect().size.x #- %FrameHSplitter/Panel.size.x / zoom.x
 	var screen_height = get_viewport_rect().size.y
 	var mouse_x = get_viewport().get_mouse_position().x
 	var mouse_y = get_viewport().get_mouse_position().y
@@ -80,5 +70,8 @@ func update_zoom(old_zoom: Vector2, new_zoom: Vector2) -> void:
 	position.x += pixels_difference_x * side_ratio_x
 	position.y += pixels_difference_y * side_ratio_y
 	zoom = new_zoom
-	if position != get_screen_center_position():
-		position = get_screen_center_position()
+	if has_user_moved:
+		if position != get_screen_center_position():
+			position = get_screen_center_position()
+	elif position != get_camera_position():
+		position = get_camera_position()

@@ -729,6 +729,9 @@ func _on_window_resized() -> void:
 	var size_x = %FrameHSplitter.size.x
 	if %FrameHSplitter.split_offsets[0] < -size_x + 384:
 		%FrameHSplitter.split_offsets = PackedInt32Array([-size_x + 384])
+	
+	if !%Camera2D.has_user_moved:
+		%Camera2D.update_camera_position()
 
 #region ModalBoxActions
 ## Displayed when decreasing total frames count
