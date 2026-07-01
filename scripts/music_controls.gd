@@ -42,7 +42,6 @@ func _ready() -> void:
 	_on_h_slider_value_changed(volume)
 	if config.get("is_looping", false):
 		index = config.get("index", 0)
-	play_music()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_EXIT_TREE:
@@ -62,7 +61,8 @@ func _notification(what: int) -> void:
 
 func init_config_values() -> void:
 	$Loop.button_pressed = config.get("is_looping", false)
-	$Mute.button_pressed = config.get("is_muted", false)
+	$Mute.button_pressed = config.get("is_muted", true)
+	play_music()
 	_on_mute_toggled($Mute.button_pressed)
 	$CenterContainer/HSlider.value = config.get("volume", volume)
 	
@@ -70,7 +70,6 @@ func init_config_values() -> void:
 	%Camera2D.zoom = Vector2.ONE * config.get("zoom", 1.0)
 	%Camera2D.position.x = config.get("campos_x", 0.0)
 	%Camera2D.position.y = config.get("campos_y", 0.0)
-	%Camera2D.reset_physics_interpolation()
 	%FrameHSplitter.split_offsets = PackedInt32Array([config.get("sidebar_offset", -460)])
 	
 	var grid_color = $"../Color/MarginContainer2/GridColor"
@@ -86,6 +85,7 @@ func go_next() -> void:
 func play_music() -> void:
 	player.stream = PLAYLIST[index]
 	player.play()
+	player.stream_paused = $Mute.button_pressed
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"Music"), PL_VOL[index])
 
 

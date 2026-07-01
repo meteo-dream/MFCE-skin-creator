@@ -79,8 +79,6 @@ func update_zoom(old_zoom: Vector2, new_zoom: Vector2) -> void:
 	var side_ratio_y = (mouse_y - (screen_height / 2)) / screen_height
 	position.x += pixels_difference_x * side_ratio_x
 	position.y += pixels_difference_y * side_ratio_y
-	reset_physics_interpolation()
 	zoom = new_zoom
 	if position != get_screen_center_position():
 		position = get_screen_center_position()
-	reset_physics_interpolation()

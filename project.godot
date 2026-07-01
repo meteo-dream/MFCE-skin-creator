@@ -22,7 +22,7 @@ config/use_custom_user_dir=true
 config/custom_user_dir_name="MeteoDream/Skin Editor"
 config/auto_accept_quit=false
 config/features=PackedStringArray("4.7", "Mobile")
-config/icon="res://icon.svg"
+config/icon="uid://cddbt8ojvbaj2"
 
 [audio]
 

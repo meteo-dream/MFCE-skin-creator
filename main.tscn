@@ -192,6 +192,7 @@ tooltip_text = "Mute"
 focus_mode = 0
 theme_override_icons/icon = ExtResource("6_dg77c")
 toggle_mode = true
+button_pressed = true
 icon = ExtResource("7_ycdy4")
 
 [node name="CenterContainer" type="CenterContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" unique_id=1395200287]
