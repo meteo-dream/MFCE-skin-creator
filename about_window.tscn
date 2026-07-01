@@ -62,7 +62,7 @@ layout_mode = 2
 size_flags_horizontal = 2
 theme_override_colors/font_color = Color(0.45098, 0.682353, 1, 1)
 text = "Skins Documentation for MFCE"
-uri = "https://gist.github.com/jue131/e425619bc898df9feaa56cde6588216e"
+uri = "https://marioforever.space/topic/66/skin-pack-guide"
 
 [node name="LinkButton2" type="LinkButton" parent="MarginContainer/VBoxContainer/Control2" unique_id=689780446]
 layout_mode = 2
