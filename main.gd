@@ -707,7 +707,7 @@ func update_anim_time() -> void:
 		%AnimTime.text = "-"
 		return
 	var frame_count = preview.sprite_frames.get_frame_count(preview.animation)
-	if frame_count > 100:
+	if frame_count > 150:
 		%AnimTime.text = "Too long"
 		return
 	var number: float = 0.0
@@ -721,11 +721,12 @@ func update_anim_time() -> void:
 		return
 	%AnimTime.text = "%s sec" % String.num(number, 4)
 
+
 ## Logic for side panel resizing.
 func _on_h_split_container_dragged(_offset: int) -> void:
-	_on_window_resized()
+	_on_window_resized(true)
 
-func _on_window_resized() -> void:
+func _on_window_resized(force_update: bool = false) -> void:
 	var size_x = %FrameHSplitter.size.x
 	if %FrameHSplitter.split_offsets[0] < -size_x + 384:
 		%FrameHSplitter.split_offsets = PackedInt32Array([-size_x + 384])

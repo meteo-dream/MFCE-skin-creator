@@ -1,12 +1,13 @@
 [gd_scene format=3 uid="uid://dq0ujh6mjag1y"]
 
+[ext_resource type="Texture2D" uid="uid://cddbt8ojvbaj2" path="res://icon.png" id="1_xvc08"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_efxa6"]
 bg_color = Color(0.192157, 0.192157, 0.192157, 1)
 corner_detail = 1
 anti_aliasing = false
 
 [node name="AboutWindow" type="Window" unique_id=370617266]
-auto_translate_mode = 1
 disable_3d = true
 title = "About"
 initial_position = 2
@@ -34,6 +35,24 @@ theme_override_constants/margin_bottom = 4
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1359202089]
 layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1559840926]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=1609374314]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("1_xvc08")
+expand_mode = 1
+
+[node name="RichTextLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=2120440150]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+text = "[b]Mario Forever Community Edition Skin Editor[/b]
+For use with Thunder Engine-based games, including Mario Forever: Community Edition."
+scroll_active = false
+shortcut_keys_enabled = false
 
 [node name="Control" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1578631258]
 layout_mode = 2
@@ -80,13 +99,11 @@ size_flags_vertical = 3
 focus_mode = 2
 theme_override_constants/line_separation = -3
 bbcode_enabled = true
-text = "[center][b]Mario Forever Skin Editor[/b] - For use with Thunder Engine-based games, including Mario Forever: Community Edition
-
-Credits:
+text = "[center][b]Credits:[/b]
 SuperMany - Idea and base project
 JUE13 - Further improvements, Maintenance
 
-Soundtrack used:[/center]
+[b]Soundtrack used:[/b][/center]
 1. Another Worlds by Quadro (Cherdancev Michael)
 2. Blueberry (wig remix) by Karsten Obarski
 3. White Coffee by Zipp (Jacob Herbst) & Ragoon (Niclas Kings)

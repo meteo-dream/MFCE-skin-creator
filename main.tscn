@@ -9,8 +9,8 @@
 [ext_resource type="Script" uid="uid://b04ty5ewju1ij" path="res://scripts/music_controls.gd" id="4_efxa6"]
 [ext_resource type="Texture2D" uid="uid://m868e85gd744" path="res://icons/Loop.svg" id="5_kek77"]
 [ext_resource type="Texture2D" uid="uid://c2n0hseqy4ilt" path="res://icons/TransitionEnd.svg" id="6_4c57u"]
-[ext_resource type="Texture2D" uid="uid://bja8gtdnquhf0" path="res://icons/mute.png" id="6_dg77c"]
-[ext_resource type="Texture2D" uid="uid://b3fn56t2mfves" path="res://icons/AudioStreamPlayer.png" id="7_ycdy4"]
+[ext_resource type="Texture2D" uid="uid://dmuywvgiwuh2" path="res://icons/AudioMute.svg" id="6_074og"]
+[ext_resource type="Texture2D" uid="uid://crhueh5dfdmi7" path="res://icons/AudioStreamPlayer.svg" id="7_cegan"]
 [ext_resource type="Script" uid="uid://dt707ah351fv8" path="res://scripts/color_pick_button.gd" id="9_dg77c"]
 [ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://scripts/spinbox.gd" id="10_dg77c"]
 [ext_resource type="PackedScene" uid="uid://dq0ujh6mjag1y" path="res://about_window.tscn" id="14_vivmo"]
@@ -128,6 +128,7 @@ anchor_bottom = 1.0
 grow_vertical = 2
 split_offsets = PackedInt32Array(-460)
 dragger_visibility = 2
+drag_nested_intersections = true
 drag_area_highlight_in_editor = true
 split_offset = -460
 
@@ -162,6 +163,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/autohide = 0
 theme_override_styles/split_bar_background = SubResource("StyleBoxFlat_w48qg")
+drag_nested_intersections = true
 drag_area_highlight_in_editor = true
 
 [node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter" unique_id=1635981278]
@@ -190,10 +192,10 @@ script = ExtResource("4_efxa6")
 layout_mode = 2
 tooltip_text = "Mute"
 focus_mode = 0
-theme_override_icons/icon = ExtResource("6_dg77c")
+theme_override_icons/icon = ExtResource("6_074og")
 toggle_mode = true
 button_pressed = true
-icon = ExtResource("7_ycdy4")
+icon = ExtResource("7_cegan")
 
 [node name="CenterContainer" type="CenterContainer" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/MusicControls" unique_id=1395200287]
 layout_mode = 2
@@ -244,12 +246,14 @@ unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Create a new skin at the specified location."
 text = "New..."
+icon_alignment = 1
 
 [node name="Open" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File" unique_id=404025519]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Edit an existing skin from filesystem."
 text = "Open..."
+icon_alignment = 1
 
 [node name="Save" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File" unique_id=894876054]
 unique_name_in_owner = true
@@ -258,6 +262,7 @@ tooltip_text = "Save the skin to filesystem.
 Only settings for the skin are saved (regions, speed, etc.), images are untouched."
 shortcut = SubResource("Shortcut_4c57u")
 text = "Save"
+icon_alignment = 1
 
 [node name="SaveAs" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameHSplitter/Panel/FrameVSplitter/ScrollContainer/Top/File" unique_id=1679317761]
 unique_name_in_owner = true

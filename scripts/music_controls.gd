@@ -26,7 +26,7 @@ const PL_VOL = [
 	0.0, 2.0, 0.0, -1.0, 2.0,   0.0, 0.0, -2.0, 0.0, 2.0, 4.5,   -1.2, -1.0, 0.0, 0.0, 0.0, -1.2, -1.0
 ]
 
-const mute_icon = preload("res://icons/AudioStreamPlayer.png")
+const mute_icon = preload("res://icons/AudioStreamPlayer.svg")
 @onready var player: AudioStreamPlayer = $AudioStreamPlayer
 
 @onready var volume: float = $CenterContainer/HSlider.value
