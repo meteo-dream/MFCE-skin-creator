@@ -3,8 +3,8 @@ extends Node2D
 @onready var scene = get_tree().current_scene
 @export var rects: Dictionary = {
 	"small": Rect2(-10, -28, 20, 28),
-	"super": Rect2(-10, -58, 20, 58),
-	"frog": Rect2(-10, -50, 20, 50),
+	"super": Rect2(-10, -52, 20, 52),
+	"frog": Rect2(-10, -46, 20, 46),
 }
 var which_rect: String = "small"
 
