@@ -7,10 +7,15 @@ signal frames_reordered(indices: PackedInt32Array, to: int)
 signal add_frames_pressed
 signal edit_frame_pressed
 signal delete_frame_pressed
+signal thumb_size_changed(size: int)
+signal floating_changed(floating: bool)
 
 const THUMB_MIN := 32
 const THUMB_MAX := 256
+const THUMB_STEP := 8
 const DROP_LINE := Color(0.45, 0.68, 1.0, 0.95)
+const FLOAT_MIN_WIDTH := 640
+const FLOAT_MIN_HEIGHT := 240
 
 var thumb_size := 64
 
@@ -26,6 +31,10 @@ var _edge_layer: Control
 var _v_edge: Control
 var _h_edge: Control
 var _scroll_drag_bar: ScrollBar
+var _floating := false
+var _split: SplitContainer
+var _window: Window
+var _float_button: Button
 
 
 func _ready() -> void:
@@ -44,6 +53,12 @@ func _ready() -> void:
 	edit_button.pressed.connect(func(): edit_frame_pressed.emit())
 	delete_button.pressed.connect(func(): delete_frame_pressed.emit())
 	_setup_scroll_edges()
+	_split = get_parent() as SplitContainer
+	_window = %FramesWindow
+	_float_button = $VBox/FrameHSplitter/FramesSide/Toolbar/FloatButton
+	_float_button.pressed.connect(toggle_floating)
+	_window.close_requested.connect(_on_window_close)
+	_update_float_button()
 
 
 func set_enabled(enabled: bool) -> void:
@@ -57,11 +72,108 @@ func set_enabled(enabled: bool) -> void:
 	_update_delete_enabled()
 
 
-func set_thumb_size(size: int) -> void:
-	thumb_size = clampi(size, THUMB_MIN, THUMB_MAX)
+func set_thumb_size(thumb_px: int) -> void:
+	var next := clampi(thumb_px, THUMB_MIN, THUMB_MAX)
+	if next == thumb_size && list.fixed_icon_size.x == next:
+		return
+	thumb_size = next
 	list.fixed_icon_size = Vector2i(thumb_size, thumb_size)
 	list.fixed_column_width = thumb_size + 48
 	list.force_update_list_size()
+	thumb_size_changed.emit(thumb_size)
+
+
+func is_floating() -> bool:
+	return _floating
+
+
+func toggle_floating() -> void:
+	set_floating(!_floating)
+
+
+func set_floating(floating: bool, emit_change: bool = true) -> void:
+	if floating == _floating:
+		return
+	var origin := Vector2i(get_global_rect().position)
+	var sz := size
+	if floating:
+		_undock()
+		Util.fit_window_scale(_window, 480, 200)
+		var s := Util.editor_scale()
+		_window.size = Vector2i(
+			maxi(roundi(sz.x * s), roundi(FLOAT_MIN_WIDTH * s)),
+			maxi(roundi(sz.y * s), roundi(FLOAT_MIN_HEIGHT * s))
+		)
+		if origin == Vector2i.ZERO:
+			_window.popup_centered()
+		else:
+			_window.position = Util.logical_to_screen(origin)
+			_window.show()
+		Util.clamp_window_to_screen(_window)
+	else:
+		_redock()
+		visible = true
+	_update_float_button()
+	if emit_change:
+		floating_changed.emit(_floating)
+
+
+func apply_window_rect(rect: Rect2i) -> void:
+	Util.fit_window_scale(_window, 480, 200)
+	if rect.size.x < _window.min_size.x || rect.size.y < _window.min_size.y:
+		rect.size = Vector2i(
+			maxi(rect.size.x, _window.min_size.x),
+			maxi(rect.size.y, _window.min_size.y)
+		)
+	_window.position = rect.position
+	_window.size = rect.size
+	Util.clamp_window_to_screen(_window)
+
+
+func get_window_rect() -> Rect2i:
+	return Rect2i(_window.position, _window.size)
+
+
+func _undock() -> void:
+	var parent := get_parent()
+	if parent:
+		parent.remove_child(self)
+	_window.add_child(self)
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_offsets_preset(Control.PRESET_FULL_RECT)
+	visible = true
+	_floating = true
+
+
+func _redock() -> void:
+	_window.hide()
+	if get_parent() == _window:
+		_window.remove_child(self)
+		if _split:
+			_split.add_child(self)
+	_floating = false
+	size_flags_horizontal = Control.SIZE_FILL
+	size_flags_vertical = Control.SIZE_FILL
+	custom_minimum_size = Vector2(0, 200)
+	anchor_right = 0.0
+	anchor_bottom = 0.0
+	offset_left = 0.0
+	offset_top = 0.0
+	offset_right = 0.0
+	offset_bottom = 0.0
+
+
+func _on_window_close() -> void:
+	set_floating(false)
+
+
+func _update_float_button() -> void:
+	if !_float_button:
+		return
+	if _floating:
+		_float_button.tooltip_text = "Dock"
+	else:
+		_float_button.tooltip_text = "Make Floating"
 
 
 func get_selected_indices() -> PackedInt32Array:
@@ -220,6 +332,9 @@ func _on_item_activated(_index: int) -> void:
 
 
 func _on_list_gui_input(event: InputEvent) -> void:
+	if _handle_thumb_scroll(event):
+		list.accept_event()
+		return
 	if event is InputEventMouse && _exact_item_at(event.position) < 0:
 		# ItemList expands the last column into empty space and the scrollbar inset.
 		event.position = Vector2(-1e6, -1e6)
@@ -229,6 +344,20 @@ func _on_list_gui_input(event: InputEvent) -> void:
 	if key.keycode == KEY_A && key.is_command_or_control_pressed():
 		_select_all()
 		list.accept_event()
+
+
+func _handle_thumb_scroll(event: InputEvent) -> bool:
+	if !(event is InputEventMouseButton) || !event.pressed:
+		return false
+	if !event.is_command_or_control_pressed():
+		return false
+	if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		set_thumb_size(thumb_size + THUMB_STEP)
+		return true
+	if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		set_thumb_size(thumb_size - THUMB_STEP)
+		return true
+	return false
 
 
 func _select_all() -> void:

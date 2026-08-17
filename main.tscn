@@ -181,7 +181,6 @@ prefer_global_menu = false
 
 [node name="File" type="PopupMenu" parent="CanvasLayer/VBoxContainer/MenuPanel/MenuRow/MenuBar" unique_id=1811709303]
 unique_name_in_owner = true
-oversampling_override = 1.0
 size = Vector2i(132, 116)
 item_count = 5
 item_0/text = "New Skin..."
@@ -199,7 +198,6 @@ item_4/disabled = true
 
 [node name="Edit" type="PopupMenu" parent="CanvasLayer/VBoxContainer/MenuPanel/MenuRow/MenuBar" unique_id=1811709308]
 unique_name_in_owner = true
-oversampling_override = 1.0
 item_count = 2
 item_0/text = "Undo"
 item_0/id = 0
@@ -355,6 +353,8 @@ theme_override_constants/autohide = 0
 drag_nested_intersections = true
 
 [node name="PreviewOverlay" type="Control" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit" unique_id=1811709004]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 128)
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
@@ -487,7 +487,6 @@ mouse_force_pass_scroll_events = false
 min_value = -2.0
 max_value = 120.0
 step = 0.1
-alignment = 1
 suffix = "FPS"
 script = ExtResource("10_dg77c")
 
@@ -511,7 +510,6 @@ tooltip_text = "When this animation loops, playback continues from this frame (l
 min_value = -1.0
 rounded = true
 allow_greater = true
-alignment = 1
 prefix = "from"
 script = ExtResource("10_dg77c")
 
@@ -537,16 +535,21 @@ theme_override_constants/separation = 4
 [node name="Control" type="Control" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide" unique_id=1234368393]
 layout_mode = 2
 
-[node name="Toolbar" type="HFlowContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide" unique_id=1811709007]
-layout_mode = 2
-theme_override_constants/h_separation = 4
-theme_override_constants/v_separation = 4
-
-[node name="EditGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709509]
+[node name="Toolbar" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide" unique_id=1811709007]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="AddFrames" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/EditGroup" unique_id=1811709008]
+[node name="Flow" type="HFlowContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709511]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+
+[node name="EditGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow" unique_id=1811709509]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="AddFrames" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/EditGroup" unique_id=1811709008]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
@@ -555,7 +558,7 @@ focus_mode = 0
 icon = ExtResource("19_sheet")
 icon_alignment = 1
 
-[node name="EditFrame" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/EditGroup" unique_id=1811709009]
+[node name="EditFrame" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/EditGroup" unique_id=1811709009]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
@@ -564,7 +567,7 @@ focus_mode = 0
 icon = ExtResource("20_edit")
 icon_alignment = 1
 
-[node name="DeleteFrame" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/EditGroup" unique_id=1811709010]
+[node name="DeleteFrame" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/EditGroup" unique_id=1811709010]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
@@ -573,14 +576,14 @@ focus_mode = 0
 icon = ExtResource("21_remove")
 icon_alignment = 1
 
-[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1016205191]
+[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow" unique_id=1016205191]
 layout_mode = 2
 
-[node name="PlayGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709507]
+[node name="PlayGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow" unique_id=1811709507]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Play" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/PlayGroup" unique_id=2078381543]
+[node name="Play" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/PlayGroup" unique_id=2078381543]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
@@ -590,7 +593,7 @@ toggle_mode = true
 icon = ExtResource("22_play")
 icon_alignment = 1
 
-[node name="Stop" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/PlayGroup" unique_id=286631509]
+[node name="Stop" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/PlayGroup" unique_id=286631509]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
@@ -599,20 +602,20 @@ focus_mode = 0
 icon = ExtResource("23_stop")
 icon_alignment = 1
 
-[node name="VSeparator2" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=975268119]
+[node name="VSeparator2" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow" unique_id=975268119]
 layout_mode = 2
 
-[node name="DurationGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709510]
+[node name="DurationGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow" unique_id=1811709510]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="DurationLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/DurationGroup" unique_id=1811709012]
+[node name="DurationLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/DurationGroup" unique_id=1811709012]
 layout_mode = 2
 text = "Frame Duration:"
 
-[node name="Duration" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/DurationGroup" unique_id=1473202080]
+[node name="Duration" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/DurationGroup" unique_id=1473202080]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
 tooltip_text = "How much longer this frame should last compared to the
 general animation speed.
@@ -621,23 +624,22 @@ mouse_force_pass_scroll_events = false
 step = 0.01
 value = 1.0
 allow_greater = true
-alignment = 1
-prefix = "x"
+prefix = "×"
 custom_arrow_step = 0.1
 script = ExtResource("10_dg77c")
 
-[node name="VSeparator3" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1526716677]
+[node name="VSeparator3" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow" unique_id=1526716677]
 layout_mode = 2
 
-[node name="FrameGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709508]
+[node name="FrameGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow" unique_id=1811709508]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Frame" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup" unique_id=212317026]
+[node name="Frame" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/FrameGroup" unique_id=212317026]
 visible = false
 layout_mode = 2
 
-[node name="Frame" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup/Frame" unique_id=366627422]
+[node name="Frame" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/FrameGroup/Frame" unique_id=366627422]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
@@ -649,24 +651,34 @@ allow_greater = true
 alignment = 1
 script = ExtResource("10_dg77c")
 
-[node name="MaxFrames" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup" unique_id=1463762552]
+[node name="MaxFrames" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/FrameGroup" unique_id=1463762552]
 layout_mode = 2
 
-[node name="FrameLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup/MaxFrames" unique_id=198707351]
+[node name="FrameLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/FrameGroup/MaxFrames" unique_id=198707351]
 layout_mode = 2
 text = "Total Frames:"
 
-[node name="Frames" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup/MaxFrames" unique_id=903451961]
+[node name="Frames" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/FrameGroup/MaxFrames" unique_id=903451961]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
+size_flags_horizontal = 0
 tooltip_text = "Total count of frames in the animation.
 Reducing this number deletes frames from the end."
 mouse_default_cursor_shape = 2
 min_value = -2.0
 rounded = true
 allow_greater = true
-alignment = 1
+
+[node name="FloatButton" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709022]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+size_flags_vertical = 0
+tooltip_text = "Make Floating"
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_cegan")
+icon = ExtResource("25_float")
+icon_alignment = 1
 
 [node name="FrameList" type="ItemList" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide" unique_id=1811709014]
 unique_name_in_owner = true
@@ -733,13 +745,21 @@ allow_reselect = true
 
 [node name="HistoryWindow" type="Window" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811709807]
 unique_name_in_owner = true
-oversampling_override = 1.0
 title = "History"
 initial_position = 2
 size = Vector2i(280, 600)
 visible = false
 transient = true
 min_size = Vector2i(180, 200)
+
+[node name="FramesWindow" type="Window" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811709025]
+unique_name_in_owner = true
+title = "Frames"
+initial_position = 2
+size = Vector2i(900, 280)
+visible = false
+transient = true
+min_size = Vector2i(480, 200)
 
 [node name="SaveDialog" type="FileDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=917671863]
 disable_3d = true
@@ -784,6 +804,7 @@ unique_name_in_owner = true
 
 [node name="WelcomePanel" type="ColorRect" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811709700]
 unique_name_in_owner = true
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -912,7 +933,6 @@ theme_override_constants/separation = 4
 
 [node name="RecentSkinMenu" type="PopupMenu" parent="CanvasLayer/VBoxContainer/Main/WelcomePanel" unique_id=1811709720]
 unique_name_in_owner = true
-oversampling_override = 1.0
 size = Vector2i(209, 100)
 item_count = 1
 item_0/text = "Remove from Recent List"
@@ -921,14 +941,13 @@ item_0/id = 0
 [node name="EditorSettings" type="Window" parent="CanvasLayer" unique_id=1811709400]
 unique_name_in_owner = true
 disable_3d = true
-oversampling_override = 1.0
 title = "Editor Settings"
 initial_position = 2
-size = Vector2i(360, 148)
+size = Vector2i(360, 268)
 visible = false
 wrap_controls = true
 transient = true
-min_size = Vector2i(360, 148)
+min_size = Vector2i(360, 268)
 
 [node name="Panel" type="Panel" parent="CanvasLayer/EditorSettings" unique_id=1811709401]
 anchors_preset = 15
@@ -1019,7 +1038,7 @@ text = "Thumbnail Size:"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Size of frame thumbnails in the bottom panel."
+tooltip_text = "Size of frame thumbnails in the bottom panel. Ctrl+Scroll over the frames list also changes this."
 min_value = 32.0
 max_value = 256.0
 step = 8.0
@@ -1028,6 +1047,93 @@ rounded = true
 alignment = 1
 suffix = "px"
 script = ExtResource("10_dg77c")
+
+[node name="ScaleRow" type="HBoxContainer" parent="CanvasLayer/EditorSettings/MarginContainer/VBox" unique_id=1811709407]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/ScaleRow" unique_id=1811709408]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Editor Scale:"
+
+[node name="EditorScale" type="SpinBox" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/ScaleRow" unique_id=1811709409]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Interface scale. 100% is unscaled."
+min_value = 75.0
+max_value = 400.0
+step = 5.0
+value = 100.0
+rounded = true
+alignment = 1
+suffix = "%"
+script = ExtResource("10_dg77c")
+
+[node name="OriginRow" type="HBoxContainer" parent="CanvasLayer/EditorSettings/MarginContainer/VBox" unique_id=1811709419]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/OriginRow" unique_id=1811709420]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Camera Origin Y:"
+
+[node name="CameraOriginY" type="SpinBox" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/OriginRow" unique_id=1811709421]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Vertical offset of the preview camera origin (Reset View). Negative moves the origin up."
+min_value = -512.0
+max_value = 512.0
+step = 1.0
+value = -32.0
+rounded = true
+alignment = 1
+suffix = "px"
+script = ExtResource("10_dg77c")
+
+[node name="ButtonSep" type="HSeparator" parent="CanvasLayer/EditorSettings/MarginContainer/VBox" unique_id=1811709410]
+layout_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="CanvasLayer/EditorSettings/MarginContainer/VBox" unique_id=1811709411]
+layout_mode = 2
+size_flags_vertical = 10
+alignment = 1
+
+[node name="Control" type="Control" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons" unique_id=1811709412]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Cancel" type="Button" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons" unique_id=1811709413]
+layout_mode = 2
+size_flags_horizontal = 3
+shortcut = SubResource("Shortcut_074og")
+text = "Cancel"
+
+[node name="Control2" type="Control" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons" unique_id=1811709414]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Apply" type="Button" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons" unique_id=1811709415]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Apply"
+
+[node name="Control3" type="Control" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons" unique_id=1811709416]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OK" type="Button" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons" unique_id=1811709417]
+layout_mode = 2
+size_flags_horizontal = 3
+shortcut = SubResource("Shortcut_2cqfq")
+text = "OK"
+
+[node name="Control4" type="Control" parent="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons" unique_id=1811709418]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="AboutWindow" parent="CanvasLayer" unique_id=1548420921 instance=ExtResource("14_vivmo")]
 unique_name_in_owner = true
@@ -1312,17 +1418,18 @@ size_flags_horizontal = 3
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Speed/Speed" to="CanvasLayer/VBoxContainer/Main" method="speed_val_changed"]
 [connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/LoopRow/Loop" to="CanvasLayer/VBoxContainer/Main" method="loop_pressed"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/LoopRow/LoopOffset" to="CanvasLayer/VBoxContainer/Main" method="_on_loop_offset_changed"]
-[connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/PlayGroup/Play" to="CanvasLayer/VBoxContainer/Main" method="play_toggled"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/PlayGroup/Stop" to="CanvasLayer/VBoxContainer/Main" method="stop_pressed"]
-[connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/DurationGroup/Duration" to="CanvasLayer/VBoxContainer/Main" method="duration_val_changed"]
-[connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup/Frame/Frame" to="CanvasLayer/VBoxContainer/Main" method="frame_val_changed"]
-[connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup/MaxFrames/Frames" to="CanvasLayer/VBoxContainer/Main" method="frames_val_changed"]
+[connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/PlayGroup/Play" to="CanvasLayer/VBoxContainer/Main" method="play_toggled"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/PlayGroup/Stop" to="CanvasLayer/VBoxContainer/Main" method="stop_pressed"]
+[connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/DurationGroup/Duration" to="CanvasLayer/VBoxContainer/Main" method="duration_val_changed"]
+[connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/FrameGroup/Frame/Frame" to="CanvasLayer/VBoxContainer/Main" method="frame_val_changed"]
+[connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/FrameGroup/MaxFrames/Frames" to="CanvasLayer/VBoxContainer/Main" method="frames_val_changed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/WelcomePanel/Center/Card/Margin/VBox/Actions/NewSkinButton" to="CanvasLayer/VBoxContainer/Main" method="new_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/WelcomePanel/Center/Card/Margin/VBox/Actions/OpenSkinButton" to="CanvasLayer/VBoxContainer/Main" method="open_pressed"]
 [connection signal="id_pressed" from="CanvasLayer/VBoxContainer/Main/WelcomePanel/RecentSkinMenu" to="CanvasLayer/VBoxContainer/Main" method="_on_recent_skin_menu_id_pressed"]
-[connection signal="close_requested" from="CanvasLayer/EditorSettings" to="CanvasLayer/EditorSettings" method="hide"]
-[connection signal="color_changed" from="CanvasLayer/EditorSettings/MarginContainer/VBox/Color/BGcolor" to="." method="_on_bg_color_changed"]
-[connection signal="color_changed" from="CanvasLayer/EditorSettings/MarginContainer/VBox/Color/GridColor" to="." method="_on_grid_color_changed"]
+[connection signal="close_requested" from="CanvasLayer/EditorSettings" to="CanvasLayer/VBoxContainer/Main" method="_on_editor_settings_canceled"]
+[connection signal="pressed" from="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons/Cancel" to="CanvasLayer/VBoxContainer/Main" method="_on_editor_settings_canceled"]
+[connection signal="pressed" from="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons/Apply" to="CanvasLayer/VBoxContainer/Main" method="_on_editor_settings_apply_pressed"]
+[connection signal="pressed" from="CanvasLayer/EditorSettings/MarginContainer/VBox/Buttons/OK" to="CanvasLayer/VBoxContainer/Main" method="_on_editor_settings_ok_pressed"]
 [connection signal="close_requested" from="CanvasLayer/ModalWindow" to="CanvasLayer/VBoxContainer/Main" method="_on_modal_canceled"]
 [connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/Cancel" to="CanvasLayer/VBoxContainer/Main" method="_on_modal_canceled"]
 [connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/OK" to="CanvasLayer/VBoxContainer/Main" method="_on_fill_blanks_ok_pressed"]

@@ -3,9 +3,9 @@
 [ext_resource type="Script" uid="uid://bhwdu6j2vfuac" path="res://scripts/edit_frame_dialog.gd" id="1_dialog"]
 [ext_resource type="Script" uid="uid://d0kciya3ox1g1" path="res://scripts/sheet_preview.gd" id="2_preview"]
 [ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://scripts/spinbox.gd" id="3_spin"]
-[ext_resource type="Texture2D" path="res://icons/ZoomLess.svg" id="4_zoom_out"]
-[ext_resource type="Texture2D" path="res://icons/ZoomMore.svg" id="5_zoom_in"]
-[ext_resource type="Texture2D" path="res://icons/DistractionFree.svg" id="6_zoom_fit"]
+[ext_resource type="Texture2D" uid="uid://dxm00a3iybb1m" path="res://icons/ZoomLess.svg" id="4_zoom_out"]
+[ext_resource type="Texture2D" uid="uid://cklp26aabuiq1" path="res://icons/ZoomMore.svg" id="5_zoom_in"]
+[ext_resource type="Texture2D" uid="uid://0myjcdmod57r" path="res://icons/DistractionFree.svg" id="6_zoom_fit"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.145098, 0.145098, 0.145098, 1)
@@ -17,19 +17,6 @@ content_margin_left = 4.0
 content_margin_top = 4.0
 content_margin_right = 4.0
 content_margin_bottom = 4.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_zoom_hover"]
-content_margin_left = 4.0
-content_margin_top = 4.0
-content_margin_right = 4.0
-content_margin_bottom = 4.0
-bg_color = Color(1, 1, 1, 0.15)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-corner_detail = 5
-anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_zoom_pressed"]
 content_margin_left = 4.0
@@ -44,9 +31,21 @@ corner_radius_bottom_left = 3
 corner_detail = 5
 anti_aliasing = false
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_zoom_hover"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.15)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+anti_aliasing = false
+
 [node name="EditFrameDialog" type="ConfirmationDialog" unique_id=1102000001]
 disable_3d = true
-oversampling_override = 1.0
 title = "Edit Frame"
 initial_position = 2
 size = Vector2i(1000, 620)

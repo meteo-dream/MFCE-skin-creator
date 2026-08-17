@@ -150,7 +150,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_insert_mode_selected(index: int) -> void:
-	session_insert_mode = index
+	session_insert_mode = index as InsertMode
 
 
 func get_insert_mode() -> InsertMode:
@@ -185,23 +185,26 @@ func _sheet_spin_changed(param: DominantParam) -> void:
 	_updating = true
 	_dominant = param
 	var texture_size := Vector2i(preview.texture.get_size())
-	var size := texture_size - _get_offset()
-	size.x = maxi(size.x, 1)
-	size.y = maxi(size.y, 1)
+	var usable := texture_size - _get_offset()
+	usable.x = maxi(usable.x, 1)
+	usable.y = maxi(usable.y, 1)
 	match _dominant:
 		DominantParam.SIZE:
 			var frame_size := _get_frame_size()
 			var offset_max := texture_size - frame_size
 			spin_off_x.max_value = maxi(offset_max.x, 0)
 			spin_off_y.max_value = maxi(offset_max.y, 0)
-			var sep_max := size - frame_size * 2
+			var sep_max := usable - frame_size * 2
 			spin_sep_x.max_value = maxi(sep_max.x, 0)
 			spin_sep_y.max_value = maxi(sep_max.y, 0)
 			var separation := _get_separation()
 			var denom := frame_size + separation
 			denom.x = maxi(denom.x, 1)
 			denom.y = maxi(denom.y, 1)
-			var count := (size + separation) / denom
+			var count := Vector2i(
+				int((usable.x + separation.x) / float(denom.x)),
+				int((usable.y + separation.y) / float(denom.y))
+			)
 			spin_h.value = maxi(count.x, 1)
 			spin_v.value = maxi(count.y, 1)
 		DominantParam.FRAME_COUNT:
@@ -211,15 +214,18 @@ func _sheet_spin_changed(param: DominantParam) -> void:
 			spin_off_y.max_value = maxi(offset_max.y, 0)
 			var gap_count := count - Vector2i.ONE
 			if gap_count.x == 0:
-				spin_sep_x.max_value = maxi(size.x, 0)
+				spin_sep_x.max_value = maxi(usable.x, 0)
 			else:
-				spin_sep_x.max_value = maxi((size.x - count.x) / gap_count.x, 0)
+				spin_sep_x.max_value = maxi(int((usable.x - count.x) / float(gap_count.x)), 0)
 			if gap_count.y == 0:
-				spin_sep_y.max_value = maxi(size.y, 0)
+				spin_sep_y.max_value = maxi(usable.y, 0)
 			else:
-				spin_sep_y.max_value = maxi((size.y - count.y) / gap_count.y, 0)
+				spin_sep_y.max_value = maxi(int((usable.y - count.y) / float(gap_count.y)), 0)
 			var separation := _get_separation()
-			var frame_size := (size - separation * gap_count) / count
+			var frame_size := Vector2i(
+				int((usable.x - separation.x * gap_count.x) / float(count.x)),
+				int((usable.y - separation.y * gap_count.y) / float(count.y))
+			)
 			spin_size_x.value = maxi(frame_size.x, 1)
 			spin_size_y.value = maxi(frame_size.y, 1)
 	_updating = false
@@ -255,8 +261,8 @@ func _on_auto_slice_pressed() -> void:
 	var split := _estimate_sprite_sheet_size(preview.texture)
 	spin_h.value = split.x
 	spin_v.value = split.y
-	spin_size_x.value = tex_size.x / split.x
-	spin_size_y.value = tex_size.y / split.y
+	spin_size_x.value = float(tex_size.x) / float(split.x)
+	spin_size_y.value = float(tex_size.y) / float(split.y)
 	spin_sep_x.value = 0
 	spin_sep_y.value = 0
 	spin_off_x.value = 0
@@ -282,24 +288,24 @@ func _estimate_sprite_sheet_size(tex: Texture2D) -> Vector2i:
 		image = image.duplicate()
 		if image.decompress() != OK:
 			return Vector2i(tex.get_size())
-	var size := image.get_size()
+	var image_size := image.get_size()
 	var background := image.get_pixel(0, 0)
 	var sheet_size := Vector2i.ZERO
 	var previous_line_background := true
-	for x in size.x:
+	for x in image_size.x:
 		var y := 0
-		while y < size.y && _matches_background_color(background, image.get_pixel(x, y)):
+		while y < image_size.y && _matches_background_color(background, image.get_pixel(x, y)):
 			y += 1
-		var current_line_background := y == size.y
+		var current_line_background := y == image_size.y
 		if previous_line_background && !current_line_background:
 			sheet_size.x += 1
 		previous_line_background = current_line_background
 	previous_line_background = true
-	for y in size.y:
+	for y in image_size.y:
 		var x := 0
-		while x < size.x && _matches_background_color(background, image.get_pixel(x, y)):
+		while x < image_size.x && _matches_background_color(background, image.get_pixel(x, y)):
 			x += 1
-		var current_line_background := x == size.x
+		var current_line_background := x == image_size.x
 		if previous_line_background && !current_line_background:
 			sheet_size.y += 1
 		previous_line_background = current_line_background
@@ -334,12 +340,15 @@ func _position_to_frame_index(local_pos: Vector2) -> int:
 	var block_size := frame_size + separation
 	if block_size.x <= 0 || block_size.y <= 0:
 		return -1
-	var position := Vector2i(preview.local_to_sheet(local_pos)) - offset
-	if position.x < 0 || position.y < 0:
+	var sheet_pos := Vector2i(preview.local_to_sheet(local_pos)) - offset
+	if sheet_pos.x < 0 || sheet_pos.y < 0:
 		return -1
-	if position.x % block_size.x >= frame_size.x || position.y % block_size.y >= frame_size.y:
+	if sheet_pos.x % block_size.x >= frame_size.x || sheet_pos.y % block_size.y >= frame_size.y:
 		return -1
-	var frame := position / block_size
+	var frame := Vector2i(
+		int(sheet_pos.x / float(block_size.x)),
+		int(sheet_pos.y / float(block_size.y))
+	)
 	var frame_count := _get_frame_count()
 	if frame.x >= frame_count.x || frame.y >= frame_count.y:
 		return -1
@@ -481,7 +490,7 @@ func _on_preview_draw() -> void:
 	for i in ordered.size():
 		var idx: int = ordered[i]
 		var x := idx % frame_count.x
-		var y := idx / frame_count.x
+		var y := int(idx / float(frame_count.x))
 		var pos := draw_offset + Vector2(x, y) * (draw_frame_size + draw_sep)
 		preview.draw_rect(Rect2(pos + Vector2(5, 5), draw_frame_size - Vector2(10, 10)), Color(0, 0, 0, 0.35))
 		preview.draw_rect(Rect2(pos, draw_frame_size), Color.BLACK, false, 2.0)
@@ -502,6 +511,6 @@ func _on_confirmed() -> void:
 	var separation := _get_separation()
 	var rects: Array[Rect2] = []
 	for idx in _ordered_indices():
-		var coords := Vector2(idx % frame_count.x, idx / frame_count.x)
+		var coords := Vector2(idx % frame_count.x, idx / float(frame_count.x))
 		rects.append(Rect2(Vector2(offset) + coords * Vector2(frame_size + separation), Vector2(frame_size)))
 	frames_chosen.emit(rects, preview.texture)

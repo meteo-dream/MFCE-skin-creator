@@ -4,6 +4,7 @@ class_name Main
 const PROJECT_NAME := "MF: CE Skin Editor v%s"
 const ICON_PLAY := preload("res://icons/Play.svg")
 const ICON_PAUSE := preload("res://icons/Pause.svg")
+const BACKGROUND_FPS := 10
 
 enum FileMenu { NEW, OPEN, SAVE, SAVE_AS }
 enum EditMenu { UNDO, REDO }
@@ -69,6 +70,14 @@ var _edit_region_frame: int = -1
 
 @onready var anim_option: OptionButton = %AnimOption
 @onready var state_option: OptionButton = %StateSelect
+@onready var play_button: Button = %Play
+@onready var stop_button: Button = %Stop
+@onready var add_frames_button: Button = %AddFrames
+@onready var edit_frame_button: Button = %EditFrame
+@onready var delete_frame_button: Button = %DeleteFrame
+@onready var loop_checkbox: CheckBox = %Loop
+@onready var loop_offset_spin: SpinBox = %LoopOffset
+@onready var anim_time_label: Label = %AnimTime
 
 var current_frame: AtlasTexture
 var pending_state: int
@@ -82,11 +91,14 @@ var unsaved_changes: bool = false:
 		_update_window_title()
 var _updating_loop_offset := false
 var _recent_menu_path: String
+var _editor_settings_snapshot: Dictionary = {}
 
 @onready var confirm_state_text := confirm_new_state.dialog_text
 
 func _ready() -> void:
 	_set_controls_working(false)
+	_active_max_fps = Engine.max_fps
+	_update_background_fps()
 	
 	if DisplayServer.get_swap_cancel_ok():
 		var options_par = options_dialog.get_node("MarginContainer/VBoxContainer3/HBoxContainer")
@@ -95,6 +107,10 @@ func _ready() -> void:
 		var modal_par = modal_window.get_node("MarginContainer/VBoxContainer/HBoxContainer")
 		modal_par.move_child(modal_par.get_node("OK"), 1)
 		modal_par.move_child(modal_par.get_node("Cancel"), 3)
+		var settings_par = editor_settings_window.get_node("MarginContainer/VBox/Buttons")
+		settings_par.move_child(settings_par.get_node("OK"), 1)
+		settings_par.move_child(settings_par.get_node("Cancel"), 3)
+		settings_par.move_child(settings_par.get_node("Apply"), 5)
 	
 	anim_option.gui_input.connect(func(event: InputEvent):
 		if anim_option.disabled: return
@@ -134,17 +150,20 @@ func _ready() -> void:
 	frames_strip.edit_frame_pressed.connect(_on_edit_frame_pressed)
 	frames_strip.delete_frame_pressed.connect(_on_delete_frame_pressed)
 	_setup_toolbar_hotkeys()
+	_setup_dock_shortcut_forwarding()
 	add_frames_dialog.frames_chosen.connect(add_frames_from_rects)
 	edit_frame_dialog.region_changed.connect(apply_frame_region)
 	edit_frame_dialog.confirmed.connect(_on_edit_frame_confirmed)
 	%File.id_pressed.connect(_on_file_menu_id_pressed)
 	_setup_file_shortcuts()
 	_setup_menu_shortcuts()
+	_setup_menu_bar_scale_fix()
 	%Edit.id_pressed.connect(_on_edit_menu_id_pressed)
 	%Editor.id_pressed.connect(_on_editor_menu_id_pressed)
 	%Skin.id_pressed.connect(_on_skin_menu_id_pressed)
 	%Help.id_pressed.connect(_on_help_menu_id_pressed)
-	%ThumbSize.value_changed.connect(_on_thumb_size_changed)
+	frames_strip.thumb_size_changed.connect(_on_frames_thumb_size_changed)
+	frames_strip.floating_changed.connect(_on_frames_dock_floating_changed)
 	
 	_setup_history()
 	get_tree().root.min_size = Vector2(400, 400)
@@ -153,6 +172,7 @@ func _ready() -> void:
 	
 	version_label.text = PROJECT_NAME % [version_string]
 	%WelcomeSubtitle.text = PROJECT_NAME % [version_string]
+	%WelcomePanel.show()
 	_refresh_welcome_recents()
 	_update_window_title()
 	
@@ -171,7 +191,7 @@ func _update_anim_option_size(to: bool) -> void:
 
 
 func _anim_finished() -> void:
-	%Play.button_pressed = false
+	play_button.button_pressed = false
 	play_toggled(false)
 
 func _anim_looped() -> void:
@@ -188,26 +208,41 @@ func _frame_changed() -> void:
 	_update_preview()
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_IN:
-		if !%Editor.is_item_checked(%Editor.get_item_index(EditorMenu.AUTORELOAD)): return
-		if current_skin_setting:
-			_update_animations()
-			update_anim_options()
+	match what:
+		NOTIFICATION_APPLICATION_FOCUS_OUT:
+			_app_focused = false
+			_update_background_fps()
+			_sync_preview_playback()
+		NOTIFICATION_APPLICATION_FOCUS_IN:
+			_app_focused = true
+			_update_background_fps()
+			if %Editor.is_item_checked(%Editor.get_item_index(EditorMenu.AUTORELOAD)) && current_skin_setting:
+				_update_animations()
+				update_anim_options()
+			_sync_preview_playback()
 
 
 func _setup_toolbar_hotkeys() -> void:
-	for button in [%AddFrames, %EditFrame, %DeleteFrame, %Play, %Stop]:
+	for button in [add_frames_button, edit_frame_button, delete_frame_button, play_button, stop_button]:
 		button.focus_mode = Control.FOCUS_NONE
-	%AddFrames.tooltip_text = "Add frames from the animation spritesheet. (A)"
-	%EditFrame.tooltip_text = "Edit the selected frame region on the spritesheet. (E)"
-	%DeleteFrame.tooltip_text = "Remove the selected frame(s) from the animation. (Del)"
-	%Play.tooltip_text = "Toggles between Play and Pause. (Space)"
-	%Stop.tooltip_text = "Stop animation and set frame to 0. (Esc)"
+	add_frames_button.tooltip_text = "Add frames from the animation spritesheet. (A)"
+	edit_frame_button.tooltip_text = "Edit the selected frame region on the spritesheet. (E)"
+	delete_frame_button.tooltip_text = "Remove the selected frame(s) from the animation. (Del)"
+	play_button.tooltip_text = "Toggles between Play and Pause. (Space)"
+	stop_button.tooltip_text = "Stop animation and set frame to 0. (Esc)"
 
 
 func _gui_is_editing_text() -> bool:
-	var focus := get_viewport().gui_get_focus_owner()
+	return _gui_is_editing_text_in(get_viewport())
+
+
+func _gui_is_editing_text_in(vp: Viewport) -> bool:
+	var focus := vp.gui_get_focus_owner()
 	return focus is LineEdit || focus is TextEdit || focus is CodeEdit
+
+
+func _is_editor_dock_window(win: Window) -> bool:
+	return win == %FramesWindow || win == %HistoryWindow
 
 
 func _is_foreign_window_focused() -> bool:
@@ -216,9 +251,28 @@ func _is_foreign_window_focused() -> bool:
 			continue
 		if win.theme_type_variation == "TooltipPanel" || win.get_flag(Window.FLAG_NO_FOCUS):
 			continue
+		if _is_editor_dock_window(win):
+			continue
 		if win.has_focus():
 			return true
 	return false
+
+
+func _setup_dock_shortcut_forwarding() -> void:
+	for win: Window in [%FramesWindow, %HistoryWindow]:
+		win.window_input.connect(_on_editor_dock_window_input.bind(win))
+
+
+func _on_editor_dock_window_input(event: InputEvent, win: Window) -> void:
+	if !(event is InputEventKey):
+		return
+	var key := event as InputEventKey
+	if _gui_is_editing_text_in(win) && !key.is_command_or_control_pressed():
+		return
+	var root := get_tree().root
+	root.push_input(event)
+	if root.is_input_handled():
+		win.set_input_as_handled()
 
 
 func _is_toolbar_hotkey(key: InputEventKey) -> bool:
@@ -244,23 +298,23 @@ func _input(event: InputEvent) -> void:
 		return
 	match key.keycode:
 		KEY_SPACE:
-			if %Play.disabled:
+			if play_button.disabled:
 				return
-			%Play.button_pressed = !%Play.button_pressed
+			play_button.button_pressed = !play_button.button_pressed
 		KEY_ESCAPE:
-			if %Stop.disabled:
+			if stop_button.disabled:
 				return
 			stop_pressed()
 		KEY_A:
-			if %AddFrames.disabled:
+			if add_frames_button.disabled:
 				return
 			_on_add_frames_pressed()
 		KEY_E:
-			if %EditFrame.disabled:
+			if edit_frame_button.disabled:
 				return
 			_on_edit_frame_pressed()
 		KEY_DELETE:
-			if %DeleteFrame.disabled:
+			if delete_frame_button.disabled:
 				return
 			_on_delete_frame_pressed()
 		_:
@@ -269,6 +323,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _update_animations() -> void:
+	var resume: bool = play_button.button_pressed || (preview && preview.is_playing())
 	_set_controls_working(false)
 	var prev_frame: int = int(spinbox_frame.value)
 	preview.sprite_frames = current_skin_setting.gen_animated_sprites(true)
@@ -277,6 +332,23 @@ func _update_animations() -> void:
 	update_anim_time()
 	_refresh_frames_strip()
 	_set_controls_working(true)
+	if resume:
+		preview.play()
+		play_button.button_pressed = true
+		play_button.icon = ICON_PAUSE
+
+
+func _sync_preview_playback() -> void:
+	if !preview || !is_instance_valid(play_button):
+		return
+	if play_button.button_pressed:
+		if !preview.is_playing():
+			preview.play()
+		play_button.icon = ICON_PAUSE
+	else:
+		if preview.is_playing():
+			preview.pause()
+		play_button.icon = ICON_PLAY
 
 func _get_option_scrolled_index(_option: OptionButton, by: int) -> int:
 	for i in _option.item_count:
@@ -294,10 +366,10 @@ func _set_controls_working(val: bool) -> void:
 	
 	anim_option.disabled = !val
 	state_option.disabled = !val
-	%Play.disabled = !val
-	%Stop.disabled = !val
-	%Loop.disabled = !val
-	%LoopOffset.editable = val
+	play_button.disabled = !val
+	stop_button.disabled = !val
+	loop_checkbox.disabled = !val
+	loop_offset_spin.editable = val
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE), !val)
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE_AS), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.CREATE_MISSING), !val)
@@ -314,18 +386,7 @@ func show_one_dialog(dialog: Window) -> void:
 		dialog.grab_focus()
 		return
 	dialog.show()
-	if dialog is FileDialog && !dialog.force_native:
-		return
-	if dialog.content_scale_factor != scene.editor_scale:
-		dialog.content_scale_factor = scene.editor_scale
-		dialog.size *= scene.editor_scale
-		dialog.min_size *= scene.editor_scale
-		var usable_size = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen(0)).size
-		if dialog.size.y > usable_size.y:
-			dialog.size.y = usable_size.y
-		if dialog.size.x > usable_size.x:
-			dialog.size.x = usable_size.x
-		dialog.move_to_center()
+	_scale_shown_dialog(dialog)
 
 func popup_one_dialog(dialog: Window) -> void:
 	if dialog.visible:
@@ -334,18 +395,13 @@ func popup_one_dialog(dialog: Window) -> void:
 		dialog.grab_focus()
 		return
 	dialog.popup_centered()
+	_scale_shown_dialog(dialog)
+
+
+func _scale_shown_dialog(dialog: Window) -> void:
 	if dialog is FileDialog && !dialog.force_native:
 		return
-	if dialog.content_scale_factor != scene.editor_scale:
-		dialog.content_scale_factor = scene.editor_scale
-		dialog.size *= scene.editor_scale
-		dialog.min_size *= scene.editor_scale
-		var usable_size = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen(0)).size
-		if dialog.size.y > usable_size.y:
-			dialog.size.y = usable_size.y
-		if dialog.size.x > usable_size.x:
-			dialog.size.x = usable_size.x
-		dialog.move_to_center()
+	scene.scale_window(dialog)
 
 
 #region FileButtons
@@ -377,11 +433,11 @@ func new_pressed() -> void:
 ## Called when "play" button toggled.
 func play_toggled(toggle: bool) -> void:
 	if toggle:
-		%Play.icon = ICON_PAUSE
+		play_button.icon = ICON_PAUSE
 		frames_strip.select_frame(preview.frame, true)
 		preview.play()
 	else:
-		%Play.icon = ICON_PLAY
+		play_button.icon = ICON_PLAY
 		preview.pause()
 		_update_preview()
 		frames_strip.select_frame(preview.frame, true)
@@ -390,7 +446,7 @@ func play_toggled(toggle: bool) -> void:
 func stop_pressed() -> void:
 	preview.stop()
 	play_toggled(false)
-	%Play.button_pressed = false
+	play_button.button_pressed = false
 	_update_preview()
 	frames_strip.select_frame(preview.frame, true)
 
@@ -404,7 +460,7 @@ func loop_pressed(toggle: bool) -> void:
 		return
 	var suit := _current_suit()
 	_commit_edit(
-		"Toggle Loop (%s)" % anim,
+		("%s Loop (%s)" % ["Enable" if toggle else "Disable", anim]),
 		_apply_loop.bind(suit, anim, toggle),
 		_apply_loop.bind(suit, anim, old)
 	)
@@ -467,10 +523,70 @@ func _setup_menu_shortcuts() -> void:
 	%Help.set_item_shortcut(%Help.get_item_index(HelpMenu.ABOUT), _key_shortcut(KEY_F1), true)
 
 
+func _setup_menu_bar_scale_fix() -> void:
+	var bar := %File.get_parent() as MenuBar
+	if bar == null:
+		return
+	for child in bar.get_children():
+		var popup := child as PopupMenu
+		if popup == null:
+			continue
+		popup.initial_position = Window.WINDOW_INITIAL_POSITION_ABSOLUTE
+		popup.about_to_popup.connect(_fix_menu_bar_popup_position.bind(popup))
+		popup.visibility_changed.connect(_on_menu_bar_popup_visibility.bind(popup))
+
+
+func _on_menu_bar_popup_visibility(popup: PopupMenu) -> void:
+	if popup.visible:
+		_fix_menu_bar_popup_position(popup)
+
+
+func _fix_menu_bar_popup_position(popup: PopupMenu) -> void:
+	var bar := popup.get_parent() as MenuBar
+	if bar == null:
+		return
+	var idx := -1
+	for i in bar.get_menu_count():
+		if bar.get_menu_popup(i) == popup:
+			idx = i
+			break
+	if idx < 0:
+		return
+	var item := _menu_bar_item_rect(bar, idx)
+	var local := Vector2(item.position.x, bar.size.y)
+	var ui_scale := get_window().content_scale_factor
+	if ui_scale <= 0.0:
+		ui_scale = 1.0
+	# MenuBar places native popups with an unscaled item offset. Rebuild from
+	# logical UI coords * content_scale_factor so fractional scales (75%, 150%, …)
+	# match 100%/200%.
+	var logical := bar.get_global_transform_with_canvas() * local
+	popup.position = Vector2i((Vector2(get_window().position) + logical * ui_scale).round())
+
+
+func _menu_bar_item_rect(bar: MenuBar, index: int) -> Rect2:
+	var style: StyleBox = bar.get_theme_stylebox("normal")
+	var style_min := style.get_minimum_size() if style else Vector2.ZERO
+	var h_sep := bar.get_theme_constant("h_separation")
+	var font := bar.get_theme_font("font")
+	var font_size := bar.get_theme_font_size("font_size")
+	var offset := 0.0
+	for i in index:
+		if bar.is_menu_hidden(i):
+			continue
+		var prev_size := font.get_string_size(bar.get_menu_title(i), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size) + style_min
+		offset += prev_size.x + h_sep
+	var item_size := font.get_string_size(bar.get_menu_title(index), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size) + style_min
+	item_size.y = bar.size.y
+	if bar.is_layout_rtl():
+		return Rect2(bar.size.x - offset - item_size.x, 0.0, item_size.x, item_size.y)
+	return Rect2(offset, 0.0, item_size.x, item_size.y)
+
+
 func _on_editor_menu_id_pressed(id: int) -> void:
 	match id:
 		EditorMenu.SETTINGS:
-			show_one_dialog(editor_settings_window)
+			_open_editor_settings()
 		EditorMenu.SHOW_COLLISION:
 			var idx: int = %Editor.get_item_index(id)
 			%Editor.toggle_item_checked(idx)
@@ -503,8 +619,62 @@ func _on_help_menu_id_pressed(id: int) -> void:
 		_on_about_pressed()
 
 
-func _on_thumb_size_changed(value: float) -> void:
-	frames_strip.set_thumb_size(int(value))
+func _open_editor_settings() -> void:
+	if editor_settings_window.visible:
+		show_one_dialog(editor_settings_window)
+		return
+	_editor_settings_snapshot = _live_editor_settings()
+	_sync_editor_settings_controls(_editor_settings_snapshot)
+	show_one_dialog(editor_settings_window)
+
+
+func _live_editor_settings() -> Dictionary:
+	return {
+		"bg_color": RenderingServer.get_default_clear_color(),
+		"grid_color": scene.color,
+		"thumb_size": frames_strip.thumb_size,
+		"editor_scale": scene.editor_scale,
+		"camera_origin_y": %Camera2D.origin_offset_y,
+	}
+
+
+func _sync_editor_settings_controls(values: Dictionary) -> void:
+	%BGcolor.color = values.bg_color
+	%GridColor.color = values.grid_color
+	%ThumbSize.set_value_no_signal(values.thumb_size)
+	%EditorScale.set_value_no_signal(roundf(float(values.editor_scale) * 100.0))
+	%CameraOriginY.set_value_no_signal(float(values.camera_origin_y))
+
+
+func _apply_editor_settings_from_controls() -> void:
+	scene._on_bg_color_changed(%BGcolor.color)
+	scene._on_grid_color_changed(%GridColor.color)
+	frames_strip.set_thumb_size(int(%ThumbSize.value))
+	scene.apply_editor_scale(%EditorScale.value / 100.0)
+	%Camera2D.set_origin_offset_y(%CameraOriginY.value)
+	_editor_settings_snapshot = _live_editor_settings()
+
+
+func _on_editor_settings_ok_pressed() -> void:
+	_apply_editor_settings_from_controls()
+	editor_settings_window.hide()
+
+
+func _on_editor_settings_apply_pressed() -> void:
+	_apply_editor_settings_from_controls()
+
+
+func _on_editor_settings_canceled() -> void:
+	if !_editor_settings_snapshot.is_empty():
+		_sync_editor_settings_controls(_editor_settings_snapshot)
+	editor_settings_window.hide()
+
+
+func _on_frames_thumb_size_changed(thumb_px: int) -> void:
+	if int(%ThumbSize.value) != thumb_px:
+		%ThumbSize.set_value_no_signal(thumb_px)
+	if editor_settings_window.visible:
+		_editor_settings_snapshot.thumb_size = thumb_px
 #endregion FileButtons
 
 
@@ -594,6 +764,10 @@ func _on_history_dock_open_changed(open: bool) -> void:
 	var idx: int = %Editor.get_item_index(EditorMenu.HISTORY)
 	if %Editor.is_item_checked(idx) != open:
 		%Editor.set_item_checked(idx, open)
+	_on_window_resized()
+
+
+func _on_frames_dock_floating_changed(_floating: bool) -> void:
 	_on_window_resized()
 
 
@@ -751,7 +925,7 @@ func _apply_loop(suit: String, anim: String, enabled: bool) -> void:
 	if preview.sprite_frames && preview.sprite_frames.has_animation(anim):
 		preview.sprite_frames.set_animation_loop(anim, enabled)
 	_updating_ui = true
-	%Loop.button_pressed = enabled
+	loop_checkbox.button_pressed = enabled
 	_updating_ui = false
 	_applying_history = false
 
@@ -851,6 +1025,7 @@ func _on_app_close_requested() -> void:
 
 
 func _quit_app() -> void:
+	Config.collect_and_save()
 	get_tree().quit()
 
 
@@ -902,7 +1077,7 @@ func speed_val_changed(value: float) -> void:
 	if is_equal_approx(old, new_val):
 		return
 	_commit_edit(
-		"Change Speed (%s)" % anim,
+		"Set Speed (%s)" % anim,
 		_apply_speed.bind(_current_suit(), anim, new_val),
 		_apply_speed.bind(_current_suit(), anim, old),
 		UndoRedo.MERGE_ENDS
@@ -938,9 +1113,9 @@ func duration_val_changed(value: float) -> void:
 			changed = true
 	if !changed || new_map.is_empty():
 		return
-	var action := "Change Duration (%s #%d)" % [anim, int(new_map.keys()[0])]
+	var action := "Set Duration (%s #%d)" % [anim, int(new_map.keys()[0])]
 	if new_map.size() > 1:
-		action = "Change Duration (%s, %d frames)" % [anim, new_map.size()]
+		action = "Set Duration (%s, %d frames)" % [anim, new_map.size()]
 	_commit_edit(
 		action,
 		_apply_durations.bind(_current_suit(), anim, new_map.duplicate(), preview.frame),
@@ -968,11 +1143,14 @@ func set_frame(value: int) -> void:
 		set_duration(preview.sprite_frames.get_frame_duration(preview.animation, value))
 	
 	_update_preview()
-	frames_strip.select_frame(value, %Play.button_pressed || preview.is_playing())
+	frames_strip.select_frame(value, play_button.button_pressed || preview.is_playing())
 
 var _last_frame_amount: int
 var _frame_setter_cooldown: bool
+var _awaiting_frame_warning: bool
 var _old_window_mode: DisplayServer.WindowMode
+var _active_max_fps: int = 0
+var _app_focused := true
 
 func _process(_delta: float) -> void:
 	if Input.mouse_mode > Input.MOUSE_MODE_HIDDEN:
@@ -980,21 +1158,31 @@ func _process(_delta: float) -> void:
 	if DisplayServer.window_get_mode() != _old_window_mode:
 		_old_window_mode = DisplayServer.window_get_mode()
 		_on_window_resized()
+		_update_background_fps()
 	if _frame_setter_cooldown:
 		if modal_window.visible: return
 		_frame_setter_cooldown = false
 
+
+func _update_background_fps() -> void:
+	var throttle := (
+		!_app_focused
+		|| DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MINIMIZED
+	)
+	var target := BACKGROUND_FPS if throttle else _active_max_fps
+	if Engine.max_fps != target:
+		Engine.max_fps = target
+
 ## Setter for current amount of frames in current animation, changes "frames" spinbox value.
 func set_frames(value: int) -> void:
 	value = max(value, 1)
-	if modal_window.visible: return
+	if modal_window.visible || _awaiting_frame_warning:
+		_sync_frames_spinbox()
+		return
 	if !_frame_setter_cooldown && _last_frame_amount > value && !no_frame_del_popup:
-		modal_window.size = Vector2i(100, 100)
-		popup_one_dialog(modal_window)
 		pending_frames = value
-		_updating_ui = true
-		spinbox_frames.value = _last_frame_amount
-		_updating_ui = false
+		_sync_frames_spinbox()
+		_prompt_reduce_frames()
 		return
 	
 	if !preview.animation:
@@ -1041,12 +1229,46 @@ func set_frames(value: int) -> void:
 	_update_loop_offset_spin()
 	if should_record && !before.is_empty():
 		_commit_frames_change(
-			"Change Frame Count (%s)" % String(preview.animation),
+			"Set Frame Count (%s)" % String(preview.animation),
 			_current_suit(),
 			preview.animation,
 			before,
 			UndoRedo.MERGE_ENDS
 		)
+
+
+func _prompt_reduce_frames() -> void:
+	_awaiting_frame_warning = true
+	while (
+		Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+		|| Input.is_key_pressed(KEY_DOWN)
+		|| Input.is_key_pressed(KEY_UP)
+		|| Input.is_physical_key_pressed(KEY_DOWN)
+		|| Input.is_physical_key_pressed(KEY_UP)
+	):
+		_sync_frames_spinbox()
+		await get_tree().process_frame
+	_sync_frames_spinbox()
+	if !is_inside_tree() || modal_window.visible:
+		_awaiting_frame_warning = false
+		return
+	spinbox_frames.release_focus()
+	var line := spinbox_frames.get_line_edit()
+	if line:
+		line.release_focus()
+	modal_window.size = Vector2i(100, 100)
+	popup_one_dialog(modal_window)
+	_awaiting_frame_warning = false
+
+
+func _sync_frames_spinbox() -> void:
+	_updating_ui = true
+	spinbox_frames.value = _last_frame_amount
+	var line := spinbox_frames.get_line_edit()
+	if line:
+		line.text = str(_last_frame_amount)
+	_updating_ui = false
+
 
 ## Setter for current speed of selected animation, changes "speed" spinbox value. 
 func set_anim_speed(value: float) -> void:
@@ -1093,11 +1315,11 @@ func set_animation(idx: int) -> void:
 	update_anim_time()
 	
 	_updating_ui = true
-	%Loop.button_pressed = preview.sprite_frames.get_animation_loop(anim_name)
+	loop_checkbox.button_pressed = preview.sprite_frames.get_animation_loop(anim_name)
 	_updating_ui = false
 	_update_loop_offset_spin()
 	play_toggled(false)
-	%Play.button_pressed = false
+	play_button.button_pressed = false
 	_refresh_frames_strip()
 
 var _last_state: int = -1
@@ -1177,14 +1399,19 @@ func add_frames_from_rects(rects: Array[Rect2], atlas: Texture2D) -> void:
 	var before := _snapshot_frames(anim)
 	var regions: Array = current_skin_setting.animation_regions[anim]
 	var durations: Array = current_skin_setting.animation_durations[anim]
+	var n := rects.size()
+	var noun := "Frame" if n == 1 else "%d Frames" % n
+	var insert_mode := add_frames_dialog.get_insert_mode()
+	var after_frame := preview.frame
 	var at_position := -1
-	match add_frames_dialog.get_insert_mode():
+	var action := "Add %s at End (%s)" % [noun, String(anim)]
+	match insert_mode:
 		AddFramesDialog.InsertMode.BEGINNING:
 			at_position = 0
+			action = "Add %s at Start (%s)" % [noun, String(anim)]
 		AddFramesDialog.InsertMode.AFTER_SELECTED:
-			at_position = preview.frame + 1
-		_:
-			at_position = -1
+			at_position = after_frame + 1
+			action = "Add %s after #%d (%s)" % [noun, after_frame, String(anim)]
 	var insert_index := regions.size() if at_position < 0 else at_position
 	var frame_pos := at_position
 	for rect in rects:
@@ -1208,7 +1435,7 @@ func add_frames_from_rects(rects: Array[Rect2], atlas: Texture2D) -> void:
 		select_idx = mini(insert_index - 1, count - 1)
 	set_frame(select_idx)
 	_refresh_frames_strip()
-	_commit_frames_change("Add Frames (%s)" % String(anim), _current_suit(), anim, before)
+	_commit_frames_change(action, _current_suit(), anim, before)
 
 
 func _on_add_frames_pressed() -> void:
@@ -1239,7 +1466,7 @@ func _on_edit_frame_confirmed() -> void:
 	if new_rect == _edit_region_before:
 		return
 	_commit_edit(
-		"Edit Frame Region (%s #%d)" % [String(_edit_region_anim), _edit_region_frame],
+		"Edit Region (%s #%d)" % [String(_edit_region_anim), _edit_region_frame],
 		_apply_frame_region_at.bind(_edit_region_suit, String(_edit_region_anim), _edit_region_frame, new_rect),
 		_apply_frame_region_at.bind(_edit_region_suit, String(_edit_region_anim), _edit_region_frame, _edit_region_before),
 		UndoRedo.MERGE_DISABLE,
@@ -1288,9 +1515,9 @@ func _remove_frames_at(indices: PackedInt32Array) -> void:
 	var next := mini(to_delete[0], _last_frame_amount - 1)
 	set_frame(next)
 	_refresh_frames_strip()
-	var action := "Delete Frame (%s #%d)" % [String(anim), to_delete[0]]
+	var action := "Delete Frame #%d (%s)" % [to_delete[0], String(anim)]
 	if to_delete.size() > 1:
-		action = "Delete Frames (%s, %d)" % [String(anim), to_delete.size()]
+		action = "Delete %d Frames (%s)" % [to_delete.size(), String(anim)]
 	_commit_frames_change(action, _current_suit(), anim, before)
 
 
@@ -1342,7 +1569,10 @@ func _on_frames_reordered(indices: PackedInt32Array, to: int) -> void:
 		new_selected.append(insert_at + j)
 	set_frame(insert_at)
 	_refresh_frames_strip(new_selected)
-	_commit_frames_change("Reorder Frames (%s)" % String(anim), _current_suit(), anim, before)
+	var action := "Move Frame #%d to #%d (%s)" % [moving[0], insert_at, String(anim)]
+	if moving.size() > 1:
+		action = "Move %d Frames to #%d (%s)" % [moving.size(), insert_at, String(anim)]
+	_commit_frames_change(action, _current_suit(), anim, before)
 
 #endregion AnimationButtons
 
@@ -1351,7 +1581,7 @@ func _close_welcome() -> void:
 
 
 func _refresh_welcome_recents() -> void:
-	var recents: Array = %MusicControls.get_recent_skins()
+	var recents: Array = Config.get_recent_skins()
 	for child in %RecentList.get_children():
 		%RecentList.remove_child(child)
 		child.free()
@@ -1389,7 +1619,7 @@ func _on_recent_skin_gui_input(event: InputEvent, path: String) -> void:
 func _on_recent_skin_menu_id_pressed(id: int) -> void:
 	if id != 0 || _recent_menu_path.is_empty():
 		return
-	%MusicControls.remove_recent_skin(_recent_menu_path)
+	Config.remove_recent_skin(_recent_menu_path)
 	_recent_menu_path = ""
 	_refresh_welcome_recents()
 
@@ -1445,7 +1675,7 @@ func open_file(path: String, from_recent: bool = false) -> void:
 	if !_folder_has_suit(path):
 		if from_recent:
 			OS.alert("Could not open skin:\n%s" % path)
-			%MusicControls.remove_recent_skin(path)
+			Config.remove_recent_skin(path)
 			_refresh_welcome_recents()
 		else:
 			OS.alert("Please select a skin root directory that contains suit folders.")
@@ -1471,7 +1701,7 @@ func open_file(path: String, from_recent: bool = false) -> void:
 	state_option.select(state_idx)
 	version_label.text = PROJECT_NAME % [version_string] + ("\n" + current_folder_skin)
 	
-	%MusicControls.add_recent_skin(path)
+	Config.add_recent_skin(path)
 	_set_controls_working(true)
 	_close_welcome()
 	_reset_history()
@@ -1502,7 +1732,7 @@ func new_save_file(path: String) -> void:
 	state_option.select(0)
 	version_label.text = PROJECT_NAME % [version_string] + ("\n" + current_folder_skin)
 	
-	%MusicControls.add_recent_skin(path)
+	Config.add_recent_skin(path)
 	_set_controls_working(true)
 	_close_welcome()
 	_reset_history()
@@ -1706,7 +1936,7 @@ func _get_loop_offset(anim: StringName) -> int:
 
 
 func _update_loop_offset_spin() -> void:
-	var spin: SpinBox = %LoopOffset
+	var spin: SpinBox = loop_offset_spin
 	var offset := _get_loop_offset(preview.animation)
 	var max_frame := 0
 	if preview.sprite_frames && preview.animation:
@@ -1716,9 +1946,9 @@ func _update_loop_offset_spin() -> void:
 	spin.value = offset
 	_updating_loop_offset = false
 	if offset < 0:
-		%Loop.tooltip_text = "Whether the animation should loop."
+		loop_checkbox.tooltip_text = "Whether the animation should loop."
 	else:
-		%Loop.tooltip_text = "Whether the animation should loop.\nLoop Frame Offset %d: after looping, playback continues from this frame." % offset
+		loop_checkbox.tooltip_text = "Whether the animation should loop.\nLoop Frame Offset %d: after looping, playback continues from this frame." % offset
 
 
 func _on_loop_offset_changed(value: float) -> void:
@@ -1730,7 +1960,7 @@ func _on_loop_offset_changed(value: float) -> void:
 	if old == new_val:
 		return
 	_commit_edit(
-		"Change Loop Offset (%s)" % anim,
+		"Set Loop Offset (%s)" % anim,
 		_apply_loop_offset.bind(_current_suit(), anim, new_val),
 		_apply_loop_offset.bind(_current_suit(), anim, old),
 		UndoRedo.MERGE_ENDS
@@ -1740,11 +1970,11 @@ func _on_loop_offset_changed(value: float) -> void:
 ## Updates animation duration display counter.
 func update_anim_time() -> void:
 	if !preview.animation || !preview.sprite_frames:
-		%AnimTime.text = "-"
+		anim_time_label.text = "-"
 		return
 	var frame_count = preview.sprite_frames.get_frame_count(preview.animation)
 	if frame_count > 200:
-		%AnimTime.text = "Too long"
+		anim_time_label.text = "Too long"
 		return
 	var number: float = 0.0
 	for i in frame_count:
@@ -1753,9 +1983,9 @@ func update_anim_time() -> void:
 		number += absolute_duration
 		
 	if is_finite(number) && number > 999:
-		%AnimTime.text = "999+ sec"
+		anim_time_label.text = "999+ sec"
 		return
-	%AnimTime.text = "%s sec" % String.num(number, 4)
+	anim_time_label.text = "%s sec" % String.num(number, 4)
 
 
 ## Logic for side panel resizing.
@@ -1779,6 +2009,7 @@ func _on_fill_blanks_ok_pressed() -> void:
 
 func _on_modal_canceled() -> void:
 	modal_window.hide()
+	_sync_frames_spinbox()
 
 ## "This suit is incomplete. Create default animation settings?"
 func ask_about_missing_state() -> void:

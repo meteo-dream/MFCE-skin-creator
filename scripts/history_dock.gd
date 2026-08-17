@@ -47,6 +47,7 @@ func set_open(open: bool, emit_change: bool = true) -> void:
 		return
 	if _floating:
 		if open:
+			Util.fit_window_scale(_window, 180, 200)
 			_window.show()
 			_window.grab_focus()
 		else:
@@ -69,9 +70,14 @@ func set_floating(floating: bool, emit_change: bool = true) -> void:
 	var sz := size
 	if floating:
 		_undock()
-		_window.size = Vector2i(maxi(int(sz.x), FLOAT_MIN_WIDTH), FLOAT_HEIGHT)
+		Util.fit_window_scale(_window, 180, 200)
+		var s := Util.editor_scale()
+		_window.size = Vector2i(
+			maxi(roundi(sz.x * s), roundi(FLOAT_MIN_WIDTH * s)),
+			roundi(FLOAT_HEIGHT * s)
+		)
 		if origin != Vector2i.ZERO:
-			_window.position = origin
+			_window.position = Util.logical_to_screen(origin)
 	else:
 		_redock()
 	if keep_open:
@@ -80,6 +86,7 @@ func set_floating(floating: bool, emit_change: bool = true) -> void:
 				_window.popup_centered()
 			else:
 				_window.show()
+			Util.clamp_window_to_screen(_window)
 		else:
 			visible = true
 	elif _floating:
@@ -119,10 +126,15 @@ func refresh(undo_redo: UndoRedo) -> void:
 
 
 func apply_window_rect(rect: Rect2i) -> void:
+	Util.fit_window_scale(_window, 180, 200)
 	if rect.size.x < _window.min_size.x || rect.size.y < _window.min_size.y:
-		return
+		rect.size = Vector2i(
+			maxi(rect.size.x, _window.min_size.x),
+			maxi(rect.size.y, _window.min_size.y)
+		)
 	_window.position = rect.position
 	_window.size = rect.size
+	Util.clamp_window_to_screen(_window)
 
 
 func get_window_rect() -> Rect2i:
@@ -147,7 +159,6 @@ func _redock() -> void:
 		if _split:
 			_split.add_child(self)
 	_floating = false
-	layout_mode = 2
 	size_flags_horizontal = Control.SIZE_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	custom_minimum_size = Vector2(200, 0)

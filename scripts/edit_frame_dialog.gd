@@ -155,8 +155,7 @@ func _update_grid_ranges() -> void:
 
 
 func _on_snap_mode_selected(index: int) -> void:
-	@warning_ignore("int_as_enum_without_cast")
-	session_snap_mode = index
+	session_snap_mode = index as SnapMode
 	grid_snap_bar.visible = session_snap_mode == SnapMode.GRID
 	if session_snap_mode == SnapMode.AUTOSLICE && _autoslice_dirty:
 		_update_autoslice()

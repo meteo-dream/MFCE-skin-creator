@@ -15,14 +15,4 @@ func _on_gui_input(event: InputEvent) -> void:
 
 func _on_picker_created() -> void:
 	var dialog = get_popup()
-	var scene = get_tree().current_scene
-	if dialog.content_scale_factor != scene.editor_scale:
-		dialog.content_scale_factor = scene.editor_scale
-		dialog.size *= scene.editor_scale
-		dialog.min_size *= scene.editor_scale
-		var usable_size = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen(0)).size
-		if dialog.size.y > usable_size.y:
-			dialog.size.y = usable_size.y
-		if dialog.size.x > usable_size.x:
-			dialog.size.x = usable_size.x
-	
+	get_tree().current_scene.scale_window(dialog)

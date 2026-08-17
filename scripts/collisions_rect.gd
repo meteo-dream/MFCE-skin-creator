@@ -1,6 +1,8 @@
 extends Node2D
 
 @onready var scene = get_tree().current_scene
+@onready var preview: AnimatedSprite2D = %Preview
+@onready var state_select: OptionButton = %StateSelect
 @export var rects: Dictionary = {
 	"small": Rect2(-10, -28, 20, 28),
 	"super": Rect2(-10, -52, 20, 52),
@@ -16,16 +18,16 @@ func _draw() -> void:
 	draw_rect(rects[which_rect], Color("#0099b3"), false)
 
 func _ready() -> void:
-	%Preview.animation_changed.connect(update_rect)
-	%Preview.sprite_frames_changed.connect(update_rect)
+	preview.animation_changed.connect(update_rect)
+	preview.sprite_frames_changed.connect(update_rect)
 
 func update_rect() -> void:
 	if !scene.show_collisions: return
-	if %Preview.animation in ["crouch", "hold_crouch"]:
+	if preview.animation in ["crouch", "hold_crouch"]:
 		which_rect = "small"
 		queue_redraw()
 		return
-	var state: String = %StateSelect.get_item_text(%StateSelect.get_selected_id())
+	var state: String = state_select.get_item_text(state_select.get_selected_id())
 	if state == "small":
 		which_rect = "small"
 	elif state == "frog":
