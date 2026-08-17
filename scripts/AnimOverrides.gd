@@ -1,6 +1,6 @@
 extends Node
 
-const FILE_VERSION := "2"
+const FILE_VERSION := "3"
 const OVERRIDES_DIR := "user://slicing_overrides"
 const OFFSETS_PATH := "res://engine/objects/players/prefabs/offsets_%s.txt"
 

@@ -35,6 +35,7 @@ var _floating := false
 var _split: SplitContainer
 var _window: Window
 var _float_button: Button
+var _docked_split_offset := 0
 
 
 func _ready() -> void:
@@ -78,13 +79,36 @@ func set_thumb_size(thumb_px: int) -> void:
 		return
 	thumb_size = next
 	list.fixed_icon_size = Vector2i(thumb_size, thumb_size)
-	list.fixed_column_width = thumb_size + 48
+	list.fixed_column_width = thumb_size + 32
 	list.force_update_list_size()
 	thumb_size_changed.emit(thumb_size)
 
 
 func is_floating() -> bool:
 	return _floating
+
+
+func get_docked_split_offset() -> int:
+	if !_floating && _split:
+		return _read_split_offset(_split)
+	return _docked_split_offset
+
+
+func set_docked_split_offset(offset: int) -> void:
+	_docked_split_offset = offset
+	if !_floating && _split:
+		_apply_split_offset(_split, offset)
+
+
+func _apply_split_offset(split: SplitContainer, offset: int) -> void:
+	split.split_offsets = PackedInt32Array([offset])
+
+
+func _read_split_offset(split: SplitContainer) -> int:
+	var offsets := split.split_offsets
+	if offsets.is_empty():
+		return split.split_offset
+	return offsets[0]
 
 
 func toggle_floating() -> void:
@@ -135,6 +159,8 @@ func get_window_rect() -> Rect2i:
 
 
 func _undock() -> void:
+	if _split:
+		_docked_split_offset = _read_split_offset(_split)
 	var parent := get_parent()
 	if parent:
 		parent.remove_child(self)
@@ -151,6 +177,7 @@ func _redock() -> void:
 		_window.remove_child(self)
 		if _split:
 			_split.add_child(self)
+			_apply_split_offset(_split, _docked_split_offset)
 	_floating = false
 	size_flags_horizontal = Control.SIZE_FILL
 	size_flags_vertical = Control.SIZE_FILL

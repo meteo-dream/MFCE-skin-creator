@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://26vgeem3o1ef"]
+
+[ext_resource type="Script" uid="uid://26vgeem3ohg7" path="res://scripts/suit_tweaks_dialog.gd" id="1_dialog"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.192157, 0.192157, 0.192157, 1)
+corner_detail = 1
+anti_aliasing = false
+
+[node name="SuitTweaksDialog" type="Window" unique_id=1905371213]
+disable_3d = true
+title = "Suit Tweaks"
+initial_position = 2
+size = Vector2i(440, 560)
+visible = false
+min_size = Vector2i(360, 400)
+script = ExtResource("1_dialog")
+
+[node name="Panel" type="Panel" parent="." unique_id=734630840]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=1029709055]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Margin" unique_id=1608480360]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Hint" type="Label" parent="Margin/VBox" unique_id=921663803]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.627451, 0.627451, 0.627451, 1)
+text = "Per-powerup flags used by the game. Loop frame offsets stay on the animation panel. Saved to suit_tweaks.json."
+autowrap_mode = 3
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/VBox" unique_id=1704807215]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TweakList" type="VBoxContainer" parent="Margin/VBox/Scroll" unique_id=933446335]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Buttons" type="HBoxContainer" parent="Margin/VBox" unique_id=1086830067]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ResetTweaks" type="Button" parent="Margin/VBox/Buttons" unique_id=1686247829]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Reset to Defaults"
+
+[node name="CloseTweaks" type="Button" parent="Margin/VBox/Buttons" unique_id=122416676]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Close"

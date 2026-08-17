@@ -45,6 +45,10 @@ func clamp_window_to_screen(win: Window) -> void:
 		win.size.y = usable.size.y
 	if win.size.x > usable.size.x:
 		win.size.x = usable.size.x
+	var pos := win.position
+	pos.x = clampi(pos.x, usable.position.x, usable.position.x + maxi(usable.size.x - win.size.x, 0))
+	pos.y = clampi(pos.y, usable.position.y, usable.position.y + maxi(usable.size.y - win.size.y, 0))
+	win.position = pos
 
 
 func logical_to_screen(logical: Vector2i) -> Vector2i:

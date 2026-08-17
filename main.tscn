@@ -16,6 +16,7 @@
 [ext_resource type="FontFile" uid="uid://c642yw1llh7ke" path="res://fonts/tahomabd.ttf" id="15_vivmo"]
 [ext_resource type="PackedScene" uid="uid://bc5tsqs3u3wvp" path="res://add_frames_dialog.tscn" id="16_addfrm"]
 [ext_resource type="PackedScene" uid="uid://bhwdu6j2vv14x" path="res://edit_frame_dialog.tscn" id="17_editfrm"]
+[ext_resource type="PackedScene" uid="uid://26vgeem3o1ef" path="res://suit_tweaks_dialog.tscn" id="17_tweaks"]
 [ext_resource type="Texture2D" uid="uid://cddbt8ojvbaj2" path="res://icon.png" id="18_icon"]
 [ext_resource type="Texture2D" uid="uid://0h5pnu7y2a53" path="res://icons/SpriteSheet.svg" id="19_sheet"]
 [ext_resource type="Texture2D" uid="uid://y21t3j2c1m53" path="res://icons/Edit.svg" id="20_edit"]
@@ -208,25 +209,28 @@ item_1/disabled = true
 
 [node name="Skin" type="PopupMenu" parent="CanvasLayer/VBoxContainer/MenuPanel/MenuRow/MenuBar" unique_id=1811709305]
 unique_name_in_owner = true
-item_count = 7
+item_count = 8
 item_0/text = "Set Name & Pronouns..."
 item_0/id = 6
 item_0/disabled = true
-item_1/id = 5
-item_1/separator = true
-item_2/text = "Create Missing Animations..."
-item_2/id = 0
-item_2/disabled = true
-item_3/text = "Browse Animation Folder"
-item_3/id = 1
+item_1/text = "Global Skin Tweaks..."
+item_1/id = 7
+item_1/disabled = true
+item_2/id = 5
+item_2/separator = true
+item_3/text = "Create Missing Animations..."
+item_3/id = 0
 item_3/disabled = true
-item_4/text = "Reload Texture"
-item_4/id = 2
+item_4/text = "Browse Animation Folder"
+item_4/id = 1
 item_4/disabled = true
-item_5/id = 3
-item_5/separator = true
-item_6/text = "Browse Overrides Folder"
-item_6/id = 4
+item_5/text = "Reload Texture"
+item_5/id = 2
+item_5/disabled = true
+item_6/id = 3
+item_6/separator = true
+item_7/text = "Browse Overrides Folder"
+item_7/id = 4
 
 [node name="Editor" type="PopupMenu" parent="CanvasLayer/VBoxContainer/MenuPanel/MenuRow/MenuBar" unique_id=1811709304]
 unique_name_in_owner = true
@@ -291,7 +295,6 @@ custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 tooltip_text = "Volume"
 focus_mode = 0
-mouse_default_cursor_shape = 10
 max_value = 1.0
 step = 0.01
 value = 0.3
@@ -406,6 +409,45 @@ horizontal_alignment = 2
 clip_text = true
 text_overrun_behavior = 1
 
+[node name="PreviewSpeedRow" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/PreviewOverlay" unique_id=1811710300]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -31.0
+offset_right = 288.0
+grow_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="PreviewSpeedLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/PreviewOverlay/PreviewSpeedRow" unique_id=1811710301]
+layout_mode = 2
+tooltip_text = "Preview playback speed_scale, matching in-game walk animation at this movement speed."
+mouse_filter = 1
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+text = "Preview Speed:"
+
+[node name="PreviewSpeedScale" type="OptionButton" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/PreviewOverlay/PreviewSpeedRow" unique_id=1811710302]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Sets AnimatedSprite2D.speed_scale to match in-game walking:
+clampf(|speed.x| × 0.008 × animation_walking_speed, min, max)."
+mouse_force_pass_scroll_events = false
+clip_text = true
+selected = 1
+item_count = 3
+popup/item_0/text = "Minimum Speed"
+popup/item_0/id = 0
+popup/item_1/text = "Walking Speed"
+popup/item_1/id = 1
+popup/item_2/text = "Running Speed"
+popup/item_2/id = 2
+
 [node name="FramesDock" type="PanelContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit" unique_id=1811709005]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 200)
@@ -447,9 +489,16 @@ text = "Powerup:"
 
 [node name="StateSelect" type="OptionButton" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Powerup" unique_id=76889243]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 size_flags_horizontal = 3
 clip_text = true
+
+[node name="SuitTweaksButton" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox" unique_id=1811710100]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Edit suit tweaks for this powerup (extra animations, particles, sounds). Saved to suit_tweaks.json."
+text = "Suit Tweaks..."
 
 [node name="HSeparator" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox" unique_id=932281929]
 layout_mode = 2
@@ -464,6 +513,7 @@ text = "Animation:"
 
 [node name="AnimOption" type="OptionButton" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Animation" unique_id=708590300]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_force_pass_scroll_events = false
@@ -473,9 +523,18 @@ search_bar_enabled = true
 [node name="Speed" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox" unique_id=1991216433]
 layout_mode = 2
 
-[node name="SpeedLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Speed" unique_id=663645608]
+[node name="AnimTime" type="Label" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Speed" unique_id=844062073]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
-text = "Speed:"
+size_flags_horizontal = 3
+tooltip_text = "How long it takes to reach the end of animation.
+If animation is looped, this only counts one loop iteration."
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.627451, 0.627451, 0.627451, 1)
+text = "-"
+clip_text = true
+text_overrun_behavior = 1
 
 [node name="Speed" type="SpinBox" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Speed" unique_id=282452484]
 unique_name_in_owner = true
@@ -513,27 +572,11 @@ allow_greater = true
 prefix = "from"
 script = ExtResource("10_dg77c")
 
-[node name="AnimTime" type="Label" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox" unique_id=844062073]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 0)
-layout_mode = 2
-tooltip_text = "How long it takes to reach the end of animation.
-If animation is looped, this only counts one loop iteration."
-mouse_filter = 1
-theme_override_colors/font_color = Color(0.627451, 0.627451, 0.627451, 1)
-text = "-"
-horizontal_alignment = 1
-clip_text = true
-text_overrun_behavior = 1
-
 [node name="FramesSide" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter" unique_id=1811709506]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 4
-
-[node name="Control" type="Control" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide" unique_id=1234368393]
-layout_mode = 2
 
 [node name="Toolbar" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide" unique_id=1811709007]
 layout_mode = 2
@@ -691,7 +734,7 @@ allow_reselect = true
 max_text_lines = 2
 max_columns = 0
 same_column_width = true
-fixed_column_width = 144
+fixed_column_width = 128
 icon_mode = 0
 fixed_icon_size = Vector2i(96, 96)
 
@@ -801,6 +844,13 @@ unique_name_in_owner = true
 
 [node name="EditFrameDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811709101 instance=ExtResource("17_editfrm")]
 unique_name_in_owner = true
+
+[node name="SuitTweaksDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811710101 instance=ExtResource("17_tweaks")]
+unique_name_in_owner = true
+
+[node name="GlobalSkinTweaksDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811710102 instance=ExtResource("17_tweaks")]
+unique_name_in_owner = true
+title = "Global Skin Tweaks"
 
 [node name="WelcomePanel" type="ColorRect" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811709700]
 unique_name_in_owner = true
@@ -1087,7 +1137,6 @@ size_flags_horizontal = 3
 tooltip_text = "Vertical offset of the preview camera origin (Reset View). Negative moves the origin up."
 min_value = -512.0
 max_value = 512.0
-step = 1.0
 value = -32.0
 rounded = true
 alignment = 1
@@ -1413,7 +1462,9 @@ size_flags_horizontal = 3
 [connection signal="finished" from="CanvasLayer/VBoxContainer/MenuPanel/MenuRow/PanelContainer/MusicControls/AudioStreamPlayer" to="CanvasLayer/VBoxContainer/MenuPanel/MenuRow/PanelContainer/MusicControls" method="_on_audio_stream_player_finished"]
 [connection signal="dragged" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit" to="CanvasLayer/VBoxContainer/Main" method="_on_h_split_container_dragged"]
 [connection signal="dragged" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit" to="CanvasLayer/VBoxContainer/Main" method="_on_h_split_container_dragged"]
+[connection signal="item_selected" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/PreviewOverlay/PreviewSpeedRow/PreviewSpeedScale" to="CanvasLayer/VBoxContainer/Main" method="_on_preview_speed_scale_selected"]
 [connection signal="item_selected" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Powerup/StateSelect" to="CanvasLayer/VBoxContainer/Main" method="set_state"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/SuitTweaksButton" to="CanvasLayer/VBoxContainer/Main" method="_on_suit_tweaks_pressed"]
 [connection signal="item_selected" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Animation/AnimOption" to="CanvasLayer/VBoxContainer/Main" method="set_animation"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Speed/Speed" to="CanvasLayer/VBoxContainer/Main" method="speed_val_changed"]
 [connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/LoopRow/Loop" to="CanvasLayer/VBoxContainer/Main" method="loop_pressed"]

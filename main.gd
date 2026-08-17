@@ -9,7 +9,7 @@ const BACKGROUND_FPS := 10
 enum FileMenu { NEW, OPEN, SAVE, SAVE_AS }
 enum EditMenu { UNDO, REDO }
 enum EditorMenu { SETTINGS, SEP_EDITOR, SHOW_COLLISION, AUTORELOAD, SEP_HISTORY, HISTORY }
-enum SkinMenu { CREATE_MISSING, BROWSE_ANIM, RELOAD, SEP_OVERRIDES, BROWSE_OVERRIDES, SEP_SKIN, OPTIONS }
+enum SkinMenu { CREATE_MISSING, BROWSE_ANIM, RELOAD, SEP_OVERRIDES, BROWSE_OVERRIDES, SEP_SKIN, OPTIONS, GLOBAL_TWEAKS }
 enum HelpMenu { ABOUT }
 
 const BAD_NAMES = [
@@ -19,6 +19,18 @@ const BAD_NAMES = [
 const SETTINGS_DICT_NAMES = [
 	"animation_speeds", "animation_regions", "animation_loops", "animation_durations",
 ]
+const PREVIEW_MOVE_SPEED_ANIMS := ["walk", "p_run", "slide", "hold_walk"]
+## PlayerConfig defaults (config_mario_default.tres / player_config.gd).
+## speed_scale = clampf(|speed.x| * 0.008 * animation_walking_speed, min, max)
+## from player_animation_behavior.gd.
+const CFG_WALK_MAX_WALKING_SPEED := 212.5
+const CFG_WALK_MAX_RUNNING_SPEED := 350.0
+const CFG_ANIMATION_WALKING_SPEED := 1.5
+const CFG_ANIMATION_MIN_WALKING_SPEED := 1.2
+const CFG_ANIMATION_MAX_WALKING_SPEED := 3.5
+## Frog hop-walk ignores movement speed (player_animation_frog_behavior.gd).
+const FROG_WALK_SPEED_SCALES := [1.0, 2.0, 2.4]
+const FROG_WALK_SPEED_LABELS := ["Hop Walk", "Warp", "Level Complete"]
 
 @onready var version_label: Label = %VersionLabel
 @onready var version_string: String = ProjectSettings.get_setting("application/config/version", "")
@@ -43,7 +55,8 @@ var misc_files: Dictionary
 var current_folder_skin: String
 var skin_name: String
 var _loop_offsets: Dictionary = {}
-var _loop_offsets_by_suit: Dictionary = {}
+var _suit_tweaks_by_suit: Dictionary = {}
+var _global_skin_tweaks: Dictionary = {}
 
 var undo_redo := UndoRedo.new()
 var _saved_version: int = 0
@@ -62,6 +75,8 @@ var _edit_region_frame: int = -1
 @onready var history_dock: HistoryDock = %HistoryDock
 @onready var add_frames_dialog: AddFramesDialog = %AddFramesDialog
 @onready var edit_frame_dialog: EditFrameDialog = %EditFrameDialog
+@onready var suit_tweaks_dialog: SuitTweaksDialog = %SuitTweaksDialog
+@onready var global_skin_tweaks_dialog: SuitTweaksDialog = %GlobalSkinTweaksDialog
 
 @onready var spinbox_frame: SpinBox = %Frame
 @onready var spinbox_speed: SpinBox = %Speed
@@ -78,6 +93,9 @@ var _edit_region_frame: int = -1
 @onready var loop_checkbox: CheckBox = %Loop
 @onready var loop_offset_spin: SpinBox = %LoopOffset
 @onready var anim_time_label: Label = %AnimTime
+@onready var suit_tweaks_button: Button = %SuitTweaksButton
+@onready var preview_speed_row: HBoxContainer = %PreviewSpeedRow
+@onready var preview_speed_option: OptionButton = %PreviewSpeedScale
 
 var current_frame: AtlasTexture
 var pending_state: int
@@ -124,6 +142,19 @@ func _ready() -> void:
 				anim_option.select(idx)
 				set_animation(idx)
 	)
+	preview_speed_option.gui_input.connect(func(event: InputEvent):
+		if preview_speed_option.disabled || !preview_speed_row.visible: return
+		if event is InputEventMouseButton && event.is_pressed():
+			if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				var idx = _get_option_scrolled_index(preview_speed_option, 1)
+				preview_speed_option.select(idx)
+				_on_preview_speed_scale_selected(idx)
+			elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				var idx = _get_option_scrolled_index(preview_speed_option, -1)
+				preview_speed_option.select(idx)
+				_on_preview_speed_scale_selected(idx)
+	)
+	_fill_preview_speed_items()
 	
 	save_dialog.title = "Save Directory (Skin Root Folder)"
 	save_dialog.dir_selected.connect(save_file)
@@ -154,6 +185,10 @@ func _ready() -> void:
 	add_frames_dialog.frames_chosen.connect(add_frames_from_rects)
 	edit_frame_dialog.region_changed.connect(apply_frame_region)
 	edit_frame_dialog.confirmed.connect(_on_edit_frame_confirmed)
+	suit_tweaks_dialog.tweak_changed.connect(_on_suit_tweak_changed)
+	suit_tweaks_dialog.reset_requested.connect(_on_suit_tweaks_reset)
+	global_skin_tweaks_dialog.tweak_changed.connect(_on_global_skin_tweak_changed)
+	global_skin_tweaks_dialog.reset_requested.connect(_on_global_skin_tweaks_reset)
 	%File.id_pressed.connect(_on_file_menu_id_pressed)
 	_setup_file_shortcuts()
 	_setup_menu_shortcuts()
@@ -242,7 +277,7 @@ func _gui_is_editing_text_in(vp: Viewport) -> bool:
 
 
 func _is_editor_dock_window(win: Window) -> bool:
-	return win == %FramesWindow || win == %HistoryWindow
+	return win == %FramesWindow || win == %HistoryWindow || win == suit_tweaks_dialog || win == global_skin_tweaks_dialog
 
 
 func _is_foreign_window_focused() -> bool:
@@ -259,8 +294,11 @@ func _is_foreign_window_focused() -> bool:
 
 
 func _setup_dock_shortcut_forwarding() -> void:
-	for win: Window in [%FramesWindow, %HistoryWindow]:
+	for win: Window in [%FramesWindow, %HistoryWindow, suit_tweaks_dialog, global_skin_tweaks_dialog]:
 		win.window_input.connect(_on_editor_dock_window_input.bind(win))
+		win.visibility_changed.connect(_update_background_fps)
+		win.focus_entered.connect(_update_background_fps)
+		win.focus_exited.connect(_update_background_fps)
 
 
 func _on_editor_dock_window_input(event: InputEvent, win: Window) -> void:
@@ -332,6 +370,7 @@ func _update_animations() -> void:
 	update_anim_time()
 	_refresh_frames_strip()
 	_set_controls_working(true)
+	_update_preview_move_speed()
 	if resume:
 		preview.play()
 		play_button.button_pressed = true
@@ -370,12 +409,27 @@ func _set_controls_working(val: bool) -> void:
 	stop_button.disabled = !val
 	loop_checkbox.disabled = !val
 	loop_offset_spin.editable = val
+	suit_tweaks_button.disabled = !val
+	preview_speed_option.disabled = !val
+	if !val:
+		preview_speed_row.visible = false
+		if preview:
+			preview.speed_scale = 1.0
+	else:
+		_update_preview_move_speed()
+	# Autoreload calls this with false on every app focus-in; don't close tool windows.
+	if !val && !current_skin_setting:
+		if suit_tweaks_dialog:
+			suit_tweaks_dialog.hide()
+		if global_skin_tweaks_dialog:
+			global_skin_tweaks_dialog.hide()
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE), !val)
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE_AS), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.CREATE_MISSING), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.BROWSE_ANIM), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.RELOAD), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.OPTIONS), !val)
+	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.GLOBAL_TWEAKS), !val)
 	frames_strip.set_enabled(val)
 
 
@@ -520,6 +574,7 @@ func _setup_menu_shortcuts() -> void:
 	%Skin.set_item_shortcut(%Skin.get_item_index(SkinMenu.BROWSE_ANIM), _key_shortcut(KEY_B, true), true)
 	%Skin.set_item_shortcut(%Skin.get_item_index(SkinMenu.CREATE_MISSING), _key_shortcut(KEY_N, true, true), true)
 	%Editor.set_item_shortcut(%Editor.get_item_index(EditorMenu.SHOW_COLLISION), _key_shortcut(KEY_L, true), true)
+	%Editor.set_item_shortcut(%Editor.get_item_index(EditorMenu.HISTORY), _key_shortcut(KEY_H, true), true)
 	%Help.set_item_shortcut(%Help.get_item_index(HelpMenu.ABOUT), _key_shortcut(KEY_F1), true)
 
 
@@ -612,6 +667,8 @@ func _on_skin_menu_id_pressed(id: int) -> void:
 			_on_browse_overrides_pressed()
 		SkinMenu.OPTIONS:
 			options_pressed()
+		SkinMenu.GLOBAL_TWEAKS:
+			_on_global_skin_tweaks_pressed()
 
 
 func _on_help_menu_id_pressed(id: int) -> void:
@@ -765,10 +822,12 @@ func _on_history_dock_open_changed(open: bool) -> void:
 	if %Editor.is_item_checked(idx) != open:
 		%Editor.set_item_checked(idx, open)
 	_on_window_resized()
+	_update_background_fps()
 
 
 func _on_frames_dock_floating_changed(_floating: bool) -> void:
 	_on_window_resized()
+	_update_background_fps()
 
 
 func _seek_history(action_index: int) -> void:
@@ -784,6 +843,8 @@ func _seek_history(action_index: int) -> void:
 			break
 	_seeking_history = false
 	_on_history_changed()
+	_refresh_suit_tweaks_dialog()
+	_refresh_global_skin_tweaks_dialog()
 
 
 func _has_unsaved_changes() -> bool:
@@ -1000,11 +1061,10 @@ func _apply_frame_region_at(suit: String, anim: String, frame: int, rect: Rect2)
 
 func _apply_loop_offset(suit: String, anim: String, value: int) -> void:
 	_applying_history = true
-	if !_loop_offsets_by_suit.has(suit):
-		_loop_offsets_by_suit[suit] = _default_loop_offsets()
-	_loop_offsets_by_suit[suit][anim] = value
+	var tweaks := _ensure_suit_tweaks(suit)
+	tweaks.loop_frame_offsets[anim] = value
 	_focus_anim(suit, anim)
-	_loop_offsets = _loop_offsets_by_suit[suit]
+	_loop_offsets = tweaks.loop_frame_offsets
 	_update_loop_offset_spin()
 	_applying_history = false
 
@@ -1165,13 +1225,31 @@ func _process(_delta: float) -> void:
 
 
 func _update_background_fps() -> void:
-	var throttle := (
-		!_app_focused
-		|| DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MINIMIZED
-	)
+	var throttle := !_is_app_in_use() || !_has_drawable_window()
 	var target := BACKGROUND_FPS if throttle else _active_max_fps
 	if Engine.max_fps != target:
 		Engine.max_fps = target
+
+
+func _is_app_in_use() -> bool:
+	if _app_focused:
+		return true
+	for win: Window in get_tree().root.find_children("*", "Window", true, false):
+		if win.visible && win.has_focus() && win.mode != Window.MODE_MINIMIZED:
+			return true
+	return false
+
+
+func _has_drawable_window() -> bool:
+	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_MINIMIZED:
+		return true
+	for win: Window in get_tree().root.find_children("*", "Window", true, false):
+		if win == get_tree().root || !win.visible || win.mode == Window.MODE_MINIMIZED:
+			continue
+		if win.theme_type_variation == "TooltipPanel":
+			continue
+		return true
+	return false
 
 ## Setter for current amount of frames in current animation, changes "frames" spinbox value.
 func set_frames(value: int) -> void:
@@ -1321,6 +1399,7 @@ func set_animation(idx: int) -> void:
 	play_toggled(false)
 	play_button.button_pressed = false
 	_refresh_frames_strip()
+	_update_preview_move_speed()
 
 var _last_state: int = -1
 
@@ -1334,13 +1413,14 @@ func set_state(idx: int) -> void:
 			state_option.select(_last_state)
 		return ask_about_missing_state()
 	if current_skin_setting:
-		_loop_offsets_by_suit[str(current_skin_setting.name)] = _loop_offsets.duplicate()
+		_ensure_suit_tweaks(str(current_skin_setting.name))
 	_last_state = idx
 	current_skin_setting = skin_settings[state]
 	preview.sprite_frames = current_skin_setting.gen_animated_sprites()
 	_load_loop_offsets()
 	#state_option.select(state)
 	update_anim_options()
+	_refresh_suit_tweaks_dialog()
 	
 	if !preview.sprite_frames.has_animation(&"appear"):
 		return
@@ -1643,6 +1723,7 @@ func save_file(path: String) -> void:
 			mark_as_saved = false
 			break
 	_save_all_loop_offsets()
+	_save_global_skin_tweaks()
 	if mark_as_saved:
 		_mark_saved()
 		_run_pending_after_save()
@@ -1690,8 +1771,9 @@ func open_file(path: String, from_recent: bool = false) -> void:
 	for dir in DirAccess.get_directories_at(path):
 		load_skin_settings_from_file(dir, path)
 	
-	_loop_offsets_by_suit.clear()
+	_suit_tweaks_by_suit.clear()
 	_loop_offsets.clear()
+	_global_skin_tweaks.clear()
 	load_misc_files(path)
 	
 	skin_name = path.get_slice("/", path.get_slice_count("/") - 1)
@@ -1721,8 +1803,9 @@ func new_save_file(path: String) -> void:
 	current_folder_skin = path
 	pending_state = 0
 	misc_files = {}
-	_loop_offsets_by_suit.clear()
+	_suit_tweaks_by_suit.clear()
 	_loop_offsets.clear()
+	_global_skin_tweaks.clear()
 	load_misc_files(path)
 	_on_dialog_new_settings_confirmed()
 	
@@ -1841,11 +1924,7 @@ func update_anim_options() -> void:
 			anim_option.set_item_disabled(i, false)
 
 func _default_loop_offsets() -> Dictionary:
-	var offsets := {}
-	for anim in PlayerSkin.ANIMS:
-		offsets[anim] = -1
-	offsets["swim"] = 6
-	return offsets
+	return SuitTweaks.defaults_for_suit("").loop_frame_offsets.duplicate(true)
 
 
 func _suit_tweaks_path(suit: String) -> String:
@@ -1854,68 +1933,61 @@ func _suit_tweaks_path(suit: String) -> String:
 	return current_folder_skin.path_join(suit).path_join("suit_tweaks.json")
 
 
+func _ensure_suit_tweaks(suit: String) -> Dictionary:
+	if suit.is_empty():
+		return SuitTweaks.defaults_for_suit("")
+	if _suit_tweaks_by_suit.has(suit):
+		return _suit_tweaks_by_suit[suit]
+	var tweaks := SuitTweaks.defaults_for_suit(suit)
+	if current_folder_skin:
+		var suit_path := _suit_tweaks_path(suit)
+		var all_path := _suit_tweaks_path("_all_suits")
+		var path := ""
+		if suit_path && FileAccess.file_exists(suit_path):
+			path = suit_path
+		elif FileAccess.file_exists(all_path):
+			path = all_path
+		if path:
+			var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+			if parsed is Dictionary:
+				tweaks = SuitTweaks.merge_loaded(parsed, suit)
+	_suit_tweaks_by_suit[suit] = tweaks
+	return tweaks
+
+
 func _load_loop_offsets() -> void:
 	var suit := str(current_skin_setting.name) if current_skin_setting else ""
-	if suit && _loop_offsets_by_suit.has(suit):
-		_loop_offsets = _loop_offsets_by_suit[suit]
-		_update_loop_offset_spin()
-		return
-	_loop_offsets = _default_loop_offsets()
-	if !current_folder_skin:
-		if suit:
-			_loop_offsets_by_suit[suit] = _loop_offsets
-		_update_loop_offset_spin()
-		return
-	var suit_path := _suit_tweaks_path(suit)
-	var all_path := _suit_tweaks_path("_all_suits")
-	var path := ""
-	if suit_path && FileAccess.file_exists(suit_path):
-		path = suit_path
-	elif FileAccess.file_exists(all_path):
-		path = all_path
-	if path:
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
-		if parsed is Dictionary:
-			var offsets = parsed.get("loop_frame_offsets")
-			if offsets is Dictionary:
-				for key in offsets:
-					_loop_offsets[str(key)] = int(offsets[key])
-	if suit:
-		_loop_offsets_by_suit[suit] = _loop_offsets
+	var tweaks := _ensure_suit_tweaks(suit)
+	_loop_offsets = tweaks.loop_frame_offsets
 	_update_loop_offset_spin()
 
 
 func _save_all_loop_offsets() -> void:
 	if current_skin_setting:
-		_loop_offsets_by_suit[str(current_skin_setting.name)] = _loop_offsets.duplicate()
-	for suit in _loop_offsets_by_suit.keys():
-		_save_loop_offsets_for(str(suit), _loop_offsets_by_suit[suit])
+		_ensure_suit_tweaks(str(current_skin_setting.name))
+	for suit in _suit_tweaks_by_suit.keys():
+		_save_suit_tweaks_for(str(suit))
 
 
 func _save_loop_offsets() -> void:
 	if !current_skin_setting:
 		return
-	_save_loop_offsets_for(str(current_skin_setting.name), _loop_offsets)
+	_save_suit_tweaks_for(str(current_skin_setting.name))
 
 
 func _save_loop_offsets_for(suit: String, offsets: Dictionary) -> void:
+	var tweaks := _ensure_suit_tweaks(suit)
+	tweaks.loop_frame_offsets = offsets.duplicate(true)
+	_save_suit_tweaks_for(suit)
+
+
+func _save_suit_tweaks_for(suit: String) -> void:
 	if !current_folder_skin || suit.is_empty():
 		return
 	var path := _suit_tweaks_path(suit)
 	if !path:
 		return
-	var data: Dictionary = {}
-	if FileAccess.file_exists(path):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
-		if parsed is Dictionary:
-			data = parsed
-	else:
-		var all_path := _suit_tweaks_path("_all_suits")
-		if FileAccess.file_exists(all_path):
-			var parsed = JSON.parse_string(FileAccess.get_file_as_string(all_path))
-			if parsed is Dictionary:
-				data = parsed.duplicate(true)
-	data["loop_frame_offsets"] = offsets.duplicate()
+	var data: Dictionary = _ensure_suit_tweaks(suit).duplicate(true)
 	var dir := path.get_base_dir()
 	if !DirAccess.dir_exists_absolute(dir):
 		DirAccess.make_dir_recursive_absolute(dir)
@@ -1924,6 +1996,173 @@ func _save_loop_offsets_for(suit: String, offsets: Dictionary) -> void:
 		return
 	file.store_string(JSON.stringify(data, "\t"))
 	file.close()
+
+
+func _on_suit_tweaks_pressed() -> void:
+	if !current_skin_setting:
+		return
+	_bind_suit_tweaks_dialog()
+	_popup_tweaks_window(suit_tweaks_dialog)
+
+
+func _bind_suit_tweaks_dialog() -> void:
+	if !current_skin_setting:
+		return
+	var suit := _current_suit()
+	suit_tweaks_dialog.bind(
+		"Suit Tweaks - %s" % SuitTweaks.display_name(suit),
+		_ensure_suit_tweaks(suit),
+		SuitTweaks.editor_schema()
+	)
+
+
+func _refresh_suit_tweaks_dialog() -> void:
+	if !suit_tweaks_dialog || !suit_tweaks_dialog.visible || !current_skin_setting:
+		return
+	_bind_suit_tweaks_dialog()
+
+
+func _on_suit_tweak_changed(path: PackedStringArray, new_value: Variant, old_value: Variant) -> void:
+	if path.is_empty() || !current_skin_setting:
+		return
+	var suit := _current_suit()
+	var label := SuitTweaks.display_name(path[path.size() - 1])
+	var merge := UndoRedo.MERGE_ENDS if typeof(new_value) in [TYPE_FLOAT, TYPE_INT, TYPE_ARRAY] else UndoRedo.MERGE_DISABLE
+	_commit_edit(
+		"Set %s (%s)" % [label, suit],
+		_apply_suit_tweak.bind(suit, path, new_value),
+		_apply_suit_tweak.bind(suit, path, old_value),
+		merge
+	)
+
+
+func _apply_suit_tweak(suit: String, path: PackedStringArray, value: Variant) -> void:
+	var tweaks := _ensure_suit_tweaks(suit)
+	SuitTweaks.set_at(tweaks, path, value)
+	if suit == _current_suit() && suit_tweaks_dialog.visible:
+		suit_tweaks_dialog.sync_value(path, value)
+
+
+func _on_suit_tweaks_reset() -> void:
+	if !current_skin_setting:
+		return
+	var suit := _current_suit()
+	var before: Dictionary = _ensure_suit_tweaks(suit).duplicate(true)
+	var after: Dictionary = SuitTweaks.defaults_for_suit(suit)
+	after.loop_frame_offsets = before.loop_frame_offsets.duplicate(true)
+	_commit_edit(
+		"Reset Suit Tweaks (%s)" % suit,
+		_replace_suit_tweaks.bind(suit, after.duplicate(true)),
+		_replace_suit_tweaks.bind(suit, before)
+	)
+
+
+func _replace_suit_tweaks(suit: String, tweaks: Dictionary) -> void:
+	_suit_tweaks_by_suit[suit] = tweaks.duplicate(true)
+	if suit == _current_suit():
+		_loop_offsets = _suit_tweaks_by_suit[suit].loop_frame_offsets
+		_update_loop_offset_spin()
+		_refresh_suit_tweaks_dialog()
+
+
+func _popup_tweaks_window(dialog: Window) -> void:
+	show_one_dialog(dialog)
+	dialog.popup_window = false
+	dialog.move_to_center()
+	Util.clamp_window_to_screen(dialog)
+
+
+func _global_skin_tweaks_path() -> String:
+	if !current_folder_skin:
+		return ""
+	return current_folder_skin.path_join("global_skin_tweaks.json")
+
+
+func _load_global_skin_tweaks() -> void:
+	_global_skin_tweaks = GlobalSkinTweaks.defaults()
+	var path := _global_skin_tweaks_path()
+	if !path || !FileAccess.file_exists(path):
+		return
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if parsed is Dictionary:
+		_global_skin_tweaks = GlobalSkinTweaks.merge_loaded(parsed)
+
+
+func _ensure_global_skin_tweaks() -> Dictionary:
+	if _global_skin_tweaks.is_empty():
+		_load_global_skin_tweaks()
+	return _global_skin_tweaks
+
+
+func _save_global_skin_tweaks() -> void:
+	if !current_folder_skin || _global_skin_tweaks.is_empty():
+		return
+	var path := _global_skin_tweaks_path()
+	if !path:
+		return
+	var data: Dictionary = _global_skin_tweaks.duplicate(true)
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if !file:
+		return
+	file.store_string(JSON.stringify(data, "\t"))
+	file.close()
+
+
+func _on_global_skin_tweaks_pressed() -> void:
+	if !current_folder_skin:
+		return
+	_bind_global_skin_tweaks_dialog()
+	_popup_tweaks_window(global_skin_tweaks_dialog)
+
+
+func _bind_global_skin_tweaks_dialog() -> void:
+	global_skin_tweaks_dialog.bind(
+		"Global Skin Tweaks",
+		_ensure_global_skin_tweaks(),
+		GlobalSkinTweaks.editor_schema()
+	)
+
+
+func _refresh_global_skin_tweaks_dialog() -> void:
+	if !global_skin_tweaks_dialog || !global_skin_tweaks_dialog.visible || !current_folder_skin:
+		return
+	_bind_global_skin_tweaks_dialog()
+
+
+func _on_global_skin_tweak_changed(path: PackedStringArray, new_value: Variant, old_value: Variant) -> void:
+	if path.is_empty() || !current_folder_skin:
+		return
+	var label := SuitTweaks.display_name(path[path.size() - 1])
+	var merge := UndoRedo.MERGE_ENDS if typeof(new_value) in [TYPE_FLOAT, TYPE_INT, TYPE_ARRAY] else UndoRedo.MERGE_DISABLE
+	_commit_edit(
+		"Set %s (global)" % label,
+		_apply_global_skin_tweak.bind(path, new_value),
+		_apply_global_skin_tweak.bind(path, old_value),
+		merge
+	)
+
+
+func _apply_global_skin_tweak(path: PackedStringArray, value: Variant) -> void:
+	SuitTweaks.set_at(_ensure_global_skin_tweaks(), path, value)
+	if global_skin_tweaks_dialog.visible:
+		global_skin_tweaks_dialog.sync_value(path, value)
+
+
+func _on_global_skin_tweaks_reset() -> void:
+	if !current_folder_skin:
+		return
+	var before: Dictionary = _ensure_global_skin_tweaks().duplicate(true)
+	var after: Dictionary = GlobalSkinTweaks.defaults()
+	_commit_edit(
+		"Reset Global Skin Tweaks",
+		_replace_global_skin_tweaks.bind(after.duplicate(true)),
+		_replace_global_skin_tweaks.bind(before)
+	)
+
+
+func _replace_global_skin_tweaks(tweaks: Dictionary) -> void:
+	_global_skin_tweaks = tweaks.duplicate(true)
+	_refresh_global_skin_tweaks_dialog()
 
 
 func _get_loop_offset(anim: StringName) -> int:
@@ -1967,6 +2206,67 @@ func _on_loop_offset_changed(value: float) -> void:
 	)
 
 
+func _is_frog_hop_walk() -> bool:
+	return _current_suit() == "frog" && preview && String(preview.animation) == "walk"
+
+
+func _fill_preview_speed_items() -> void:
+	var labels := FROG_WALK_SPEED_LABELS if _is_frog_hop_walk() else ["Minimum Speed", "Walking Speed", "Running Speed"]
+	for i in labels.size():
+		var _scale := _preview_move_speed_scale(i)
+		var text := "%s (×%s)" % [labels[i], String.num(_scale, 2)]
+		if i < preview_speed_option.item_count:
+			preview_speed_option.set_item_text(i, text)
+		else:
+			preview_speed_option.add_item(text)
+	if _is_frog_hop_walk():
+		preview_speed_option.tooltip_text = "Frog walk uses fixed speed_scale: hop ×1, warp ×2, level complete ×2.4."
+	else:
+		preview_speed_option.tooltip_text = "Sets AnimatedSprite2D.speed_scale to match in-game walking:\nclampf(|speed.x| × 0.008 × animation_walking_speed, min, max)."
+
+
+func _preview_move_speed_scale(kind: int) -> float:
+	if _is_frog_hop_walk():
+		return FROG_WALK_SPEED_SCALES[clampi(kind, 0, FROG_WALK_SPEED_SCALES.size() - 1)]
+	var player_speed := CFG_WALK_MAX_WALKING_SPEED
+	match kind:
+		0:
+			return CFG_ANIMATION_MIN_WALKING_SPEED
+		2:
+			player_speed = CFG_WALK_MAX_RUNNING_SPEED
+		_:
+			player_speed = CFG_WALK_MAX_WALKING_SPEED
+	return clampf(
+		player_speed * 0.008 * CFG_ANIMATION_WALKING_SPEED,
+		CFG_ANIMATION_MIN_WALKING_SPEED,
+		CFG_ANIMATION_MAX_WALKING_SPEED
+	)
+
+
+func _on_preview_speed_scale_selected(_idx: int) -> void:
+	_apply_preview_move_speed()
+
+
+func _update_preview_move_speed() -> void:
+	var anim := String(preview.animation) if preview else ""
+	var _show := preview_speed_option && !preview_speed_option.disabled && anim in PREVIEW_MOVE_SPEED_ANIMS
+	if preview_speed_row:
+		preview_speed_row.visible = _show
+	if _show:
+		_fill_preview_speed_items()
+		_apply_preview_move_speed()
+	elif preview:
+		preview.speed_scale = 1.0
+		update_anim_time()
+
+
+func _apply_preview_move_speed() -> void:
+	if !preview:
+		return
+	preview.speed_scale = _preview_move_speed_scale(preview_speed_option.selected)
+	update_anim_time()
+
+
 ## Updates animation duration display counter.
 func update_anim_time() -> void:
 	if !preview.animation || !preview.sprite_frames:
@@ -1977,9 +2277,10 @@ func update_anim_time() -> void:
 		anim_time_label.text = "Too long"
 		return
 	var number: float = 0.0
+	var fps: float = abs(preview.sprite_frames.get_animation_speed(preview.animation)) * maxf(preview.speed_scale, 0.0001)
 	for i in frame_count:
 		var relative_duration = preview.sprite_frames.get_frame_duration(preview.animation, i)
-		var absolute_duration = relative_duration / abs(preview.sprite_frames.get_animation_speed(preview.animation))
+		var absolute_duration = relative_duration / fps
 		number += absolute_duration
 		
 	if is_finite(number) && number > 999:

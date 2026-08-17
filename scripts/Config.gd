@@ -48,7 +48,11 @@ func apply_to_scene() -> void:
 		camera.position.y = data.get("campos_y", 0.0)
 	var splitter := _n("FrameHSplitter") as SplitContainer
 	if splitter:
-		splitter.split_offset = int(data.get("anim_split_offset", -380))
+		_apply_split_offset(splitter, int(data.get("anim_split_offset", -380)))
+	var frames_vsplit := _n("FrameOuterVSplit") as SplitContainer
+	var frames_split := int(data.get("frames_split_offset", 0))
+	if frames_vsplit:
+		_apply_split_offset(frames_vsplit, frames_split)
 	var grid_color := _n("GridColor") as ColorPickerButton
 	if grid_color:
 		grid_color.color = Color.from_string(data.get("grid_color", ""), grid_color.color)
@@ -58,6 +62,8 @@ func apply_to_scene() -> void:
 		bg_color.color = Color.from_string(data.get("bg_color", ""), bg_color.color)
 		RenderingServer.set_default_clear_color(bg_color.color)
 	var frames_dock := _n("FramesDock") as FramesStrip
+	if frames_dock:
+		frames_dock.set_docked_split_offset(frames_split)
 	var thumb := clampi(int(data.get("thumb_size", 64)), 32, 256)
 	var thumb_spin := _n("ThumbSize") as SpinBox
 	if thumb_spin:
@@ -72,7 +78,7 @@ func apply_to_scene() -> void:
 	scene.show_collisions = show_col
 	var history_split := _n("HistoryHSplit") as SplitContainer
 	if history_split:
-		history_split.split_offset = int(data.get("history_split_offset", 10000))
+		_apply_split_offset(history_split, int(data.get("history_split_offset", 10000)))
 	var history_dock := _n("HistoryDock") as HistoryDock
 	var hist_vis: bool = data.get("history_visible", false)
 	if history_dock:
@@ -125,10 +131,11 @@ func collect_from_scene() -> void:
 		data.camera_origin_y = camera.origin_offset_y
 	var splitter := _n("FrameHSplitter") as SplitContainer
 	if splitter:
-		data.anim_split_offset = splitter.split_offset
+		data.anim_split_offset = _read_split_offset(splitter)
 	var frames_dock := _n("FramesDock") as FramesStrip
 	if frames_dock:
 		data.thumb_size = frames_dock.thumb_size
+		data.frames_split_offset = frames_dock.get_docked_split_offset()
 		data.frames_floating = frames_dock.is_floating()
 		if frames_dock.is_floating():
 			var frames_rect: Rect2i = frames_dock.get_window_rect()
@@ -152,7 +159,7 @@ func collect_from_scene() -> void:
 		data.history_win_h = hist_rect.size.y
 	var history_split := _n("HistoryHSplit") as SplitContainer
 	if history_split:
-		data.history_split_offset = history_split.split_offset
+		data.history_split_offset = _read_split_offset(history_split)
 
 
 func get_recent_skins() -> Array:
@@ -195,6 +202,17 @@ func remove_recent_skin(path: String) -> void:
 	recents.remove_at(existing)
 	data.recent_skins = recents
 	save()
+
+
+func _apply_split_offset(split: SplitContainer, offset: int) -> void:
+	split.split_offsets = PackedInt32Array([offset])
+
+
+func _read_split_offset(split: SplitContainer) -> int:
+	var offsets := split.split_offsets
+	if offsets.is_empty():
+		return split.split_offset
+	return offsets[0]
 
 
 func _n(unique: String) -> Node:
