@@ -1,12 +1,47 @@
-[gd_scene format=3 uid="uid://bq8addframestscn"]
+[gd_scene format=3 uid="uid://bc5tsqs3u3wvp"]
 
-[ext_resource type="Script" uid="uid://bq8addframesdlg1" path="res://scripts/add_frames_dialog.gd" id="1_dialog"]
-[ext_resource type="Script" uid="uid://bq8sheetpreview1" path="res://scripts/sheet_preview.gd" id="2_preview"]
+[ext_resource type="Script" uid="uid://bc5tsqs3ump03" path="res://scripts/add_frames_dialog.gd" id="1_dialog"]
+[ext_resource type="Script" uid="uid://d0kciya3ox1g1" path="res://scripts/sheet_preview.gd" id="2_preview"]
 [ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://scripts/spinbox.gd" id="3_spin"]
+[ext_resource type="Texture2D" uid="uid://dxm00a3iybb1m" path="res://icons/ZoomLess.svg" id="6_zoom_out"]
+[ext_resource type="Texture2D" uid="uid://cklp26aabuiq1" path="res://icons/ZoomMore.svg" id="7_zoom_in"]
+[ext_resource type="Texture2D" uid="uid://0myjcdmod57r" path="res://icons/DistractionFree.svg" id="8_zoom_fit"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.145098, 0.145098, 0.145098, 1)
 corner_detail = 1
+anti_aliasing = false
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_zoom"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_zoom_hover"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.15)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_zoom_pressed"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0.35)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
 anti_aliasing = false
 
 [node name="AddFramesDialog" type="ConfirmationDialog" unique_id=1101000001]
@@ -14,10 +49,7 @@ disable_3d = true
 title = "Select Frames"
 initial_position = 2
 size = Vector2i(960, 640)
-visible = false
-wrap_controls = true
 min_size = Vector2i(720, 480)
-dialog_text = ""
 ok_button_text = "Add Frames"
 script = ExtResource("1_dialog")
 
@@ -50,8 +82,8 @@ layout_mode = 2
 tooltip_text = "Where to insert the selected frames in the animation."
 
 [node name="SheetPanel" type="Panel" parent="HBox/PreviewVBox" unique_id=1101000007]
-clip_contents = true
 texture_filter = 1
+clip_contents = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
@@ -91,28 +123,50 @@ offset_bottom = 40.0
 mouse_filter = 0
 
 [node name="ZoomOut" type="Button" parent="HBox/PreviewVBox/SheetPanel/ZoomBar" unique_id=1101000013]
+custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
 size_flags_vertical = 0
 tooltip_text = "Zoom Out"
-text = "-"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_zoom")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_zoom_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_zoom_hover")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_zoom_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_zoom")
+icon = ExtResource("6_zoom_out")
+icon_alignment = 1
 
 [node name="ZoomLabel" type="Label" parent="HBox/PreviewVBox/SheetPanel/ZoomBar" unique_id=1101000014]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 4
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
 text = "100 %"
 
 [node name="ZoomIn" type="Button" parent="HBox/PreviewVBox/SheetPanel/ZoomBar" unique_id=1101000015]
+custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
 size_flags_vertical = 0
 tooltip_text = "Zoom In"
-text = "+"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_zoom")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_zoom_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_zoom_hover")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_zoom_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_zoom")
+icon = ExtResource("7_zoom_in")
+icon_alignment = 1
 
 [node name="ZoomFit" type="Button" parent="HBox/PreviewVBox/SheetPanel/ZoomBar" unique_id=1101000016]
+custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
 size_flags_vertical = 0
 tooltip_text = "Fit to View"
-text = "Fit"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_zoom")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_zoom_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_zoom_hover")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_zoom_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_zoom")
+icon = ExtResource("8_zoom_fit")
+icon_alignment = 1
 
 [node name="Settings" type="VBoxContainer" parent="HBox" unique_id=1101000017]
 custom_minimum_size = Vector2(200, 0)
@@ -231,7 +285,7 @@ script = ExtResource("3_spin")
 
 [node name="AutoSlice" type="Button" parent="HBox/Settings" unique_id=1101000035]
 layout_mode = 2
-tooltip_text = "Automatically detect columns and rows from the spritesheet."
+tooltip_text = "Automatically detect columns and rows from the spritesheet. (S)"
 text = "Auto Slice"
 
 [connection signal="pressed" from="HBox/PreviewVBox/Menu/SelectAll" to="." method="_on_select_all_pressed"]

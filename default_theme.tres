@@ -5,6 +5,7 @@
 [resource]
 Button/font_sizes/font_size = 14
 Button/styles/focus = ExtResource("1_e7bfs")
+ItemList/font_sizes/font_size = 14
 Label/font_sizes/font_size = 14
 LineEdit/font_sizes/font_size = 14
 LineEdit/styles/focus = ExtResource("1_e7bfs")

@@ -38,7 +38,8 @@ func _init() -> void:
 func _notification(what: int) -> void:
 	if Engine.is_editor_hint(): return
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		get_tree().quit()
+		# Close confirmation is handled by Main when the skin has unsaved edits.
+		pass
 
 
 func _ready() -> void:

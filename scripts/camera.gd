@@ -7,6 +7,7 @@ var zoom_speed := 0.1
 
 @onready var zoom_template_text = %ZoomLevel.text
 var has_user_moved: bool
+var _chrome_offset := Vector2.ZERO
 
 func _ready() -> void:
 	%ZoomLevel.text = zoom_template_text % [1 * 100.0]
@@ -28,7 +29,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	elif event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP || event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			if _is_mouse_over_frames_dock():
+			if _is_mouse_over_ui_dock():
 				return
 			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 				zoom_in()
@@ -36,21 +37,42 @@ func _unhandled_input(event: InputEvent) -> void:
 				zoom_out()
 
 
-func _is_mouse_over_frames_dock() -> bool:
-	if !has_node("%FramesDock"):
+func _is_mouse_over_ui_dock() -> bool:
+	if _is_mouse_over_control("%FramesDock"):
+		return true
+	return _is_mouse_over_docked_history()
+
+
+func _is_mouse_over_control(node_path: String) -> bool:
+	if !has_node(node_path):
 		return false
-	var dock: Control = %FramesDock
+	var control: Control = get_node(node_path)
+	if !control.visible || !control.is_visible_in_tree():
+		return false
+	return control.get_global_rect().has_point(control.get_global_mouse_position())
+
+
+func _is_mouse_over_docked_history() -> bool:
+	if !has_node("%HistoryDock"):
+		return false
+	var dock: Control = %HistoryDock
+	if !dock.visible || !dock.is_visible_in_tree():
+		return false
+	if dock.get_parent() is Window:
+		return false
 	return dock.get_global_rect().has_point(dock.get_global_mouse_position())
 
 
-func update_camera_position() -> void:
-	var dock_h := 0.0
-	if has_node("%FramesDock"):
-		dock_h = %FramesDock.size.y
-	var menu_h := 0.0
-	if has_node("%MenuPanel"):
-		menu_h = %MenuPanel.size.y
-	position = Vector2(0.0, -32.0 + dock_h / 2.0 / zoom.y - menu_h / 2.0 / zoom.y)
+func _history_dock_width() -> float:
+	if !has_node("%HistoryDock"):
+		return 0.0
+	var dock: Control = %HistoryDock
+	if !dock.visible || !dock.is_visible_in_tree():
+		return 0.0
+	if dock.get_parent() is Window:
+		return 0.0
+	return dock.size.x
+
 
 func get_camera_position() -> Vector2:
 	var dock_h := 0.0
@@ -59,7 +81,23 @@ func get_camera_position() -> Vector2:
 	var menu_h := 0.0
 	if has_node("%MenuPanel"):
 		menu_h = %MenuPanel.size.y
-	return Vector2(0.0, -32.0 + dock_h / 2.0 / zoom.y - menu_h / 2.0 / zoom.y)
+	var hist_w := _history_dock_width()
+	# Right-side dock: look further right so the sprite stays in the remaining preview.
+	return Vector2(hist_w * 0.5 / zoom.x, -32.0 + dock_h * 0.5 / zoom.y - menu_h * 0.5 / zoom.y)
+
+
+func update_camera_position() -> void:
+	_chrome_offset = get_camera_position()
+	position = _chrome_offset
+
+
+func apply_layout_change() -> void:
+	var new_offset := get_camera_position()
+	if has_user_moved:
+		position += new_offset - _chrome_offset
+	else:
+		position = new_offset
+	_chrome_offset = new_offset
 
 
 func zoom_in() -> void:
@@ -92,8 +130,9 @@ func update_zoom(old_zoom: Vector2, new_zoom: Vector2) -> void:
 	position.x += pixels_difference_x * side_ratio_x
 	position.y += pixels_difference_y * side_ratio_y
 	zoom = new_zoom
+	_chrome_offset = get_camera_position()
 	if has_user_moved:
 		if position != get_screen_center_position():
 			position = get_screen_center_position()
-	elif position != get_camera_position():
-		position = get_camera_position()
+	elif position != _chrome_offset:
+		position = _chrome_offset

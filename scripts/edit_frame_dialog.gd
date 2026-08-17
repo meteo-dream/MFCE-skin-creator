@@ -72,7 +72,8 @@ func _ready() -> void:
 	var content: Control = $VBox
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.custom_minimum_size = Vector2(820, 480)
+	content.custom_minimum_size = Vector2(980, 480)
+	_compact_grid_spins()
 	var zoom_bar: Control = scroll.get_parent().get_node("ZoomBar")
 	zoom_bar.reset_size()
 	zoom_bar.size = zoom_bar.get_combined_minimum_size()
@@ -80,6 +81,14 @@ func _ready() -> void:
 	snap_mode_option.add_item("Grid Snap", SnapMode.GRID)
 	snap_mode_option.add_item("Auto Slice", SnapMode.AUTOSLICE)
 	_sync_snap_controls()
+
+
+func get_original_region() -> Rect2:
+	return _original
+
+
+func has_pending_change() -> bool:
+	return region != _original
 
 
 func setup(atlas: Texture2D, start_region: Rect2) -> void:
@@ -106,6 +115,13 @@ func _on_visibility_changed_fit() -> void:
 			_update_autoslice()
 		await get_tree().process_frame
 		preview.zoom_fit()
+
+
+func _compact_grid_spins() -> void:
+	for spin in [snap_off_x, snap_off_y, snap_step_x, snap_step_y, snap_sep_x, snap_sep_y]:
+		spin.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		spin.custom_minimum_size.x = 64
+		spin.get_line_edit().custom_minimum_size.x = 32
 
 
 func _sync_snap_controls() -> void:
@@ -305,6 +321,30 @@ func _is_over_zoom_bar() -> bool:
 	return zoom_bar.get_global_rect().has_point(zoom_bar.get_global_mouse_position())
 
 
+func _is_over_scroll_chrome() -> bool:
+	var mouse := scroll.get_global_mouse_position()
+	if !scroll.get_global_rect().has_point(mouse):
+		return false
+	var hbar := scroll.get_h_scroll_bar()
+	var vbar := scroll.get_v_scroll_bar()
+	if hbar && hbar.visible && hbar.get_global_rect().has_point(mouse):
+		return true
+	if vbar && vbar.visible && vbar.get_global_rect().has_point(mouse):
+		return true
+	if hbar && vbar && hbar.visible && vbar.visible:
+		var corner := Rect2(
+			Vector2(vbar.global_position.x, hbar.global_position.y),
+			Vector2(vbar.size.x, hbar.size.y)
+		)
+		if corner.has_point(mouse):
+			return true
+	return false
+
+
+func _is_over_sheet_chrome() -> bool:
+	return _is_over_zoom_bar() || _is_over_scroll_chrome()
+
+
 func _set_edit_cursor(cursor: Control.CursorShape) -> void:
 	preview.mouse_default_cursor_shape = cursor
 	scroll.mouse_default_cursor_shape = cursor
@@ -418,10 +458,11 @@ func _input(event: InputEvent) -> void:
 		return
 	var panel := _sheet_panel()
 	var over_panel := panel.get_global_rect().has_point(panel.get_global_mouse_position())
-	if over_panel && preview.handle_zoom_event(event):
+	var over_chrome := _is_over_sheet_chrome()
+	if over_panel && !over_chrome && preview.handle_zoom_event(event):
 		get_viewport().set_input_as_handled()
 		return
-	if _dragging || (over_panel && !_is_over_zoom_bar()):
+	if _dragging || (over_panel && !over_chrome):
 		if _handle_edit_input(event):
 			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion:

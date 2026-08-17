@@ -34,6 +34,9 @@ const RECENT_SKINS_MAX := 8
 @onready var volume: float = $CenterContainer/HSlider.value
 var index: int
 var config: Dictionary = {}
+var _history_dock: HistoryDock
+var _history_split: SplitContainer
+var _editor_menu: PopupMenu
 
 func _ready() -> void:
 	var json = FileAccess.get_file_as_string("user://config.json")
@@ -44,6 +47,9 @@ func _ready() -> void:
 	_on_h_slider_value_changed(volume)
 	if config.get("is_looping", false):
 		index = config.get("index", 0)
+	_history_dock = get_node_or_null("%HistoryDock") as HistoryDock
+	_history_split = get_node_or_null("%HistoryHSplit") as SplitContainer
+	_editor_menu = get_node_or_null("%Editor") as PopupMenu
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_EXIT_TREE:
@@ -57,7 +63,20 @@ func _notification(what: int) -> void:
 		config.anim_split_offset = %FrameHSplitter.split_offset
 		config.thumb_size = %FramesDock.thumb_size
 		config.show_collisions = get_tree().current_scene.show_collisions
-		config.autoreload = %Editor.is_item_checked(%Editor.get_item_index(3))
+		config.autoreload = _editor_menu.is_item_checked(_editor_menu.get_item_index(3)) if is_instance_valid(_editor_menu) else config.get("autoreload", true)
+		if is_instance_valid(_history_dock):
+			if is_instance_valid(_editor_menu):
+				config.history_visible = _editor_menu.is_item_checked(_editor_menu.get_item_index(5))
+			else:
+				config.history_visible = _history_dock.is_open()
+			config.history_floating = _history_dock.is_floating()
+			var hist_rect: Rect2i = _history_dock.get_window_rect()
+			config.history_win_x = hist_rect.position.x
+			config.history_win_y = hist_rect.position.y
+			config.history_win_w = hist_rect.size.x
+			config.history_win_h = hist_rect.size.y
+		if is_instance_valid(_history_split):
+			config.history_split_offset = _history_split.split_offset
 		save_config()
 
 
@@ -148,13 +167,26 @@ func init_config_values() -> void:
 	bg_color.color = Color.from_string(config.get("bg_color", ""), bg_color.color)
 	bg_color.color_changed.emit(bg_color.color)
 	
-	var thumb := clampi(int(config.get("thumb_size", 96)), 32, 256)
+	var thumb := clampi(int(config.get("thumb_size", 64)), 32, 256)
 	%ThumbSize.value = thumb
 	%FramesDock.set_thumb_size(thumb)
 	var show_col: bool = config.get("show_collisions", false)
 	%Editor.set_item_checked(%Editor.get_item_index(2), show_col)
 	get_tree().current_scene.show_collisions = show_col
 	%Editor.set_item_checked(%Editor.get_item_index(3), config.get("autoreload", true))
+	%HistoryHSplit.split_offset = int(config.get("history_split_offset", 10000))
+	var hist_vis: bool = config.get("history_visible", false)
+	if config.get("history_floating", false):
+		%HistoryDock.set_floating(true, false)
+		%HistoryDock.apply_window_rect(Rect2i(
+			int(config.get("history_win_x", 0)),
+			int(config.get("history_win_y", 0)),
+			int(config.get("history_win_w", 280)),
+			int(config.get("history_win_h", 600))
+		))
+	%HistoryDock.set_open(hist_vis, false)
+	%Editor.set_item_checked(%Editor.get_item_index(5), hist_vis)
+	%Camera2D.apply_layout_change()
 
 func go_next() -> void:
 	index = wrapi(index + 1, 0, PLAYLIST.size())

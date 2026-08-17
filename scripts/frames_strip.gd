@@ -2,7 +2,8 @@ extends PanelContainer
 class_name FramesStrip
 
 signal frame_selected(index: int)
-signal frames_reordered(from: int, to: int)
+signal selection_changed(indices: PackedInt32Array)
+signal frames_reordered(indices: PackedInt32Array, to: int)
 signal add_frames_pressed
 signal edit_frame_pressed
 signal delete_frame_pressed
@@ -11,7 +12,7 @@ const THUMB_MIN := 32
 const THUMB_MAX := 256
 const DROP_LINE := Color(0.45, 0.68, 1.0, 0.95)
 
-var thumb_size := 96
+var thumb_size := 64
 
 @onready var list: ItemList = %FrameList
 @onready var add_button: Button = %AddFrames
@@ -20,25 +21,40 @@ var thumb_size := 96
 
 var _updating := false
 var _drop_index := -1
+var _primary_index := 0
+var _edge_layer: Control
+var _v_edge: Control
+var _h_edge: Control
+var _scroll_drag_bar: ScrollBar
 
 
 func _ready() -> void:
 	mouse_force_pass_scroll_events = false
 	list.mouse_force_pass_scroll_events = false
-	list.item_selected.connect(_on_item_selected)
+	list.select_mode = ItemList.SELECT_MULTI
+	list.allow_reselect = true
+	list.multi_selected.connect(_on_multi_selected)
+	list.item_clicked.connect(_on_item_clicked)
+	list.empty_clicked.connect(_on_empty_clicked)
 	list.item_activated.connect(_on_item_activated)
+	list.gui_input.connect(_on_list_gui_input)
 	list.draw.connect(_on_list_draw)
 	list.set_drag_forwarding(_on_get_drag_data, _on_can_drop_data, _on_drop_data)
 	add_button.pressed.connect(func(): add_frames_pressed.emit())
 	edit_button.pressed.connect(func(): edit_frame_pressed.emit())
 	delete_button.pressed.connect(func(): delete_frame_pressed.emit())
+	_setup_scroll_edges()
 
 
 func set_enabled(enabled: bool) -> void:
 	add_button.disabled = !enabled
 	edit_button.disabled = !enabled
-	delete_button.disabled = !enabled || list.item_count <= 1
 	list.mouse_filter = Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
+	if _v_edge:
+		_v_edge.mouse_filter = Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
+	if _h_edge:
+		_h_edge.mouse_filter = Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
+	_update_delete_enabled()
 
 
 func set_thumb_size(size: int) -> void:
@@ -48,11 +64,16 @@ func set_thumb_size(size: int) -> void:
 	list.force_update_list_size()
 
 
-func rebuild(sprite_frames: SpriteFrames, anim: StringName, selected: int) -> void:
+func get_selected_indices() -> PackedInt32Array:
+	return list.get_selected_items()
+
+
+func rebuild(sprite_frames: SpriteFrames, anim: StringName, selected: int, keep_selected: PackedInt32Array = PackedInt32Array()) -> void:
 	_updating = true
 	list.clear()
 	if !sprite_frames || !sprite_frames.has_animation(anim):
 		_updating = false
+		_update_delete_enabled()
 		return
 	var count := sprite_frames.get_frame_count(anim)
 	for i in count:
@@ -63,23 +84,62 @@ func rebuild(sprite_frames: SpriteFrames, anim: StringName, selected: int) -> vo
 		var duration := sprite_frames.get_frame_duration(anim, i)
 		list.add_item(_item_text(i, duration), icon)
 	if count > 0:
-		var idx := clampi(selected, 0, count - 1)
-		list.select(idx)
+		var to_select := PackedInt32Array()
+		for i in keep_selected:
+			if i >= 0 && i < count:
+				to_select.append(i)
+		if to_select.is_empty():
+			to_select.append(clampi(selected, 0, count - 1))
+		for i in to_select.size():
+			list.select(to_select[i], i == 0)
+		_primary_index = clampi(selected, 0, count - 1)
+		if list.is_selected(_primary_index):
+			list.select(_primary_index, false)
 		list.ensure_current_is_visible()
-	delete_button.disabled = count <= 1 || add_button.disabled
+	_update_delete_enabled()
 	_updating = false
 
 
-func select_frame(index: int) -> void:
+func select_frame(index: int, collapse_multi := false) -> void:
 	if _updating:
 		return
 	if index < 0 || index >= list.item_count:
 		return
-	if list.is_selected(index):
+	if !collapse_multi && list.is_selected(index):
+		_primary_index = index
+		return
+	var items := list.get_selected_items()
+	if items.size() == 1 && items[0] == index:
+		_primary_index = index
+		if collapse_multi:
+			list.ensure_current_is_visible()
 		return
 	_updating = true
 	list.select(index)
+	_primary_index = index
 	list.ensure_current_is_visible()
+	_update_delete_enabled()
+	_updating = false
+
+
+func select_indices(indices: PackedInt32Array, primary: int = -1) -> void:
+	if _updating:
+		return
+	_updating = true
+	var first := true
+	for i in indices:
+		if i < 0 || i >= list.item_count:
+			continue
+		list.select(i, first)
+		first = false
+	if first && primary >= 0 && primary < list.item_count:
+		list.select(primary)
+		_primary_index = primary
+	elif primary >= 0 && primary < list.item_count && list.is_selected(primary):
+		list.select(primary, false)
+		_primary_index = primary
+	list.ensure_current_is_visible()
+	_update_delete_enabled()
 	_updating = false
 
 
@@ -108,37 +168,252 @@ func _item_text(index: int, duration: float) -> String:
 	return "%d [× %.2f]" % [index, duration]
 
 
-func _on_item_selected(index: int) -> void:
+func _update_delete_enabled() -> void:
+	delete_button.disabled = add_button.disabled || list.item_count <= 1
+
+
+func _emit_selection(primary: int) -> void:
+	if primary >= 0 && primary < list.item_count && list.is_selected(primary):
+		_primary_index = primary
+		frame_selected.emit(primary)
+	else:
+		var items := list.get_selected_items()
+		if items.is_empty():
+			return
+		_primary_index = items[items.size() - 1]
+		frame_selected.emit(_primary_index)
+	selection_changed.emit(list.get_selected_items())
+
+
+func _on_empty_clicked(_at_position: Vector2, mouse_button_index: int) -> void:
+	if _updating || mouse_button_index != MOUSE_BUTTON_LEFT:
+		return
+	var items := list.get_selected_items()
+	if items.size() <= 1:
+		return
+	var keep := _primary_index
+	if keep < 0 || keep >= list.item_count || !list.is_selected(keep):
+		keep = items[0]
+	_updating = true
+	list.select(keep)
+	_primary_index = keep
+	_updating = false
+	_update_delete_enabled()
+	selection_changed.emit(list.get_selected_items())
+
+
+func _on_multi_selected(_index: int, _selected: bool) -> void:
 	if _updating:
 		return
-	frame_selected.emit(index)
+	_update_delete_enabled()
+	selection_changed.emit(list.get_selected_items())
+
+
+func _on_item_clicked(index: int, _at_position: Vector2, mouse_button_index: int) -> void:
+	if _updating || mouse_button_index != MOUSE_BUTTON_LEFT:
+		return
+	_emit_selection(index)
 
 
 func _on_item_activated(_index: int) -> void:
 	edit_frame_pressed.emit()
 
 
+func _on_list_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouse && _exact_item_at(event.position) < 0:
+		# ItemList expands the last column into empty space and the scrollbar inset.
+		event.position = Vector2(-1e6, -1e6)
+	if add_button.disabled || !(event is InputEventKey) || !event.pressed || event.echo:
+		return
+	var key := event as InputEventKey
+	if key.keycode == KEY_A && key.is_command_or_control_pressed():
+		_select_all()
+		list.accept_event()
+
+
+func _select_all() -> void:
+	if list.item_count <= 0:
+		return
+	_updating = true
+	for i in list.item_count:
+		list.select(i, i == 0)
+	_updating = false
+	_update_delete_enabled()
+	_emit_selection(0)
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_DRAG_END:
 		_set_drop_index(-1)
+	elif what == NOTIFICATION_RESIZED || what == NOTIFICATION_SORT_CHILDREN:
+		_layout_scroll_edges()
+
+
+func _exact_item_at(local_pos: Vector2) -> int:
+	if list.item_count <= 0:
+		return -1
+	var scroll := Vector2(list.get_h_scroll_bar().value, list.get_v_scroll_bar().value)
+	for i in list.item_count:
+		var rect := list.get_item_rect(i, false)
+		rect.position -= scroll
+		if rect.has_point(local_pos):
+			return i
+	return -1
+
+
+func _setup_scroll_edges() -> void:
+	_edge_layer = Control.new()
+	_edge_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_edge_layer)
+	_v_edge = _make_scroll_edge(_on_v_edge_gui_input)
+	_h_edge = _make_scroll_edge(_on_h_edge_gui_input)
+	_edge_layer.add_child(_v_edge)
+	_edge_layer.add_child(_h_edge)
+	var vbar := list.get_v_scroll_bar()
+	var hbar := list.get_h_scroll_bar()
+	if vbar:
+		vbar.visibility_changed.connect(_layout_scroll_edges)
+	if hbar:
+		hbar.visibility_changed.connect(_layout_scroll_edges)
+
+
+func _make_scroll_edge(handler: Callable) -> Control:
+	var edge := Control.new()
+	edge.mouse_filter = Control.MOUSE_FILTER_STOP
+	edge.gui_input.connect(handler)
+	edge.visible = false
+	return edge
+
+
+func _layout_scroll_edges() -> void:
+	if !_edge_layer || !_v_edge || !_h_edge:
+		return
+	var vbar := list.get_v_scroll_bar()
+	var hbar := list.get_h_scroll_bar()
+	_place_scroll_edge(_v_edge, vbar, true)
+	_place_scroll_edge(_h_edge, hbar, false)
+
+
+func _place_scroll_edge(edge: Control, bar: ScrollBar, vertical: bool) -> void:
+	if !bar || !bar.visible || add_button.disabled:
+		edge.visible = false
+		edge.size = Vector2.ZERO
+		return
+	var bar_g := bar.get_global_rect()
+	var layer_g := _edge_layer.get_global_rect()
+	if vertical:
+		var gap := layer_g.end.x - bar_g.end.x
+		if gap <= 0.5:
+			edge.visible = false
+			edge.size = Vector2.ZERO
+			return
+		edge.position = Vector2(bar_g.end.x, bar_g.position.y) - _edge_layer.global_position
+		edge.size = Vector2(gap, bar_g.size.y)
+	else:
+		var gap := layer_g.end.y - bar_g.end.y
+		if gap <= 0.5:
+			edge.visible = false
+			edge.size = Vector2.ZERO
+			return
+		edge.position = Vector2(bar_g.position.x, bar_g.end.y) - _edge_layer.global_position
+		edge.size = Vector2(bar_g.size.x, gap)
+	edge.visible = true
+
+
+func _on_v_edge_gui_input(event: InputEvent) -> void:
+	_on_scroll_edge_gui_input(list.get_v_scroll_bar(), event)
+
+
+func _on_h_edge_gui_input(event: InputEvent) -> void:
+	_on_scroll_edge_gui_input(list.get_h_scroll_bar(), event)
+
+
+func _on_scroll_edge_gui_input(bar: ScrollBar, event: InputEvent) -> void:
+	if !bar || !bar.visible:
+		return
+	if event is InputEventMouseButton && event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_scroll_drag_bar = bar
+			_apply_bar_from_mouse(bar)
+		else:
+			_scroll_drag_bar = null
+		accept_event()
+	elif event is InputEventMouseMotion && _scroll_drag_bar == bar:
+		_apply_bar_from_mouse(bar)
+		accept_event()
+	elif event is InputEventMouseButton && (
+		event.button_index == MOUSE_BUTTON_WHEEL_UP || event.button_index == MOUSE_BUTTON_WHEEL_DOWN
+	):
+		var step := bar.page / 8.0 if bar.page > 0.0 else 1.0
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			bar.value -= step
+		else:
+			bar.value += step
+		accept_event()
+
+
+func _apply_bar_from_mouse(bar: ScrollBar) -> void:
+	var local := bar.get_local_mouse_position()
+	var span := maxf(bar.size.x if bar is HScrollBar else bar.size.y, 1.0)
+	var t := clampf((local.x if bar is HScrollBar else local.y) / span, 0.0, 1.0)
+	var travel := maxf(bar.max_value - bar.min_value - bar.page, 0.0)
+	bar.value = bar.min_value + travel * t
+
+
+func _input(event: InputEvent) -> void:
+	if _scroll_drag_bar == null:
+		return
+	if event is InputEventMouseButton && event.button_index == MOUSE_BUTTON_LEFT && !event.pressed:
+		_scroll_drag_bar = null
+		return
+	if event is InputEventMouseMotion:
+		_apply_bar_from_mouse(_scroll_drag_bar)
+		get_viewport().set_input_as_handled()
 
 
 func _on_get_drag_data(at_position: Vector2) -> Variant:
 	if add_button.disabled || list.item_count <= 1:
 		return null
-	var idx := list.get_item_at_position(at_position, true)
+	var idx := _exact_item_at(at_position)
 	if idx < 0:
 		return null
+	if !list.is_selected(idx):
+		_updating = true
+		list.select(idx)
+		_updating = false
+		frame_selected.emit(idx)
+		selection_changed.emit(list.get_selected_items())
+	var indices := list.get_selected_items()
+	if indices.is_empty():
+		indices = PackedInt32Array([idx])
+	list.set_drag_preview(_make_drag_preview(idx, indices.size()))
+	return { "type": "frames_strip_frame", "index": idx, "indices": indices }
+
+
+func _make_drag_preview(idx: int, count: int) -> Control:
+	var root := Control.new()
+	root.custom_minimum_size = Vector2(thumb_size, thumb_size)
+	root.size = Vector2(thumb_size, thumb_size)
 	var preview := TextureRect.new()
 	preview.texture = list.get_item_icon(idx)
-	preview.custom_minimum_size = Vector2(thumb_size, thumb_size)
-	preview.size = Vector2(thumb_size, thumb_size)
+	preview.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	preview.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	preview.modulate = Color(1, 1, 1, 0.85)
-	list.set_drag_preview(preview)
-	return { "type": "frames_strip_frame", "index": idx }
+	root.add_child(preview)
+	if count > 1:
+		var badge := Label.new()
+		badge.text = str(count)
+		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		badge.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		badge.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		badge.offset_right = -4
+		badge.offset_bottom = -2
+		badge.add_theme_color_override("font_outline_color", Color.BLACK)
+		badge.add_theme_constant_override("outline_size", 4)
+		root.add_child(badge)
+	return root
 
 
 func _on_can_drop_data(at_position: Vector2, data: Variant) -> bool:
@@ -153,14 +428,39 @@ func _on_drop_data(at_position: Vector2, data: Variant) -> void:
 	if !_is_frame_drag(data):
 		_set_drop_index(-1)
 		return
-	var from: int = data["index"]
+	var indices := _drag_indices(data)
 	var to := _get_insert_index(at_position)
 	_set_drop_index(-1)
-	if from < 0 || from >= list.item_count:
+	if indices.is_empty():
 		return
-	if to == from || to == from + 1:
+	if _is_noop_reorder(indices, to):
 		return
-	frames_reordered.emit(from, to)
+	frames_reordered.emit(indices, to)
+
+
+func _drag_indices(data: Dictionary) -> PackedInt32Array:
+	if data.has("indices"):
+		return PackedInt32Array(data["indices"])
+	return PackedInt32Array([int(data.get("index", -1))])
+
+
+func _is_noop_reorder(indices: PackedInt32Array, to: int) -> bool:
+	var moving: Array[int] = []
+	for i in indices:
+		if i >= 0 && i < list.item_count:
+			moving.append(i)
+	moving.sort()
+	if moving.is_empty():
+		return true
+	var removed_before := 0
+	for i in moving:
+		if i < to:
+			removed_before += 1
+	var new_insert := to - removed_before
+	for j in moving.size():
+		if moving[j] != new_insert + j:
+			return false
+	return true
 
 
 func _is_frame_drag(data: Variant) -> bool:
@@ -170,7 +470,7 @@ func _is_frame_drag(data: Variant) -> bool:
 func _get_insert_index(at_position: Vector2) -> int:
 	if list.item_count <= 0:
 		return 0
-	var idx := list.get_item_at_position(at_position, true)
+	var idx := _exact_item_at(at_position)
 	if idx < 0:
 		idx = list.get_item_at_position(at_position, false)
 		if idx < 0:
@@ -190,6 +490,7 @@ func _set_drop_index(index: int) -> void:
 
 
 func _on_list_draw() -> void:
+	_layout_scroll_edges()
 	if _drop_index < 0 || list.item_count <= 0:
 		return
 	var scroll := Vector2(list.get_h_scroll_bar().value, list.get_v_scroll_bar().value)

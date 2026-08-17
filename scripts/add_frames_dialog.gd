@@ -20,6 +20,9 @@ static var session_insert_mode: InsertMode = InsertMode.END
 @onready var spin_off_x: SpinBox = %SpinOffX
 @onready var spin_off_y: SpinBox = %SpinOffY
 @onready var insert_mode_option: OptionButton = %InsertMode
+@onready var select_all_button: Button = $HBox/PreviewVBox/Menu/SelectAll
+@onready var select_none_button: Button = $HBox/PreviewVBox/Menu/SelectNone
+@onready var auto_slice_button: Button = $HBox/Settings/AutoSlice
 
 var _updating := false
 var _dominant: DominantParam = DominantParam.FRAME_COUNT
@@ -51,6 +54,7 @@ func _ready() -> void:
 	insert_mode_option.add_item("Add at Beginning", InsertMode.BEGINNING)
 	insert_mode_option.add_item("Add After Selected Frame", InsertMode.AFTER_SELECTED)
 	insert_mode_option.select(int(session_insert_mode))
+	_setup_hotkeys()
 	_fit_zoom_bar()
 
 
@@ -84,6 +88,47 @@ func setup(atlas: Texture2D) -> void:
 		visibility_changed.connect(_on_visibility_changed_fit)
 
 
+func _setup_hotkeys() -> void:
+	for button in [select_all_button, select_none_button, auto_slice_button]:
+		button.focus_mode = Control.FOCUS_NONE
+	select_all_button.tooltip_text = "Select every frame in the grid. (A)"
+	select_none_button.tooltip_text = "Clear the frame selection. (N)"
+	auto_slice_button.tooltip_text = "Automatically detect columns and rows from the spritesheet. (S)"
+
+
+func _is_editing_text() -> bool:
+	var focus := get_viewport().gui_get_focus_owner()
+	return focus is LineEdit || focus is TextEdit || focus is CodeEdit
+
+
+func _handle_hotkey(key: InputEventKey) -> bool:
+	if _is_editing_text() || key.alt_pressed:
+		return false
+	var ctrl := key.is_command_or_control_pressed()
+	match key.keycode:
+		KEY_A:
+			if key.shift_pressed:
+				return false
+			_on_select_all_pressed()
+			return true
+		KEY_N:
+			if ctrl || key.shift_pressed:
+				return false
+			_on_select_none_pressed()
+			return true
+		KEY_D:
+			if !ctrl || key.shift_pressed:
+				return false
+			_on_select_none_pressed()
+			return true
+		KEY_S:
+			if ctrl || key.shift_pressed:
+				return false
+			_on_auto_slice_pressed()
+			return true
+	return false
+
+
 func _fit_zoom_bar() -> void:
 	var zoom_bar: Control = scroll.get_parent().get_node("ZoomBar")
 	zoom_bar.reset_size()
@@ -93,6 +138,10 @@ func _fit_zoom_bar() -> void:
 func _input(event: InputEvent) -> void:
 	if !visible:
 		return
+	if event is InputEventKey && event.pressed && !event.echo:
+		if _handle_hotkey(event):
+			get_viewport().set_input_as_handled()
+			return
 	var panel := scroll.get_parent() as Control
 	if !panel.get_global_rect().has_point(panel.get_global_mouse_position()):
 		return
