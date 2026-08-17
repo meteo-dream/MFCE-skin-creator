@@ -27,17 +27,39 @@ func _unhandled_input(event: InputEvent) -> void:
 				has_user_moved = true
 	
 	elif event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			zoom_in()
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			zoom_out()
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP || event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			if _is_mouse_over_frames_dock():
+				return
+			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				zoom_in()
+			else:
+				zoom_out()
+
+
+func _is_mouse_over_frames_dock() -> bool:
+	if !has_node("%FramesDock"):
+		return false
+	var dock: Control = %FramesDock
+	return dock.get_global_rect().has_point(dock.get_global_mouse_position())
 
 
 func update_camera_position() -> void:
-	position = Vector2(%FrameHSplitter/Panel.size.x / -2.0 / zoom.x, -32)
+	var dock_h := 0.0
+	if has_node("%FramesDock"):
+		dock_h = %FramesDock.size.y
+	var menu_h := 0.0
+	if has_node("%MenuPanel"):
+		menu_h = %MenuPanel.size.y
+	position = Vector2(0.0, -32.0 + dock_h / 2.0 / zoom.y - menu_h / 2.0 / zoom.y)
 
 func get_camera_position() -> Vector2:
-	return Vector2(%FrameHSplitter/Panel.size.x / -2.0 / zoom.x, -32)
+	var dock_h := 0.0
+	if has_node("%FramesDock"):
+		dock_h = %FramesDock.size.y
+	var menu_h := 0.0
+	if has_node("%MenuPanel"):
+		menu_h = %MenuPanel.size.y
+	return Vector2(0.0, -32.0 + dock_h / 2.0 / zoom.y - menu_h / 2.0 / zoom.y)
 
 
 func zoom_in() -> void:

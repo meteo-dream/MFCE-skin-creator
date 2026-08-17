@@ -1,0 +1,245 @@
+[gd_scene format=3 uid="uid://bq8addframestscn"]
+
+[ext_resource type="Script" uid="uid://bq8addframesdlg1" path="res://scripts/add_frames_dialog.gd" id="1_dialog"]
+[ext_resource type="Script" uid="uid://bq8sheetpreview1" path="res://scripts/sheet_preview.gd" id="2_preview"]
+[ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://scripts/spinbox.gd" id="3_spin"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.145098, 0.145098, 0.145098, 1)
+corner_detail = 1
+anti_aliasing = false
+
+[node name="AddFramesDialog" type="ConfirmationDialog" unique_id=1101000001]
+disable_3d = true
+title = "Select Frames"
+initial_position = 2
+size = Vector2i(960, 640)
+visible = false
+wrap_controls = true
+min_size = Vector2i(720, 480)
+dialog_text = ""
+ok_button_text = "Add Frames"
+script = ExtResource("1_dialog")
+
+[node name="HBox" type="HBoxContainer" parent="." unique_id=1101000002]
+offset_right = 40.0
+offset_bottom = 40.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="PreviewVBox" type="VBoxContainer" parent="HBox" unique_id=1101000003]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Menu" type="HBoxContainer" parent="HBox/PreviewVBox" unique_id=1101000004]
+layout_mode = 2
+
+[node name="SelectAll" type="Button" parent="HBox/PreviewVBox/Menu" unique_id=1101000005]
+layout_mode = 2
+text = "Select All"
+
+[node name="SelectNone" type="Button" parent="HBox/PreviewVBox/Menu" unique_id=1101000006]
+layout_mode = 2
+text = "Select None"
+
+[node name="InsertMode" type="OptionButton" parent="HBox/PreviewVBox/Menu" unique_id=1101000034]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Where to insert the selected frames in the animation."
+
+[node name="SheetPanel" type="Panel" parent="HBox/PreviewVBox" unique_id=1101000007]
+clip_contents = true
+texture_filter = 1
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="SheetScroll" type="ScrollContainer" parent="HBox/PreviewVBox/SheetPanel" unique_id=1101000008]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Center" type="CenterContainer" parent="HBox/PreviewVBox/SheetPanel/SheetScroll" unique_id=1101000009]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="SheetPreview" type="TextureRect" parent="HBox/PreviewVBox/SheetPanel/SheetScroll/Center" unique_id=1101000010]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 2
+mouse_filter = 0
+expand_mode = 1
+stretch_mode = 1
+script = ExtResource("2_preview")
+
+[node name="ZoomBar" type="HBoxContainer" parent="HBox/PreviewVBox/SheetPanel" unique_id=1101000012]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 200.0
+offset_bottom = 40.0
+mouse_filter = 0
+
+[node name="ZoomOut" type="Button" parent="HBox/PreviewVBox/SheetPanel/ZoomBar" unique_id=1101000013]
+layout_mode = 2
+size_flags_vertical = 0
+tooltip_text = "Zoom Out"
+text = "-"
+
+[node name="ZoomLabel" type="Label" parent="HBox/PreviewVBox/SheetPanel/ZoomBar" unique_id=1101000014]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+text = "100 %"
+
+[node name="ZoomIn" type="Button" parent="HBox/PreviewVBox/SheetPanel/ZoomBar" unique_id=1101000015]
+layout_mode = 2
+size_flags_vertical = 0
+tooltip_text = "Zoom In"
+text = "+"
+
+[node name="ZoomFit" type="Button" parent="HBox/PreviewVBox/SheetPanel/ZoomBar" unique_id=1101000016]
+layout_mode = 2
+size_flags_vertical = 0
+tooltip_text = "Fit to View"
+text = "Fit"
+
+[node name="Settings" type="VBoxContainer" parent="HBox" unique_id=1101000017]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="HLabel" type="Label" parent="HBox/Settings" unique_id=1101000018]
+layout_mode = 2
+text = "Horizontal"
+
+[node name="SpinH" type="SpinBox" parent="HBox/Settings" unique_id=1101000019]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Number of columns."
+min_value = 1.0
+max_value = 128.0
+value = 4.0
+rounded = true
+alignment = 1
+script = ExtResource("3_spin")
+
+[node name="VLabel" type="Label" parent="HBox/Settings" unique_id=1101000020]
+layout_mode = 2
+text = "Vertical"
+
+[node name="SpinV" type="SpinBox" parent="HBox/Settings" unique_id=1101000021]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Number of rows."
+min_value = 1.0
+max_value = 128.0
+value = 4.0
+rounded = true
+alignment = 1
+script = ExtResource("3_spin")
+
+[node name="SizeLabel" type="Label" parent="HBox/Settings" unique_id=1101000022]
+layout_mode = 2
+text = "Size"
+
+[node name="SizeRow" type="HBoxContainer" parent="HBox/Settings" unique_id=1101000023]
+layout_mode = 2
+
+[node name="SpinSizeX" type="SpinBox" parent="HBox/Settings/SizeRow" unique_id=1101000024]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Frame width in pixels."
+min_value = 1.0
+max_value = 16384.0
+value = 32.0
+allow_greater = true
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="SpinSizeY" type="SpinBox" parent="HBox/Settings/SizeRow" unique_id=1101000025]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Frame height in pixels."
+min_value = 1.0
+max_value = 16384.0
+value = 32.0
+allow_greater = true
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="SepLabel" type="Label" parent="HBox/Settings" unique_id=1101000026]
+layout_mode = 2
+text = "Separation"
+
+[node name="SepRow" type="HBoxContainer" parent="HBox/Settings" unique_id=1101000027]
+layout_mode = 2
+
+[node name="SpinSepX" type="SpinBox" parent="HBox/Settings/SepRow" unique_id=1101000028]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Horizontal gap between frames."
+allow_greater = true
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="SpinSepY" type="SpinBox" parent="HBox/Settings/SepRow" unique_id=1101000029]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Vertical gap between frames."
+allow_greater = true
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="OffLabel" type="Label" parent="HBox/Settings" unique_id=1101000030]
+layout_mode = 2
+text = "Offset"
+
+[node name="OffRow" type="HBoxContainer" parent="HBox/Settings" unique_id=1101000031]
+layout_mode = 2
+
+[node name="SpinOffX" type="SpinBox" parent="HBox/Settings/OffRow" unique_id=1101000032]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Horizontal offset of the grid."
+allow_greater = true
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="SpinOffY" type="SpinBox" parent="HBox/Settings/OffRow" unique_id=1101000033]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Vertical offset of the grid."
+allow_greater = true
+suffix = "px"
+script = ExtResource("3_spin")
+
+[connection signal="pressed" from="HBox/PreviewVBox/Menu/SelectAll" to="." method="_on_select_all_pressed"]
+[connection signal="pressed" from="HBox/PreviewVBox/Menu/SelectNone" to="." method="_on_select_none_pressed"]
+[connection signal="item_selected" from="HBox/PreviewVBox/Menu/InsertMode" to="." method="_on_insert_mode_selected"]
+[connection signal="pressed" from="HBox/PreviewVBox/SheetPanel/ZoomBar/ZoomOut" to="." method="_on_zoom_out_pressed"]
+[connection signal="pressed" from="HBox/PreviewVBox/SheetPanel/ZoomBar/ZoomIn" to="." method="_on_zoom_in_pressed"]
+[connection signal="pressed" from="HBox/PreviewVBox/SheetPanel/ZoomBar/ZoomFit" to="." method="_on_zoom_fit_pressed"]
+[connection signal="value_changed" from="HBox/Settings/SpinH" to="." method="_on_h_changed"]
+[connection signal="value_changed" from="HBox/Settings/SpinV" to="." method="_on_v_changed"]
+[connection signal="value_changed" from="HBox/Settings/SizeRow/SpinSizeX" to="." method="_on_size_x_changed"]
+[connection signal="value_changed" from="HBox/Settings/SizeRow/SpinSizeY" to="." method="_on_size_y_changed"]
+[connection signal="value_changed" from="HBox/Settings/SepRow/SpinSepX" to="." method="_on_sep_or_off_changed"]
+[connection signal="value_changed" from="HBox/Settings/SepRow/SpinSepY" to="." method="_on_sep_or_off_changed"]
+[connection signal="value_changed" from="HBox/Settings/OffRow/SpinOffX" to="." method="_on_sep_or_off_changed"]
+[connection signal="value_changed" from="HBox/Settings/OffRow/SpinOffY" to="." method="_on_sep_or_off_changed"]

@@ -1,0 +1,259 @@
+[gd_scene format=3 uid="uid://bhwdu6j2vv14x"]
+
+[ext_resource type="Script" uid="uid://bhwdu6j2vfuac" path="res://scripts/edit_frame_dialog.gd" id="1_dialog"]
+[ext_resource type="Script" uid="uid://d0kciya3ox1g1" path="res://scripts/sheet_preview.gd" id="2_preview"]
+[ext_resource type="Script" uid="uid://elr6yghh2i22" path="res://scripts/spinbox.gd" id="3_spin"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.145098, 0.145098, 0.145098, 1)
+corner_detail = 1
+anti_aliasing = false
+
+[node name="EditFrameDialog" type="ConfirmationDialog" unique_id=1102000001]
+disable_3d = true
+title = "Edit Frame"
+initial_position = 2
+size = Vector2i(900, 620)
+min_size = Vector2i(640, 420)
+ok_button_text = "OK"
+script = ExtResource("1_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="." unique_id=1102000002]
+offset_right = 40.0
+offset_bottom = 40.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TopBar" type="HBoxContainer" parent="VBox" unique_id=1102000003]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RectX" type="SpinBox" parent="VBox/TopBar" unique_id=1102000004]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "X Position of the current frame in pixels."
+allow_greater = true
+allow_lesser = true
+prefix = "X"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="RectY" type="SpinBox" parent="VBox/TopBar" unique_id=1102000005]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Y Position of the current frame in pixels."
+allow_greater = true
+allow_lesser = true
+prefix = "Y"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="RectW" type="SpinBox" parent="VBox/TopBar" unique_id=1102000006]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Width of the current frame in pixels."
+allow_greater = true
+allow_lesser = true
+prefix = "W"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="RectH" type="SpinBox" parent="VBox/TopBar" unique_id=1102000007]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Height of the current frame in pixels."
+allow_greater = true
+allow_lesser = true
+prefix = "H"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="SnapBar" type="HBoxContainer" parent="VBox" unique_id=1102000020]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SnapLabel" type="Label" parent="VBox/SnapBar" unique_id=1102000021]
+layout_mode = 2
+text = "Snap Mode:"
+
+[node name="SnapMode" type="OptionButton" parent="VBox/SnapBar" unique_id=1102000022]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+tooltip_text = "How the frame region snaps while editing."
+
+[node name="GridSnap" type="HBoxContainer" parent="VBox/SnapBar" unique_id=1102000023]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="VSep1" type="VSeparator" parent="VBox/SnapBar/GridSnap" unique_id=1102000024]
+layout_mode = 2
+
+[node name="OffsetLabel" type="Label" parent="VBox/SnapBar/GridSnap" unique_id=1102000025]
+layout_mode = 2
+text = "Offset:"
+
+[node name="SnapOffX" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000026]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Grid offset X in pixels."
+allow_greater = true
+allow_lesser = true
+prefix = "X"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="SnapOffY" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000027]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Grid offset Y in pixels."
+allow_greater = true
+allow_lesser = true
+prefix = "Y"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="VSep2" type="VSeparator" parent="VBox/SnapBar/GridSnap" unique_id=1102000028]
+layout_mode = 2
+
+[node name="StepLabel" type="Label" parent="VBox/SnapBar/GridSnap" unique_id=1102000029]
+layout_mode = 2
+text = "Step:"
+
+[node name="SnapStepX" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000030]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Grid cell width in pixels."
+value = 8.0
+allow_greater = true
+prefix = "X"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="SnapStepY" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000031]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Grid cell height in pixels."
+value = 8.0
+allow_greater = true
+prefix = "Y"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="VSep3" type="VSeparator" parent="VBox/SnapBar/GridSnap" unique_id=1102000032]
+layout_mode = 2
+
+[node name="SepLabel" type="Label" parent="VBox/SnapBar/GridSnap" unique_id=1102000033]
+layout_mode = 2
+text = "Separation:"
+
+[node name="SnapSepX" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000034]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Horizontal gap between grid cells in pixels."
+allow_greater = true
+prefix = "X"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="SnapSepY" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000035]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Vertical gap between grid cells in pixels."
+allow_greater = true
+prefix = "Y"
+suffix = "px"
+script = ExtResource("3_spin")
+
+[node name="SheetPanel" type="Panel" parent="VBox" unique_id=1102000008]
+texture_filter = 1
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="SheetScroll" type="ScrollContainer" parent="VBox/SheetPanel" unique_id=1102000009]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Center" type="CenterContainer" parent="VBox/SheetPanel/SheetScroll" unique_id=1102000010]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="SheetPreview" type="TextureRect" parent="VBox/SheetPanel/SheetScroll/Center" unique_id=1102000011]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 2
+mouse_filter = 0
+expand_mode = 1
+stretch_mode = 1
+script = ExtResource("2_preview")
+
+[node name="ZoomBar" type="HBoxContainer" parent="VBox/SheetPanel" unique_id=1102000013]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 200.0
+offset_bottom = 40.0
+mouse_filter = 0
+
+[node name="ZoomOut" type="Button" parent="VBox/SheetPanel/ZoomBar" unique_id=1102000014]
+layout_mode = 2
+size_flags_vertical = 0
+tooltip_text = "Zoom Out"
+text = "-"
+
+[node name="ZoomLabel" type="Label" parent="VBox/SheetPanel/ZoomBar" unique_id=1102000015]
+unique_name_in_owner = true
+layout_mode = 2
+text = "100 %"
+
+[node name="ZoomIn" type="Button" parent="VBox/SheetPanel/ZoomBar" unique_id=1102000016]
+layout_mode = 2
+size_flags_vertical = 0
+tooltip_text = "Zoom In"
+text = "+"
+
+[node name="ZoomFit" type="Button" parent="VBox/SheetPanel/ZoomBar" unique_id=1102000017]
+layout_mode = 2
+size_flags_vertical = 0
+tooltip_text = "Fit to View"
+text = "Fit"
+
+[connection signal="value_changed" from="VBox/TopBar/RectX" to="." method="_on_rect_spin_changed"]
+[connection signal="value_changed" from="VBox/TopBar/RectY" to="." method="_on_rect_spin_changed"]
+[connection signal="value_changed" from="VBox/TopBar/RectW" to="." method="_on_rect_spin_changed"]
+[connection signal="value_changed" from="VBox/TopBar/RectH" to="." method="_on_rect_spin_changed"]
+[connection signal="item_selected" from="VBox/SnapBar/SnapMode" to="." method="_on_snap_mode_selected"]
+[connection signal="value_changed" from="VBox/SnapBar/GridSnap/SnapOffX" to="." method="_on_snap_off_x_changed"]
+[connection signal="value_changed" from="VBox/SnapBar/GridSnap/SnapOffY" to="." method="_on_snap_off_y_changed"]
+[connection signal="value_changed" from="VBox/SnapBar/GridSnap/SnapStepX" to="." method="_on_snap_step_x_changed"]
+[connection signal="value_changed" from="VBox/SnapBar/GridSnap/SnapStepY" to="." method="_on_snap_step_y_changed"]
+[connection signal="value_changed" from="VBox/SnapBar/GridSnap/SnapSepX" to="." method="_on_snap_sep_x_changed"]
+[connection signal="value_changed" from="VBox/SnapBar/GridSnap/SnapSepY" to="." method="_on_snap_sep_y_changed"]
+[connection signal="pressed" from="VBox/SheetPanel/ZoomBar/ZoomOut" to="." method="_on_zoom_out_pressed"]
+[connection signal="pressed" from="VBox/SheetPanel/ZoomBar/ZoomIn" to="." method="_on_zoom_in_pressed"]
+[connection signal="pressed" from="VBox/SheetPanel/ZoomBar/ZoomFit" to="." method="_on_zoom_fit_pressed"]

@@ -3,6 +3,11 @@ class_name Main
 
 const PROJECT_NAME := "MF: CE Skin Editor v%s"
 
+enum FileMenu { NEW, OPEN, SAVE, SAVE_AS }
+enum EditorMenu { SETTINGS, SEP_EDITOR, SHOW_COLLISION, AUTORELOAD }
+enum SkinMenu { CREATE_MISSING, BROWSE_ANIM, RELOAD, SEP_OVERRIDES, BROWSE_OVERRIDES, SEP_SKIN, OPTIONS }
+enum HelpMenu { ABOUT }
+
 const BAD_NAMES = [
 	"object", "script", "_init", "_enter_tree", "_exit_tree", "_ready",
 	"_process", "extends", "refcounted", "func ", "func()",
@@ -24,6 +29,7 @@ const SETTINGS_DICT_NAMES = [
 @onready var image_creation_dialog: AcceptDialog = %ImageCreationDialog
 @onready var options_dialog: Window = %OptionsDialog
 @onready var about_window: Window = %AboutWindow
+@onready var editor_settings_window: Window = %EditorSettings
 
 var skin_settings: Dictionary
 var current_skin_setting: PlayerSkin
@@ -31,10 +37,13 @@ var misc_files: Dictionary
 
 var current_folder_skin: String
 var skin_name: String
+var _loop_offsets: Dictionary = {}
 
 @onready var preview: AnimatedSprite2D = %Preview
 @onready var scene: Node2D = get_tree().current_scene
-@onready var sprite_view: SpriteView = %SpriteView
+@onready var frames_strip: FramesStrip = %FramesDock
+@onready var add_frames_dialog: AddFramesDialog = %AddFramesDialog
+@onready var edit_frame_dialog: EditFrameDialog = %EditFrameDialog
 
 @onready var spinbox_frame: SpinBox = %Frame
 @onready var spinbox_speed: SpinBox = %Speed
@@ -43,12 +52,6 @@ var skin_name: String
 
 @onready var anim_option: OptionButton = %AnimOption
 @onready var state_option: OptionButton = %StateSelect
-
-# Rect2
-@onready var rect_x: SpinBox = %RectX
-@onready var rect_y: SpinBox = %RectY
-@onready var rect_w: SpinBox = %RectW
-@onready var rect_h: SpinBox = %RectH
 
 var current_frame: AtlasTexture
 var pending_state: int
@@ -59,6 +62,7 @@ var unsaved_changes: bool#:
 		#var _start: String = "(*) " if to else ""
 		#DisplayServer.window_set_title(_start + ProjectSettings.get_setting("application/config/name"))
 		#unsaved_changes = to
+var _updating_loop_offset := false
 
 @onready var confirm_state_text := confirm_new_state.dialog_text
 
@@ -105,10 +109,25 @@ func _ready() -> void:
 	for state in PlayerSkin.STATES:
 		state_option.add_item(state)
 	
+	frames_strip.frame_selected.connect(set_frame)
+	frames_strip.frames_reordered.connect(_on_frames_reordered)
+	frames_strip.add_frames_pressed.connect(_on_add_frames_pressed)
+	frames_strip.edit_frame_pressed.connect(_on_edit_frame_pressed)
+	frames_strip.delete_frame_pressed.connect(_on_delete_frame_pressed)
+	add_frames_dialog.frames_chosen.connect(add_frames_from_rects)
+	edit_frame_dialog.region_changed.connect(apply_frame_region)
+	%File.id_pressed.connect(_on_file_menu_id_pressed)
+	%Editor.id_pressed.connect(_on_editor_menu_id_pressed)
+	%Skin.id_pressed.connect(_on_skin_menu_id_pressed)
+	%Help.id_pressed.connect(_on_help_menu_id_pressed)
+	%ThumbSize.value_changed.connect(_on_thumb_size_changed)
+	
 	get_tree().root.min_size = Vector2(400, 400)
 	get_tree().root.size_changed.connect(_on_window_resized)
 	
 	version_label.text = PROJECT_NAME % [version_string]
+	%WelcomeSubtitle.text = PROJECT_NAME % [version_string]
+	_refresh_welcome_recents()
 	
 	await get_tree().process_frame
 	_on_window_resized()
@@ -128,13 +147,22 @@ func _anim_finished() -> void:
 	%Play.button_pressed = false
 	play_toggled(false)
 
+func _anim_looped() -> void:
+	if !preview:
+		return
+	for anim in _loop_offsets.keys():
+		if int(_loop_offsets[anim]) < 0:
+			continue
+		if preview.animation == anim:
+			preview.frame = int(_loop_offsets[anim])
+
 func _frame_changed() -> void:
 	set_frame(preview.frame)
 	_update_preview()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_IN:
-		if !%Autoreload.button_pressed: return
+		if !%Editor.is_item_checked(%Editor.get_item_index(EditorMenu.AUTORELOAD)): return
 		if current_skin_setting:
 			_update_animations()
 			update_anim_options()
@@ -144,8 +172,10 @@ func _update_animations() -> void:
 	_set_controls_working(false)
 	var prev_frame: int = int(spinbox_frame.value)
 	preview.sprite_frames = current_skin_setting.gen_animated_sprites(true)
+	_load_loop_offsets()
 	set_frame(prev_frame)
 	update_anim_time()
+	_refresh_frames_strip()
 	_set_controls_working(true)
 
 func _get_option_scrolled_index(_option: OptionButton, by: int) -> int:
@@ -157,11 +187,6 @@ func _get_option_scrolled_index(_option: OptionButton, by: int) -> int:
 
 ## Disables/Enables controls for editing.
 func _set_controls_working(val: bool) -> void:
-	rect_x.editable = val
-	rect_y.editable = val
-	rect_w.editable = val
-	rect_h.editable = val
-	
 	spinbox_frame.editable = val
 	spinbox_speed.editable = val
 	spinbox_frames.editable = val
@@ -171,13 +196,15 @@ func _set_controls_working(val: bool) -> void:
 	state_option.disabled = !val
 	%Play.disabled = !val
 	%Stop.disabled = !val
-	%Save.disabled = !val
-	%SaveAs.disabled = !val
 	%Loop.disabled = !val
-	%ReloadTexture.disabled = !val
-	%Browse.disabled = !val
-	%FillBlanks.disabled = !val
-	%Options.disabled = !val
+	%LoopOffset.editable = val
+	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE), !val)
+	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE_AS), !val)
+	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.CREATE_MISSING), !val)
+	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.BROWSE_ANIM), !val)
+	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.RELOAD), !val)
+	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.OPTIONS), !val)
+	frames_strip.set_enabled(val)
 
 
 func show_one_dialog(dialog: Window) -> void:
@@ -283,6 +310,53 @@ func _on_browse_pressed() -> void:
 func _on_browse_overrides_pressed() -> void:
 	print("Browsing: " + AnimOverrides.OVERRIDES_DIR)
 	OS.shell_open(OS.get_user_data_dir().path_join("slicing_overrides"))
+
+
+func _on_file_menu_id_pressed(id: int) -> void:
+	match id:
+		FileMenu.NEW:
+			new_pressed()
+		FileMenu.OPEN:
+			open_pressed()
+		FileMenu.SAVE:
+			save_pressed()
+		FileMenu.SAVE_AS:
+			save_as_pressed()
+
+
+func _on_editor_menu_id_pressed(id: int) -> void:
+	match id:
+		EditorMenu.SETTINGS:
+			show_one_dialog(editor_settings_window)
+		EditorMenu.SHOW_COLLISION:
+			var idx: int = %Editor.get_item_index(id)
+			%Editor.toggle_item_checked(idx)
+			scene.show_collisions = %Editor.is_item_checked(idx)
+		EditorMenu.AUTORELOAD:
+			%Editor.toggle_item_checked(%Editor.get_item_index(id))
+
+
+func _on_skin_menu_id_pressed(id: int) -> void:
+	match id:
+		SkinMenu.CREATE_MISSING:
+			_on_fill_blanks_pressed()
+		SkinMenu.BROWSE_ANIM:
+			_on_browse_pressed()
+		SkinMenu.RELOAD:
+			reload_textures()
+		SkinMenu.BROWSE_OVERRIDES:
+			_on_browse_overrides_pressed()
+		SkinMenu.OPTIONS:
+			options_pressed()
+
+
+func _on_help_menu_id_pressed(id: int) -> void:
+	if id == HelpMenu.ABOUT:
+		_on_about_pressed()
+
+
+func _on_thumb_size_changed(value: float) -> void:
+	frames_strip.set_thumb_size(int(value))
 #endregion FileButtons
 
 
@@ -320,6 +394,7 @@ func set_frame(value: int) -> void:
 		set_duration(preview.sprite_frames.get_frame_duration(preview.animation, value))
 	
 	_update_preview()
+	frames_strip.select_frame(value)
 
 var _last_frame_amount: int
 var _frame_setter_cooldown: bool
@@ -381,6 +456,8 @@ func set_frames(value: int) -> void:
 			set_frame(value - 1)
 	
 	_last_frame_amount = value
+	_refresh_frames_strip()
+	_update_loop_offset_spin()
 
 ## Setter for current speed of selected animation, changes "speed" spinbox value. 
 func set_anim_speed(value: float) -> void:
@@ -410,6 +487,7 @@ func set_duration(value: float) -> void:
 		var texture = preview.sprite_frames.get_frame_texture(preview.animation, preview.frame)
 		preview.sprite_frames.set_frame(preview.animation, preview.frame, texture, value)
 	update_anim_time()
+	frames_strip.update_item_text(preview.frame, value)
 #endregion SpinboxSetters
 
 ## Calls when "Animation" option button changes selected item.
@@ -426,8 +504,10 @@ func set_animation(idx: int) -> void:
 	update_anim_time()
 	
 	%Loop.button_pressed = preview.sprite_frames.get_animation_loop(anim_name)
+	_update_loop_offset_spin()
 	play_toggled(false)
 	%Play.button_pressed = false
+	_refresh_frames_strip()
 
 var _last_state: int = -1
 
@@ -443,6 +523,7 @@ func set_state(idx: int) -> void:
 	_last_state = idx
 	current_skin_setting = skin_settings[state]
 	preview.sprite_frames = current_skin_setting.gen_animated_sprites()
+	_load_loop_offsets()
 	#state_option.select(state)
 	update_anim_options()
 	
@@ -465,63 +546,171 @@ func _update_preview() -> void:
 	var texture := preview.sprite_frames.get_frame_texture(item_text, frame)
 	
 	if texture is AtlasTexture:
-		sprite_view.texture = texture.atlas
-		sprite_view.rect_draw = texture.region
 		current_frame = texture
-		_rect_to_spin_val(texture.region)
 	else:
-		sprite_view.texture = texture
+		current_frame = null
 
-## Updates current frame of animation.
-func _update_rect_slice() -> void:
-	var frame := preview.frame
-	var texture := preview.sprite_frames.get_frame_texture(anim_option.get_item_text(anim_option.selected), frame)
-	
-	if texture is AtlasTexture:
-		sprite_view.texture = texture.atlas
-		texture.region = _spin_val_to_rect()
-		sprite_view.rect_draw = texture.region
 
-## Gets value of spinboxes(rect_x, rect_y, rect_w, rect_h) and turns it in Rect2.
-func _spin_val_to_rect() -> Rect2:
-	return Rect2(rect_x.value, rect_y.value, rect_w.value, rect_h.value)
-	
-## Gets rect2 and sets it in spinboxes(rect_x, rect_y, rect_w, rect_h).
-func _rect_to_spin_val(val: Rect2) -> void:
-	rect_x.value = val.position.x
-	rect_y.value = val.position.y
-	rect_w.value = val.size.x
-	rect_h.value = val.size.y
+func _refresh_frames_strip() -> void:
+	if !preview.sprite_frames || !preview.animation:
+		frames_strip.rebuild(null, &"", 0)
+		return
+	frames_strip.rebuild(preview.sprite_frames, preview.animation, preview.frame)
+
+
+func _current_atlas() -> Texture2D:
+	if !preview.sprite_frames || !preview.animation:
+		return null
+	var tex := preview.sprite_frames.get_frame_texture(preview.animation, preview.frame)
+	if tex is AtlasTexture:
+		return tex.atlas
+	return tex
+
+
+func apply_frame_region(rect: Rect2) -> void:
+	if !current_frame:
+		return
+	current_frame.region = rect
+	preview.queue_redraw()
+	if current_skin_setting && preview.animation:
+		current_skin_setting.animation_regions[preview.animation][preview.frame] = rect
+	frames_strip.update_frame(preview.frame, preview.sprite_frames, preview.animation)
+
+
+func add_frames_from_rects(rects: Array[Rect2], atlas: Texture2D) -> void:
+	if !preview.animation || rects.is_empty():
+		return
+	var anim := preview.animation
+	var regions: Array = current_skin_setting.animation_regions[anim]
+	var durations: Array = current_skin_setting.animation_durations[anim]
+	var at_position := -1
+	match add_frames_dialog.get_insert_mode():
+		AddFramesDialog.InsertMode.BEGINNING:
+			at_position = 0
+		AddFramesDialog.InsertMode.AFTER_SELECTED:
+			at_position = preview.frame + 1
+		_:
+			at_position = -1
+	var insert_index := regions.size() if at_position < 0 else at_position
+	var frame_pos := at_position
+	for rect in rects:
+		var at := AtlasTexture.new()
+		at.atlas = atlas
+		at.region = rect
+		preview.sprite_frames.add_frame(anim, at, 1.0, frame_pos)
+		regions.insert(insert_index, rect)
+		durations.insert(insert_index, 1.0)
+		if frame_pos >= 0:
+			frame_pos += 1
+		insert_index += 1
+	var count := preview.sprite_frames.get_frame_count(anim)
+	_last_frame_amount = count
+	spinbox_frames.value = count
+	unsaved_changes = true
+	update_anim_time()
+	var select_idx := count - 1
+	if at_position >= 0:
+		select_idx = mini(insert_index - 1, count - 1)
+	set_frame(select_idx)
+	_refresh_frames_strip()
+
+
+func _on_add_frames_pressed() -> void:
+	var atlas := _current_atlas()
+	if !atlas:
+		return
+	add_frames_dialog.setup(atlas)
+	popup_one_dialog(add_frames_dialog)
+
+
+func _on_edit_frame_pressed() -> void:
+	var atlas := _current_atlas()
+	if !atlas:
+		return
+	var region := current_frame.region if current_frame else Rect2(Vector2.ZERO, atlas.get_size())
+	edit_frame_dialog.setup(atlas, region)
+	popup_one_dialog(edit_frame_dialog)
+
+
+func _on_delete_frame_pressed() -> void:
+	if !preview.animation:
+		return
+	if preview.sprite_frames.get_frame_count(preview.animation) <= 1:
+		return
+	_remove_frame_at(preview.frame)
+
+
+func _remove_frame_at(index: int) -> void:
+	var anim := preview.animation
+	var count := preview.sprite_frames.get_frame_count(anim)
+	if count <= 1:
+		return
+	preview.sprite_frames.remove_frame(anim, index)
+	current_skin_setting.animation_regions[anim].remove_at(index)
+	current_skin_setting.animation_durations[anim].remove_at(index)
+	_last_frame_amount = count - 1
+	spinbox_frames.value = _last_frame_amount
+	unsaved_changes = true
+	update_anim_time()
+	set_frame(mini(index, _last_frame_amount - 1))
+	_refresh_frames_strip()
+
+
+func _on_frames_reordered(from: int, to: int) -> void:
+	if !preview.animation:
+		return
+	var anim := preview.animation
+	var count := preview.sprite_frames.get_frame_count(anim)
+	if from < 0 || from >= count || to < 0 || to > count:
+		return
+	if from == to || from == to - 1:
+		return
+	var tex := preview.sprite_frames.get_frame_texture(anim, from)
+	var dur := preview.sprite_frames.get_frame_duration(anim, from)
+	preview.sprite_frames.remove_frame(anim, from)
+	var insert_at := to - 1 if from < to else to
+	preview.sprite_frames.add_frame(anim, tex, dur, insert_at)
+	_move_array_item(current_skin_setting.animation_regions[anim], from, insert_at)
+	_move_array_item(current_skin_setting.animation_durations[anim], from, insert_at)
+	unsaved_changes = true
+	update_anim_time()
+	set_frame(insert_at)
+	_refresh_frames_strip()
+
+
+func _move_array_item(arr: Array, from: int, insert_at: int) -> void:
+	var item = arr.pop_at(from)
+	arr.insert(insert_at, item)
 
 #endregion AnimationButtons
 
-#region PreviewRect 
-enum RECT_COMP{
-	X = 0,
-	Y,
-	W,
-	H
-}
+func _close_welcome() -> void:
+	%WelcomePanel.hide()
 
-## Calls when any of spinboxes (rect_x, rect_y, rect_w, rect_h)
-func update_rect(value: float, rect_comp: RECT_COMP) -> void:
-	match rect_comp:
-		RECT_COMP.X:
-			rect_x.value = value
-		RECT_COMP.Y:
-			rect_y.value = value
-		RECT_COMP.W:
-			rect_w.value = value
-		RECT_COMP.H:
-			rect_h.value = value
-	
-	var rect := _spin_val_to_rect()
-	current_frame.region = rect
-	preview.queue_redraw()
-	current_skin_setting.animation_regions[preview.animation][preview.frame] = rect
-	_update_rect_slice()
 
-#endregion PreviewRect
+func _refresh_welcome_recents() -> void:
+	var recents: Array = %MusicControls.get_recent_skins()
+	for child in %RecentList.get_children():
+		%RecentList.remove_child(child)
+		child.free()
+	%RecentEmpty.visible = recents.is_empty()
+	%RecentScroll.visible = !recents.is_empty()
+	for path in recents:
+		var btn := Button.new()
+		btn.text = path
+		btn.tooltip_text = path
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.clip_text = true
+		btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.custom_minimum_size.y = 28
+		btn.pressed.connect(_on_recent_skin_pressed.bind(path))
+		%RecentList.add_child(btn)
+
+
+func _on_recent_skin_pressed(path: String) -> void:
+	open_file(path, true)
+
 
 ## Saves folders where skins located.
 func save_file(path: String) -> void:
@@ -541,25 +730,34 @@ func save_file(path: String) -> void:
 			OS.alert("Error: " + error_string(err), "Save Failed!")
 			mark_as_saved = false
 			break
+	_save_loop_offsets()
 	unsaved_changes = mark_as_saved
 
 ## Opens folder where skins located.
-func open_file(path: String) -> void:
+func open_file(path: String, from_recent: bool = false) -> void:
 	print("Loading folder content: %s" % path)
+	var previous_folder := current_folder_skin
 	current_folder_skin = path
 	
 	var has_basic_struct: bool
-	for dir in DirAccess.get_directories_at(path):
-		if dir == PlayerSkin.STATES[0]:
-			has_basic_struct = true
-		
-		if load_skin_settings_from_file(dir, path):
-			continue
+	if DirAccess.dir_exists_absolute(path):
+		for dir in DirAccess.get_directories_at(path):
+			if dir == PlayerSkin.STATES[0]:
+				has_basic_struct = true
+			
+			if load_skin_settings_from_file(dir, path):
+				continue
 	
 	if !has_basic_struct:
-		OS.alert("Please select a skin root directory that contains suit folders.")
-		open_dialog.current_dir = path
-		open_dialog.popup_centered.call_deferred()
+		current_folder_skin = previous_folder
+		if from_recent:
+			OS.alert("Could not open skin:\n%s" % path)
+			%MusicControls.remove_recent_skin(path)
+			_refresh_welcome_recents()
+		else:
+			OS.alert("Please select a skin root directory that contains suit folders.")
+			open_dialog.current_dir = path
+			open_dialog.popup_centered.call_deferred()
 		return
 	
 	load_misc_files(path)
@@ -570,7 +768,9 @@ func open_file(path: String) -> void:
 	state_option.select(0)
 	version_label.text = PROJECT_NAME % [version_string] + ("\n" + current_folder_skin)
 	
+	%MusicControls.add_recent_skin(path)
 	_set_controls_working(true)
+	_close_welcome()
 
 ## Creates new skin in a specified folder.
 func new_save_file(path: String) -> void:
@@ -596,7 +796,9 @@ func new_save_file(path: String) -> void:
 	state_option.select(0)
 	version_label.text = PROJECT_NAME % [version_string] + ("\n" + current_folder_skin)
 	
+	%MusicControls.add_recent_skin(path)
 	_set_controls_working(true)
+	_close_welcome()
 
 ## Loads skin_settings.tres from file system. Returns true if failed.
 func load_skin_settings_from_file(suit: String, path: String) -> bool:
@@ -701,13 +903,111 @@ func update_anim_options() -> void:
 		else:
 			anim_option.set_item_disabled(i, false)
 
+func _default_loop_offsets() -> Dictionary:
+	var offsets := {}
+	for anim in PlayerSkin.ANIMS:
+		offsets[anim] = -1
+	offsets["swim"] = 6
+	return offsets
+
+
+func _suit_tweaks_path(suit: String) -> String:
+	if !current_folder_skin || suit.is_empty():
+		return ""
+	return current_folder_skin.path_join(suit).path_join("suit_tweaks.json")
+
+
+func _load_loop_offsets() -> void:
+	_loop_offsets = _default_loop_offsets()
+	if !current_folder_skin:
+		_update_loop_offset_spin()
+		return
+	var suit := str(current_skin_setting.name) if current_skin_setting else ""
+	var suit_path := _suit_tweaks_path(suit)
+	var all_path := _suit_tweaks_path("_all_suits")
+	var path := ""
+	if suit_path && FileAccess.file_exists(suit_path):
+		path = suit_path
+	elif FileAccess.file_exists(all_path):
+		path = all_path
+	if path:
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if parsed is Dictionary:
+			var offsets = parsed.get("loop_frame_offsets")
+			if offsets is Dictionary:
+				for key in offsets:
+					_loop_offsets[str(key)] = int(offsets[key])
+	_update_loop_offset_spin()
+
+
+func _save_loop_offsets() -> void:
+	if !current_folder_skin || !current_skin_setting:
+		return
+	var path := _suit_tweaks_path(str(current_skin_setting.name))
+	if !path:
+		return
+	var data: Dictionary = {}
+	if FileAccess.file_exists(path):
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if parsed is Dictionary:
+			data = parsed
+	else:
+		var all_path := _suit_tweaks_path("_all_suits")
+		if FileAccess.file_exists(all_path):
+			var parsed = JSON.parse_string(FileAccess.get_file_as_string(all_path))
+			if parsed is Dictionary:
+				data = parsed.duplicate(true)
+	data["loop_frame_offsets"] = _loop_offsets.duplicate()
+	var dir := path.get_base_dir()
+	if !DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if !file:
+		return
+	file.store_string(JSON.stringify(data, "\t"))
+	file.close()
+
+
+func _get_loop_offset(anim: StringName) -> int:
+	if !anim:
+		return -1
+	for key in _loop_offsets.keys():
+		if anim == key:
+			return int(_loop_offsets[key])
+	return -1
+
+
+func _update_loop_offset_spin() -> void:
+	var spin: SpinBox = %LoopOffset
+	var offset := _get_loop_offset(preview.animation)
+	var max_frame := 0
+	if preview.sprite_frames && preview.animation:
+		max_frame = maxi(preview.sprite_frames.get_frame_count(preview.animation) - 1, 0)
+	_updating_loop_offset = true
+	spin.max_value = max_frame
+	spin.value = offset
+	_updating_loop_offset = false
+	if offset < 0:
+		%Loop.tooltip_text = "Whether the animation should loop."
+	else:
+		%Loop.tooltip_text = "Whether the animation should loop.\nLoop Frame Offset %d: after looping, playback continues from this frame." % offset
+
+
+func _on_loop_offset_changed(value: float) -> void:
+	if _updating_loop_offset || !preview.animation:
+		return
+	_loop_offsets[str(preview.animation)] = int(value)
+	_save_loop_offsets()
+	_update_loop_offset_spin()
+
+
 ## Updates animation duration display counter.
 func update_anim_time() -> void:
 	if !preview.animation || !preview.sprite_frames:
 		%AnimTime.text = "-"
 		return
 	var frame_count = preview.sprite_frames.get_frame_count(preview.animation)
-	if frame_count > 150:
+	if frame_count > 200:
 		%AnimTime.text = "Too long"
 		return
 	var number: float = 0.0
@@ -726,11 +1026,7 @@ func update_anim_time() -> void:
 func _on_h_split_container_dragged(_offset: int) -> void:
 	_on_window_resized(true)
 
-func _on_window_resized(force_update: bool = false) -> void:
-	var size_x = %FrameHSplitter.size.x
-	if %FrameHSplitter.split_offsets[0] < -size_x + 384:
-		%FrameHSplitter.split_offsets = PackedInt32Array([-size_x + 384])
-	
+func _on_window_resized(_force_update: bool = false) -> void:
 	if !%Camera2D.has_user_moved:
 		%Camera2D.update_camera_position()
 
@@ -741,9 +1037,13 @@ func _on_fill_blanks_ok_pressed() -> void:
 	if %DontAskAgain.button_pressed:
 		no_frame_del_popup = true
 	modal_window.hide()
-	print("Reducing total frame count to %d" % pending_frames)
 	_frame_setter_cooldown = true
+	print("Reducing total frame count to %d" % pending_frames)
 	set_frames(pending_frames)
+
+
+func _on_modal_canceled() -> void:
+	modal_window.hide()
 
 ## "This suit is incomplete. Create default animation settings?"
 func ask_about_missing_state() -> void:
