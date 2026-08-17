@@ -2,6 +2,8 @@ extends Control
 class_name Main
 
 const PROJECT_NAME := "MF: CE Skin Editor v%s"
+const ICON_PLAY := preload("res://icons/Play.svg")
+const ICON_PAUSE := preload("res://icons/Pause.svg")
 
 enum FileMenu { NEW, OPEN, SAVE, SAVE_AS }
 enum EditorMenu { SETTINGS, SEP_EDITOR, SHOW_COLLISION, AUTORELOAD }
@@ -63,6 +65,7 @@ var unsaved_changes: bool#:
 		#DisplayServer.window_set_title(_start + ProjectSettings.get_setting("application/config/name"))
 		#unsaved_changes = to
 var _updating_loop_offset := false
+var _recent_menu_path: String
 
 @onready var confirm_state_text := confirm_new_state.dialog_text
 
@@ -271,10 +274,10 @@ func new_pressed() -> void:
 ## Called when "play" button toggled.
 func play_toggled(toggle: bool) -> void:
 	if toggle:
-		%Play.text = "Pause"
+		%Play.icon = ICON_PAUSE
 		preview.play()
 	else:
-		%Play.text = "Play"
+		%Play.icon = ICON_PLAY
 		preview.pause()
 		_update_preview()
 
@@ -705,11 +708,28 @@ func _refresh_welcome_recents() -> void:
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.custom_minimum_size.y = 28
 		btn.pressed.connect(_on_recent_skin_pressed.bind(path))
+		btn.gui_input.connect(_on_recent_skin_gui_input.bind(path))
 		%RecentList.add_child(btn)
 
 
 func _on_recent_skin_pressed(path: String) -> void:
 	open_file(path, true)
+
+
+func _on_recent_skin_gui_input(event: InputEvent, path: String) -> void:
+	if !(event is InputEventMouseButton) || !event.pressed || event.button_index != MOUSE_BUTTON_RIGHT:
+		return
+	_recent_menu_path = path
+	%RecentSkinMenu.popup(Rect2i(DisplayServer.mouse_get_position(), Vector2i.ZERO))
+	%RecentList.get_viewport().set_input_as_handled()
+
+
+func _on_recent_skin_menu_id_pressed(id: int) -> void:
+	if id != 0 || _recent_menu_path.is_empty():
+		return
+	%MusicControls.remove_recent_skin(_recent_menu_path)
+	_recent_menu_path = ""
+	_refresh_welcome_recents()
 
 
 ## Saves folders where skins located.

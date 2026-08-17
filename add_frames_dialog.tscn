@@ -229,6 +229,11 @@ allow_greater = true
 suffix = "px"
 script = ExtResource("3_spin")
 
+[node name="AutoSlice" type="Button" parent="HBox/Settings" unique_id=1101000035]
+layout_mode = 2
+tooltip_text = "Automatically detect columns and rows from the spritesheet."
+text = "Auto Slice"
+
 [connection signal="pressed" from="HBox/PreviewVBox/Menu/SelectAll" to="." method="_on_select_all_pressed"]
 [connection signal="pressed" from="HBox/PreviewVBox/Menu/SelectNone" to="." method="_on_select_none_pressed"]
 [connection signal="item_selected" from="HBox/PreviewVBox/Menu/InsertMode" to="." method="_on_insert_mode_selected"]
@@ -243,3 +248,4 @@ script = ExtResource("3_spin")
 [connection signal="value_changed" from="HBox/Settings/SepRow/SpinSepY" to="." method="_on_sep_or_off_changed"]
 [connection signal="value_changed" from="HBox/Settings/OffRow/SpinOffX" to="." method="_on_sep_or_off_changed"]
 [connection signal="value_changed" from="HBox/Settings/OffRow/SpinOffY" to="." method="_on_sep_or_off_changed"]
+[connection signal="pressed" from="HBox/Settings/AutoSlice" to="." method="_on_auto_slice_pressed"]

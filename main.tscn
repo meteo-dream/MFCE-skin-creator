@@ -17,6 +17,11 @@
 [ext_resource type="PackedScene" uid="uid://bc5tsqs3u3wvp" path="res://add_frames_dialog.tscn" id="16_addfrm"]
 [ext_resource type="PackedScene" uid="uid://bhwdu6j2vv14x" path="res://edit_frame_dialog.tscn" id="17_editfrm"]
 [ext_resource type="Texture2D" uid="uid://cddbt8ojvbaj2" path="res://icon.png" id="18_icon"]
+[ext_resource type="Texture2D" uid="uid://0h5pnu7y2a53" path="res://icons/SpriteSheet.svg" id="19_sheet"]
+[ext_resource type="Texture2D" uid="uid://y21t3j2c1m53" path="res://icons/Edit.svg" id="20_edit"]
+[ext_resource type="Texture2D" uid="uid://0g2xxw35pbs3" path="res://icons/Remove.svg" id="21_remove"]
+[ext_resource type="Texture2D" uid="uid://0fal8j2c1m53" path="res://icons/Play.svg" id="22_play"]
+[ext_resource type="Texture2D" uid="uid://0ii0yj2c1m53" path="res://icons/Stop.svg" id="23_stop"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_lquwl"]
 animations = [{
@@ -505,59 +510,67 @@ layout_mode = 2
 
 [node name="Toolbar" type="HFlowContainer" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide" unique_id=1811709007]
 layout_mode = 2
-theme_override_constants/h_separation = 10
+theme_override_constants/h_separation = 4
 theme_override_constants/v_separation = 4
 
 [node name="EditGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709509]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
 [node name="AddFrames" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/EditGroup" unique_id=1811709008]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
 tooltip_text = "Add frames from the animation spritesheet."
-text = "Add..."
+icon = ExtResource("19_sheet")
+icon_alignment = 1
 
 [node name="EditFrame" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/EditGroup" unique_id=1811709009]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
 tooltip_text = "Edit the selected frame region on the spritesheet."
-text = "Edit..."
+icon = ExtResource("20_edit")
+icon_alignment = 1
 
 [node name="DeleteFrame" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/EditGroup" unique_id=1811709010]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
 tooltip_text = "Remove the selected frame from the animation."
-text = "Delete"
+icon = ExtResource("21_remove")
+icon_alignment = 1
+
+[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1016205191]
+layout_mode = 2
 
 [node name="PlayGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709507]
 layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/PlayGroup" unique_id=1016205191]
-layout_mode = 2
+theme_override_constants/separation = 4
 
 [node name="Play" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/PlayGroup" unique_id=2078381543]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
 tooltip_text = "Toggles between Play and Pause."
-theme_override_fonts/font = SubResource("FontVariation_efxa6")
 toggle_mode = true
-text = "Play"
+icon = ExtResource("22_play")
+icon_alignment = 1
 
 [node name="Stop" type="Button" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/PlayGroup" unique_id=286631509]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
 layout_mode = 2
 tooltip_text = "Stop animation and set frame to 0."
-theme_override_fonts/font = SubResource("FontVariation_efxa6")
-text = "Stop"
+icon = ExtResource("23_stop")
+icon_alignment = 1
+
+[node name="VSeparator2" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=975268119]
+layout_mode = 2
 
 [node name="DurationGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709510]
 layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/DurationGroup" unique_id=975268119]
-layout_mode = 2
+theme_override_constants/separation = 4
 
 [node name="DurationLabel" type="Label" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/DurationGroup" unique_id=1811709012]
 layout_mode = 2
@@ -578,12 +591,12 @@ prefix = "x"
 custom_arrow_step = 0.1
 script = ExtResource("10_dg77c")
 
+[node name="VSeparator3" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1526716677]
+layout_mode = 2
+
 [node name="FrameGroup" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar" unique_id=1811709508]
 layout_mode = 2
 theme_override_constants/separation = 6
-
-[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup" unique_id=1526716677]
-layout_mode = 2
 
 [node name="Frame" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup" unique_id=212317026]
 visible = false
@@ -801,6 +814,14 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
+
+[node name="RecentSkinMenu" type="PopupMenu" parent="CanvasLayer/VBoxContainer/Main/WelcomePanel" unique_id=1811709720]
+unique_name_in_owner = true
+oversampling_override = 1.0
+size = Vector2i(209, 100)
+item_count = 1
+item_0/text = "Remove from Recent List"
+item_0/id = 0
 
 [node name="EditorSettings" type="Window" parent="CanvasLayer" unique_id=1811709400]
 unique_name_in_owner = true
@@ -1190,6 +1211,7 @@ size_flags_horizontal = 3
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/FrameGroup/MaxFrames/Frames" to="CanvasLayer/VBoxContainer/Main" method="frames_val_changed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/WelcomePanel/Center/Card/Margin/VBox/Actions/NewSkinButton" to="CanvasLayer/VBoxContainer/Main" method="new_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/WelcomePanel/Center/Card/Margin/VBox/Actions/OpenSkinButton" to="CanvasLayer/VBoxContainer/Main" method="open_pressed"]
+[connection signal="id_pressed" from="CanvasLayer/VBoxContainer/Main/WelcomePanel/RecentSkinMenu" to="CanvasLayer/VBoxContainer/Main" method="_on_recent_skin_menu_id_pressed"]
 [connection signal="close_requested" from="CanvasLayer/EditorSettings" to="CanvasLayer/EditorSettings" method="hide"]
 [connection signal="color_changed" from="CanvasLayer/EditorSettings/MarginContainer/VBox/Color/BGcolor" to="." method="_on_bg_color_changed"]
 [connection signal="color_changed" from="CanvasLayer/EditorSettings/MarginContainer/VBox/Color/GridColor" to="." method="_on_grid_color_changed"]

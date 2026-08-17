@@ -11,6 +11,7 @@ anti_aliasing = false
 
 [node name="EditFrameDialog" type="ConfirmationDialog" unique_id=1102000001]
 disable_3d = true
+oversampling_override = 1.0
 title = "Edit Frame"
 initial_position = 2
 size = Vector2i(900, 620)
@@ -19,8 +20,10 @@ ok_button_text = "OK"
 script = ExtResource("1_dialog")
 
 [node name="VBox" type="VBoxContainer" parent="." unique_id=1102000002]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 892.0
+offset_bottom = 574.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 8
@@ -36,7 +39,7 @@ size_flags_horizontal = 3
 tooltip_text = "X Position of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
-prefix = "X"
+prefix = "X:"
 suffix = "px"
 script = ExtResource("3_spin")
 
@@ -47,7 +50,7 @@ size_flags_horizontal = 3
 tooltip_text = "Y Position of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
-prefix = "Y"
+prefix = "Y:"
 suffix = "px"
 script = ExtResource("3_spin")
 
@@ -58,7 +61,7 @@ size_flags_horizontal = 3
 tooltip_text = "Width of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
-prefix = "W"
+prefix = "W:"
 suffix = "px"
 script = ExtResource("3_spin")
 
@@ -69,7 +72,7 @@ size_flags_horizontal = 3
 tooltip_text = "Height of the current frame in pixels."
 allow_greater = true
 allow_lesser = true
-prefix = "H"
+prefix = "H:"
 suffix = "px"
 script = ExtResource("3_spin")
 
@@ -103,23 +106,21 @@ text = "Offset:"
 
 [node name="SnapOffX" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000026]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 tooltip_text = "Grid offset X in pixels."
 allow_greater = true
 allow_lesser = true
-prefix = "X"
 suffix = "px"
 script = ExtResource("3_spin")
 
 [node name="SnapOffY" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000027]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 tooltip_text = "Grid offset Y in pixels."
 allow_greater = true
 allow_lesser = true
-prefix = "Y"
 suffix = "px"
 script = ExtResource("3_spin")
 
@@ -132,23 +133,21 @@ text = "Step:"
 
 [node name="SnapStepX" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000030]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 tooltip_text = "Grid cell width in pixels."
 value = 8.0
 allow_greater = true
-prefix = "X"
 suffix = "px"
 script = ExtResource("3_spin")
 
 [node name="SnapStepY" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000031]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 tooltip_text = "Grid cell height in pixels."
 value = 8.0
 allow_greater = true
-prefix = "Y"
 suffix = "px"
 script = ExtResource("3_spin")
 
@@ -161,21 +160,19 @@ text = "Separation:"
 
 [node name="SnapSepX" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000034]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 tooltip_text = "Horizontal gap between grid cells in pixels."
 allow_greater = true
-prefix = "X"
 suffix = "px"
 script = ExtResource("3_spin")
 
 [node name="SnapSepY" type="SpinBox" parent="VBox/SnapBar/GridSnap" unique_id=1102000035]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 tooltip_text = "Vertical gap between grid cells in pixels."
 allow_greater = true
-prefix = "Y"
 suffix = "px"
 script = ExtResource("3_spin")
 

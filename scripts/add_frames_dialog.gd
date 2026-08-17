@@ -198,6 +198,67 @@ func _on_sep_or_off_changed(_value: float) -> void:
 	_sheet_spin_changed(_dominant)
 
 
+func _on_auto_slice_pressed() -> void:
+	if _updating || !preview.texture:
+		return
+	_updating = true
+	var tex_size := Vector2i(preview.texture.get_size())
+	var split := _estimate_sprite_sheet_size(preview.texture)
+	spin_h.value = split.x
+	spin_v.value = split.y
+	spin_size_x.value = tex_size.x / split.x
+	spin_size_y.value = tex_size.y / split.y
+	spin_sep_x.value = 0
+	spin_sep_y.value = 0
+	spin_off_x.value = 0
+	spin_off_y.value = 0
+	_dominant = DominantParam.FRAME_COUNT
+	_updating = false
+	_clear_selection()
+	preview.queue_redraw()
+
+
+func _matches_background_color(background: Color, pixel: Color) -> bool:
+	if (is_zero_approx(background.a) && is_zero_approx(pixel.a)) || background.is_equal_approx(pixel):
+		return true
+	var d := background - pixel
+	return (d.r * d.r) + (d.g * d.g) + (d.b * d.b) + (d.a * d.a) < 0.04
+
+
+func _estimate_sprite_sheet_size(tex: Texture2D) -> Vector2i:
+	var image := tex.get_image()
+	if !image:
+		return Vector2i(4, 4)
+	if image.is_compressed():
+		image = image.duplicate()
+		if image.decompress() != OK:
+			return Vector2i(tex.get_size())
+	var size := image.get_size()
+	var background := image.get_pixel(0, 0)
+	var sheet_size := Vector2i.ZERO
+	var previous_line_background := true
+	for x in size.x:
+		var y := 0
+		while y < size.y && _matches_background_color(background, image.get_pixel(x, y)):
+			y += 1
+		var current_line_background := y == size.y
+		if previous_line_background && !current_line_background:
+			sheet_size.x += 1
+		previous_line_background = current_line_background
+	previous_line_background = true
+	for y in size.y:
+		var x := 0
+		while x < size.x && _matches_background_color(background, image.get_pixel(x, y)):
+			x += 1
+		var current_line_background := x == size.x
+		if previous_line_background && !current_line_background:
+			sheet_size.y += 1
+		previous_line_background = current_line_background
+	if sheet_size == Vector2i.ZERO || sheet_size == Vector2i.ONE:
+		sheet_size = Vector2i(4, 4)
+	return sheet_size
+
+
 func _clear_selection() -> void:
 	_frames_selected.clear()
 	_selected_count = 0
