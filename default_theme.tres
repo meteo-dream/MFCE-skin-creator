@@ -6,6 +6,20 @@
 [ext_resource type="Texture2D" uid="uid://r8c2f83xct4o" path="res://icons/GuiUnchecked.svg" id="4_u7cj8"]
 [ext_resource type="Texture2D" uid="uid://bpyi71wamik5w" path="res://icons/GuiUncheckedDisabled.svg" id="5_uwdo0"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cefca"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.25, 0.25, 0.25, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.175, 0.175, 0.175, 1)
+corner_detail = 1
+anti_aliasing = false
+
 [resource]
 Button/font_sizes/font_size = 14
 Button/styles/focus = ExtResource("1_e7bfs")
@@ -19,6 +33,7 @@ Label/font_sizes/font_size = 14
 LineEdit/font_sizes/font_size = 14
 LineEdit/styles/focus = ExtResource("1_e7bfs")
 PopupMenu/font_sizes/font_size = 14
+PopupMenu/styles/panel = SubResource("StyleBoxFlat_cefca")
 TabContainer/font_sizes/font_size = 14
 TextEdit/font_sizes/font_size = 14
 Tree/font_sizes/font_size = 14

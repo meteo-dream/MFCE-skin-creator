@@ -1,7 +1,7 @@
 extends Window
 class_name SkinSettingsDialog
 
-enum Tab { OPTIONS, SUIT, GLOBAL }
+enum Tab { OPTIONS, MISC, SOUNDS, GLOBAL }
 enum Field { NAME, THEY, THEM, THEIR, ALIAS }
 
 signal dismissed
@@ -9,7 +9,8 @@ signal reset_pressed
 signal options_field_changed(field: Field, new_value: String)
 
 @onready var tabs: TabContainer = %SettingsTabs
-@onready var suit_tweaks: SuitTweaksDialog = %SuitTweaksDialog
+@onready var misc_textures: SuitTweaksDialog = %MiscTexturesDialog
+@onready var global_sounds: SuitTweaksDialog = %GlobalSoundsDialog
 @onready var global_tweaks: SuitTweaksDialog = %GlobalSkinTweaksDialog
 @onready var display_name_line: LineEdit = %DisplayNameLine
 @onready var they_line: LineEdit = %TheyLine
@@ -33,16 +34,18 @@ func _ready() -> void:
 	tabs.tab_changed.connect(_on_tab_changed)
 	reset_button.pressed.connect(func(): reset_pressed.emit())
 	close_button.pressed.connect(dismiss)
-	suit_tweaks.resettable_changed.connect(update_reset_button)
+	misc_textures.resettable_changed.connect(update_reset_button)
+	global_sounds.resettable_changed.connect(update_reset_button)
 	global_tweaks.resettable_changed.connect(update_reset_button)
 	_connect_field(display_name_line, Field.NAME)
 	_connect_field(they_line, Field.THEY)
 	_connect_field(them_line, Field.THEM)
 	_connect_field(their_line, Field.THEIR)
 	_connect_field(description_line, Field.ALIAS)
-	if tabs.get_tab_count() >= 3:
+	if tabs.get_tab_count() >= 4:
 		tabs.set_tab_title(Tab.OPTIONS, "Name")
-		tabs.set_tab_title(Tab.SUIT, "Suit Tweaks")
+		tabs.set_tab_title(Tab.MISC, "Misc Textures")
+		tabs.set_tab_title(Tab.SOUNDS, "Global Sounds")
 		tabs.set_tab_title(Tab.GLOBAL, "Global Skin Tweaks")
 	_update_title()
 	update_reset_button()
@@ -133,8 +136,10 @@ func update_reset_button() -> void:
 	match current_tab():
 		Tab.OPTIONS:
 			can_reset = !options_at_defaults()
-		Tab.SUIT:
-			can_reset = suit_tweaks.has_resettable_changes()
+		Tab.MISC:
+			can_reset = misc_textures.has_resettable_changes()
+		Tab.SOUNDS:
+			can_reset = global_sounds.has_resettable_changes()
 		Tab.GLOBAL:
 			can_reset = global_tweaks.has_resettable_changes()
 	reset_button.disabled = !can_reset
@@ -170,8 +175,10 @@ func _update_title() -> void:
 	match tabs.current_tab:
 		Tab.OPTIONS:
 			title = "Skin Options"
-		Tab.SUIT:
-			title = suit_tweaks.heading if !suit_tweaks.heading.is_empty() else "Suit Tweaks"
+		Tab.MISC:
+			title = "Misc Textures"
+		Tab.SOUNDS:
+			title = "Global Sounds"
 		Tab.GLOBAL:
 			title = "Global Skin Tweaks"
 

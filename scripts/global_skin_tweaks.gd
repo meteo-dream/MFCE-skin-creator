@@ -33,7 +33,7 @@ const DEFAULTS := {
 
 const DESCRIPTIONS := {
 	"particles_process_material": "Anything wider than 128 pixels on all sides may be cut off and disappear.",
-	"texture": "Custom particle PNG. Copied to the skin root as particle.png. If unset, the game uses the default starman particles.",
+	"texture": "Custom particle PNG. Copied to the skin root as particle.png.\nIf unset, the game uses the default starman particles.",
 	"particle_flag_disable_z": "Should the texture rotate along its velocity?",
 	"emission_shape": "Can be point, box, or sphere.",
 	"emission_sphere_radius": "From 0.01 to 128. In pixels, the in-game size is double this value.",
@@ -49,14 +49,14 @@ const DESCRIPTIONS := {
 	"scale_max": "From 0 to 1000.",
 	"hue_variation_min": "From -1.0 to 1.0. -1, 0, and 1 are white; pick values in between.",
 	"hue_variation_max": "From -1.0 to 1.0. -1, 0, and 1 are white; pick values in between.",
-	"force_override_death_sound": "If on, the custom death sound also overrides level-specific death sounds. Otherwise only the default SMW death sound is overridden.",
-	"load_sounds_from_siblings_on_fallback": "If a sound has a sibling and only one is in the skin, the sibling uses it too (pipe_in/pipe_out, enemy_bump/block_bump, etc).",
+	"force_override_death_sound": "If on, the custom death sound also overrides level-specific death sounds.\nOtherwise only the default SMW death sound is overridden.",
+	"load_sounds_from_siblings_on_fallback": "If a sound has a sibling and only one is in the skin,\nthe sibling uses it too (pipe_in/pipe_out, enemy_bump/block_bump, etc).",
 	"checkpoint_sound_delay_sec": "Delay in seconds before the checkpoint sound plays.",
 	"force_override_menu_select_sound": "Use this skin's menu select sound even when a level overrides it.",
 	"force_override_level_complete_music": "Use this skin's level complete music even when a level overrides it.",
 	"boomerang_spin_sound_delay_sec": "Delay in seconds between boomerang spin sound loops.",
 	"enable_starman_run_out_sound": "Play a sound when starman is about to run out.",
-	"stopwatch_sound_delay_sec": "Delay in seconds for the stopwatch sound.",
+	"stopwatch_sound_delay_sec": "Delay in seconds for the stopwatch sound loop.",
 }
 
 const LIMITS := {

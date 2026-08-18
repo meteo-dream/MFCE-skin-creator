@@ -11,6 +11,7 @@ const REVERT_ICON := preload("res://icons/ReloadSmall.svg")
 
 @onready var list: VBoxContainer = %TweakList
 @onready var hint_label: Label = %Hint
+@onready var file_dialog: FileDialog = %FilePicker
 
 var heading := ""
 var _updating := false
@@ -22,8 +23,18 @@ var _descriptions: Dictionary = {}
 var _limits: Dictionary = {}
 var _skip: Array = []
 var _choices: Dictionary = {}
-var _png_files: Dictionary = {}
+var _file_pickers: Dictionary = {}
+var _reset_includes_files := false
 var _skin_root := ""
+var _expand_file_pickers := false
+var _sort_keys := false
+var _file_expanded: Dictionary = {}
+var _pick_path: PackedStringArray = PackedStringArray()
+var _pick_existing: PackedStringArray = PackedStringArray()
+var _pick_multi := false
+var _pick_append := false
+var _pick_max := 1
+var _pick_kind := "png"
 var _blank_normal := StyleBoxEmpty.new()
 var _blank_normal_box: StyleBoxEmpty
 var _icon_hover := StyleBoxFlat.new()
@@ -32,6 +43,11 @@ var _icon_pressed := StyleBoxFlat.new()
 
 func _ready() -> void:
 	_setup_icon_button_styles()
+	if file_dialog:
+		file_dialog.use_native_dialog = true
+		file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+		file_dialog.file_selected.connect(_on_file_dialog_file_selected)
+		file_dialog.files_selected.connect(_on_file_dialog_files_selected)
 
 
 func _setup_icon_button_styles() -> void:
@@ -79,13 +95,21 @@ func bind(window_title: String, tweaks: Dictionary, schema: Dictionary) -> void:
 	_limits = schema.get("limits", {})
 	_skip = schema.get("skip", [])
 	_choices = schema.get("choices", {})
-	_png_files = schema.get("png_files", {})
+	_file_pickers = {}
+	_file_pickers.merge(schema.get("png_files", {}))
+	_file_pickers.merge(schema.get("file_pickers", {}))
+	_reset_includes_files = bool(schema.get("reset_includes_files", false))
 	_skin_root = str(schema.get("skin_root", ""))
+	_expand_file_pickers = bool(schema.get("expand_file_pickers", false))
+	_sort_keys = bool(schema.get("sort_keys", false))
+	_file_expanded.clear()
 	_values = tweaks
 	_rebuild()
 
 
 func sync_value(path: PackedStringArray, value: Variant) -> void:
+	if !_values.is_empty():
+		SuitTweaks.set_at(_values, path, value)
 	var key := _path_key(path)
 	if !_controls.has(key):
 		return
@@ -106,7 +130,10 @@ func _rebuild() -> void:
 		_updating = false
 		_update_reset_button()
 		return
-	for key in _defaults.keys():
+	var keys: Array = _defaults.keys()
+	if _sort_keys:
+		keys.sort()
+	for key in keys:
 		if key in _skip:
 			continue
 		var value: Variant = _values.get(key, _defaults[key])
@@ -147,7 +174,6 @@ func _add_row(path: PackedStringArray, value: Variant, indented: bool) -> void:
 	label.mouse_filter = Control.MOUSE_FILTER_PASS
 	label.clip_text = true
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	row.add_child(label)
 	var revert := Button.new()
 	revert.icon = REVERT_ICON
 	revert.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -157,13 +183,29 @@ func _add_row(path: PackedStringArray, value: Variant, indented: bool) -> void:
 	_apply_icon_button_styles(revert)
 	revert.tooltip_text = "Revert Value"
 	revert.pressed.connect(func(): _revert_property(path_copy))
-	row.add_child(revert)
 	_revert_buttons[_path_key(path_copy)] = revert
 	var control := _make_control(path_copy, value)
-	if control:
+	if _expand_file_pickers && control:
+		var left := HBoxContainer.new()
+		left.add_theme_constant_override("separation", 4)
+		left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		left.size_flags_stretch_ratio = 1.0
+		left.add_child(label)
+		left.add_child(revert)
+		row.add_child(left)
+		control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		control.size_flags_stretch_ratio = 1.0
+		control.custom_minimum_size = Vector2(0, control.custom_minimum_size.y)
 		control.tooltip_text = _desc(key)
 		row.add_child(control)
 		_controls[_path_key(path_copy)] = control
+	else:
+		row.add_child(label)
+		row.add_child(revert)
+		if control:
+			control.tooltip_text = _desc(key)
+			row.add_child(control)
+			_controls[_path_key(path_copy)] = control
 	row.tooltip_text = _desc(key)
 	list.add_child(row)
 	var end_pad := Control.new()
@@ -174,9 +216,9 @@ func _add_row(path: PackedStringArray, value: Variant, indented: bool) -> void:
 
 func _make_control(path: PackedStringArray, value: Variant) -> Control:
 	var key := path[path.size() - 1]
-	var png := _png_meta(path)
-	if !png.is_empty():
-		return _make_png_picker(path, str(value) if value != null else "", png)
+	var file_meta := _file_meta(path)
+	if !file_meta.is_empty():
+		return _make_file_picker(path, value, file_meta)
 	if _choices.has(key):
 		return _make_choice(path, str(value), _choices[key])
 	if value is bool:
@@ -217,19 +259,151 @@ func _make_control(path: PackedStringArray, value: Variant) -> Control:
 	return null
 
 
-func _make_png_picker(path: PackedStringArray, value: String, meta: Dictionary) -> Control:
+func _make_file_picker(path: PackedStringArray, value: Variant, meta: Dictionary) -> Control:
 	var picker := IMAGE_FILE_BUTTON.instantiate()
-	var dest_name := str(meta.get("dest_name", ""))
-	var dest_path := _skin_root.path_join(dest_name) if !_skin_root.is_empty() && !dest_name.is_empty() else ""
-	picker.set_meta("dest_path", dest_path)
-	var exists := !value.is_empty() && !dest_path.is_empty() && FileAccess.file_exists(dest_path)
-	picker.set_display(value if exists else "", dest_path if exists else "")
-	picker.file_chosen.connect(func(src: String): _emit_change(path, src))
+	var kind := str(meta.get("kind", "png")).to_lower()
+	var multi := kind == "ogg"
+	if multi:
+		picker.empty_text = "Select OGG..."
+		picker.dialog_title = "Select OGG"
+		picker.filters = PackedStringArray(["*.ogg ; OGG Vorbis"])
+		picker.allow_multiple = true
+	picker.set_meta("kind", kind)
+	picker.set_meta("dialog_title", picker.dialog_title)
+	picker.set_meta("filters", picker.filters)
+	picker.set_meta("allow_multiple", multi)
+	picker.set_meta("max_files", SuitSounds.MAX_VARIATIONS if multi else 1)
+	picker.max_files = SuitSounds.MAX_VARIATIONS if multi else 1
+	_apply_file_picker_value(picker, value)
+	var path_copy := path.duplicate()
+	picker.pick_requested.connect(func(): _open_shared_file_dialog(path_copy, picker, false))
+	picker.add_requested.connect(func(): _open_shared_file_dialog(path_copy, picker, true))
+	picker.variation_removed.connect(func(idx: int): _on_variation_removed(path_copy, picker, idx))
+	picker.expansion_changed.connect(func(on: bool): _file_expanded[_path_key(path_copy)] = on)
+	if bool(_file_expanded.get(_path_key(path_copy), false)):
+		picker.set_expanded(true)
 	return picker
 
 
-func _png_meta(path: PackedStringArray) -> Dictionary:
-	var meta = _png_files.get(_path_key(path), {})
+func _apply_file_picker_value(picker: Control, value: Variant) -> void:
+	var names := _value_filenames(value)
+	var abs_paths := PackedStringArray()
+	for name in names:
+		var abs_path := _skin_root.path_join(name) if !_skin_root.is_empty() && !name.is_empty() else ""
+		abs_paths.append(abs_path)
+	if picker.has_method("set_files"):
+		picker.set_files(names, abs_paths)
+		return
+	var dest_path := abs_paths[0] if !abs_paths.is_empty() else ""
+	var filename := names[0] if !names.is_empty() else ""
+	var exists := !filename.is_empty() && !dest_path.is_empty() && FileAccess.file_exists(dest_path)
+	picker.set_display(filename if exists else "", dest_path if exists else "")
+
+
+func _value_filenames(value: Variant) -> PackedStringArray:
+	var names := PackedStringArray()
+	if value is PackedStringArray || value is Array:
+		for item in value:
+			var text := str(item)
+			if !text.is_empty():
+				names.append(text)
+		return names
+	var text := str(value) if value != null else ""
+	if !text.is_empty() && text != "<null>":
+		names.append(text)
+	return names
+
+
+func _open_shared_file_dialog(path: PackedStringArray, picker: Control, append: bool) -> void:
+	if !file_dialog:
+		return
+	_pick_path = path.duplicate()
+	_pick_append = append
+	_pick_multi = bool(picker.get_meta("allow_multiple", false))
+	var max_total := int(picker.get_meta("max_files", 1))
+	_pick_existing = PackedStringArray()
+	if append && picker.has_method("get_abs_paths"):
+		for existing in picker.get_abs_paths():
+			if !existing.is_empty() && FileAccess.file_exists(existing):
+				_pick_existing.append(existing)
+	_pick_max = maxi(max_total - _pick_existing.size(), 0) if append else max_total
+	if _pick_max <= 0:
+		return
+	_pick_kind = str(picker.get_meta("kind", "png"))
+	var title := str(picker.get_meta("dialog_title", "Select File"))
+	if append:
+		title = "Add OGG" if _pick_kind == "ogg" else "Add File"
+	file_dialog.title = title
+	var filters = picker.get_meta("filters", PackedStringArray())
+	if filters is PackedStringArray && !filters.is_empty():
+		file_dialog.filters = filters
+	elif picker is ImageFileButton:
+		file_dialog.filters = (picker as ImageFileButton).filters
+	file_dialog.file_mode = (
+		FileDialog.FILE_MODE_OPEN_FILES if _pick_multi else FileDialog.FILE_MODE_OPEN_FILE
+	)
+	if !ImageFileButton.last_dir.is_empty() && DirAccess.dir_exists_absolute(ImageFileButton.last_dir):
+		file_dialog.current_dir = ImageFileButton.last_dir
+	file_dialog.popup_centered()
+
+
+func _on_variation_removed(path: PackedStringArray, picker: Control, index: int) -> void:
+	if !(picker is ImageFileButton):
+		return
+	var names: PackedStringArray = picker.get_filenames()
+	if index < 0 || index >= names.size():
+		return
+	var dest_name := names[index]
+	if dest_name.is_empty():
+		return
+	_emit_change(path, { "op": "delete", "dest_name": dest_name })
+
+
+func _on_file_dialog_file_selected(path: String) -> void:
+	_finish_file_pick(PackedStringArray([path]))
+
+
+func _on_file_dialog_files_selected(paths: PackedStringArray) -> void:
+	_finish_file_pick(paths)
+
+
+func _finish_file_pick(paths: PackedStringArray) -> void:
+	if paths.is_empty() || _pick_path.is_empty():
+		return
+	ImageFileButton.last_dir = paths[0].get_base_dir()
+	if _pick_max > 0 && paths.size() > _pick_max:
+		if _pick_append:
+			OS.alert(
+				"This sound supports at most %d variations. Only the first %d new files were added." % [
+					_pick_existing.size() + _pick_max, _pick_max
+				],
+				"Too Many Files"
+			)
+		else:
+			OS.alert(
+				"This sound supports at most %d variations. Only the first %d files were loaded." % [_pick_max, _pick_max],
+				"Too Many Files"
+			)
+		paths = paths.slice(0, _pick_max)
+	if _pick_multi:
+		if _pick_append:
+			_emit_change(_pick_path, { "op": "add", "sources": paths })
+		else:
+			_emit_change(_pick_path, paths)
+		var key := _path_key(_pick_path)
+		var existing_count := _pick_existing.size() if _pick_append else 0
+		if existing_count + paths.size() > 1 && _controls.has(key) && _controls[key].has_method("set_expanded"):
+			_file_expanded[key] = true
+			_controls[key].set_expanded(true)
+	else:
+		_emit_change(_pick_path, paths[0])
+	_pick_path = PackedStringArray()
+	_pick_existing = PackedStringArray()
+	_pick_append = false
+
+
+func _file_meta(path: PackedStringArray) -> Dictionary:
+	var meta = _file_pickers.get(_path_key(path), {})
 	return meta if meta is Dictionary else {}
 
 
@@ -306,12 +480,8 @@ func _apply_spin_step(spin: SpinBox, lim: Dictionary, value: Variant) -> void:
 
 
 func _set_control(control: Control, value: Variant) -> void:
-	if control.has_method("set_display"):
-		var dest_path := str(control.get_meta("dest_path", ""))
-		@warning_ignore("shadowed_variable_base_class")
-		var name := str(value)
-		var exists := !name.is_empty() && !dest_path.is_empty() && FileAccess.file_exists(dest_path)
-		control.set_display(name if exists else "", dest_path if exists else "")
+	if control.has_method("set_files") || control.has_method("set_display"):
+		_apply_file_picker_value(control, value)
 		return
 	if control is CheckBox:
 		(control as CheckBox).button_pressed = bool(value)
@@ -359,7 +529,7 @@ func _update_revert_visible(path: PackedStringArray) -> void:
 
 func has_resettable_changes() -> bool:
 	for key in _revert_buttons.keys():
-		if _png_files.has(key):
+		if _file_pickers.has(key) && !_reset_includes_files:
 			continue
 		if !_is_at_default(PackedStringArray(str(key).split("/"))):
 			return true
@@ -378,7 +548,7 @@ func _is_at_default(path: PackedStringArray) -> bool:
 
 
 func _copy_value(value: Variant) -> Variant:
-	if value is Array:
+	if value is Array || value is PackedStringArray:
 		return value.duplicate()
 	if value is Dictionary:
 		return value.duplicate(true)
@@ -388,6 +558,10 @@ func _copy_value(value: Variant) -> Variant:
 func _values_equal(a: Variant, b: Variant) -> bool:
 	if SuitTweaks.is_vec2(a) || SuitTweaks.is_vec2(b):
 		return SuitTweaks.to_vec2(a).is_equal_approx(SuitTweaks.to_vec2(b))
+	if a is Dictionary || b is Dictionary:
+		return a is Dictionary && b is Dictionary && a == b
+	if a is PackedStringArray || b is PackedStringArray || a is Array || b is Array:
+		return _value_filenames(a) == _value_filenames(b)
 	if a is float || b is float:
 		return is_equal_approx(float(a), float(b))
 	return a == b

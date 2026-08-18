@@ -8,7 +8,7 @@ const BACKGROUND_FPS := 10
 
 enum FileMenu { NEW, OPEN, SAVE, SAVE_AS, SEP_FILE, UNDO, REDO, SEP_EDIT, SEP_QUIT, QUIT, CLOSE }
 enum EditorMenu { SETTINGS, SEP_EDITOR, SHOW_COLLISION, AUTORELOAD, SEP_HISTORY, HISTORY }
-enum SkinMenu { CREATE_MISSING, BROWSE_ANIM, RELOAD, SEP_OVERRIDES, BROWSE_OVERRIDES, SEP_SKIN, OPTIONS, GLOBAL_TWEAKS }
+enum SkinMenu { CREATE_MISSING, BROWSE_ANIM, RELOAD, SEP_OVERRIDES, BROWSE_OVERRIDES, SEP_SKIN, SETTINGS }
 enum HelpMenu { ABOUT }
 
 const BAD_NAMES = [
@@ -77,7 +77,11 @@ var _edit_region_frame: int = -1
 @onready var add_frames_dialog: AddFramesDialog = %AddFramesDialog
 @onready var edit_frame_dialog: EditFrameDialog = %EditFrameDialog
 @onready var skin_settings_dialog: SkinSettingsDialog = %SkinSettingsDialog
-@onready var suit_tweaks_dialog: SuitTweaksDialog = skin_settings_dialog.suit_tweaks
+@onready var suit_settings_dialog: SuitSettingsDialog = %SuitSettingsDialog
+@onready var misc_textures_dialog: SuitTweaksDialog = skin_settings_dialog.misc_textures
+@onready var global_sounds_dialog: SuitTweaksDialog = skin_settings_dialog.global_sounds
+@onready var suit_tweaks_dialog: SuitTweaksDialog = suit_settings_dialog.suit_tweaks
+@onready var suit_sounds_dialog: SuitTweaksDialog = suit_settings_dialog.suit_sounds
 @onready var global_skin_tweaks_dialog: SuitTweaksDialog = skin_settings_dialog.global_tweaks
 
 @onready var spinbox_frame: SpinBox = %Frame
@@ -192,9 +196,13 @@ func _ready() -> void:
 	edit_frame_dialog.region_changed.connect(apply_frame_region)
 	edit_frame_dialog.confirmed.connect(_on_edit_frame_confirmed)
 	suit_tweaks_dialog.tweak_changed.connect(_on_suit_tweak_changed)
+	suit_sounds_dialog.tweak_changed.connect(_on_suit_sound_changed)
+	misc_textures_dialog.tweak_changed.connect(_on_misc_texture_changed)
+	global_sounds_dialog.tweak_changed.connect(_on_global_sound_changed)
 	global_skin_tweaks_dialog.tweak_changed.connect(_on_global_skin_tweak_changed)
 	skin_settings_dialog.reset_pressed.connect(_on_skin_settings_reset)
 	skin_settings_dialog.options_field_changed.connect(_on_options_field_changed)
+	suit_settings_dialog.reset_pressed.connect(_on_suit_settings_reset)
 	%File.id_pressed.connect(_on_file_menu_id_pressed)
 	_setup_file_shortcuts()
 	_setup_menu_shortcuts()
@@ -297,7 +305,7 @@ func _gui_is_editing_text_in(vp: Viewport) -> bool:
 
 
 func _is_editor_dock_window(win: Window) -> bool:
-	return win == %FramesWindow || win == %HistoryWindow || win == skin_settings_dialog
+	return win == %FramesWindow || win == %HistoryWindow || win == skin_settings_dialog || win == suit_settings_dialog
 
 
 func _is_foreign_window_focused() -> bool:
@@ -314,7 +322,7 @@ func _is_foreign_window_focused() -> bool:
 
 
 func _setup_dock_shortcut_forwarding() -> void:
-	for win: Window in [%FramesWindow, %HistoryWindow, skin_settings_dialog]:
+	for win: Window in [%FramesWindow, %HistoryWindow, skin_settings_dialog, suit_settings_dialog]:
 		win.window_input.connect(_on_editor_dock_window_input.bind(win))
 		win.visibility_changed.connect(_update_background_fps)
 		win.focus_entered.connect(_update_background_fps)
@@ -463,14 +471,15 @@ func _set_controls_working(val: bool) -> void:
 	if !val && !current_skin_setting:
 		if skin_settings_dialog:
 			skin_settings_dialog.hide()
+		if suit_settings_dialog:
+			suit_settings_dialog.hide()
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE), !val)
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE_AS), !val)
 	%File.set_item_disabled(%File.get_item_index(FileMenu.CLOSE), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.CREATE_MISSING), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.BROWSE_ANIM), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.RELOAD), !val)
-	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.OPTIONS), !val)
-	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.GLOBAL_TWEAKS), !val)
+	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.SETTINGS), !val)
 	frames_strip.set_enabled(val)
 
 
@@ -542,7 +551,7 @@ func _close_skin() -> void:
 		preview.stop()
 		preview.sprite_frames = SpriteFrames.new()
 	for dialog in [
-		skin_settings_dialog, add_frames_dialog,
+		skin_settings_dialog, suit_settings_dialog, add_frames_dialog,
 		edit_frame_dialog, confirm_dialog, confirm_new_state,
 		image_creation_dialog,
 	]:
@@ -773,10 +782,8 @@ func _on_skin_menu_id_pressed(id: int) -> void:
 			reload_textures()
 		SkinMenu.BROWSE_OVERRIDES:
 			_on_browse_overrides_pressed()
-		SkinMenu.OPTIONS:
-			options_pressed()
-		SkinMenu.GLOBAL_TWEAKS:
-			_on_global_skin_tweaks_pressed()
+		SkinMenu.SETTINGS:
+			_open_skin_settings()
 
 
 func _on_help_menu_id_pressed(id: int) -> void:
@@ -960,8 +967,12 @@ func _seek_history(action_index: int) -> void:
 	_on_history_changed()
 	_refresh_suit_tweaks_dialog()
 	_refresh_global_skin_tweaks_dialog()
+	_refresh_misc_textures_dialog()
+	_refresh_global_sounds_dialog()
 	if _skin_settings_open():
 		skin_settings_dialog.update_reset_button()
+	if _suit_settings_open():
+		suit_settings_dialog.update_reset_button()
 
 
 ## Replay undo/redo until disk matches the last save (immediate-write actions like
@@ -2131,7 +2142,9 @@ func new_save_file(path: String) -> void:
 ## Loads skin_settings.tres from file system. Returns true if failed.
 func load_skin_settings_from_file(suit: String, path: String) -> bool:
 	var settings_path := path + "/" + suit + "/" + "skin_settings.tres"
-		
+	
+	if suit.begins_with("_"):
+		return true
 	if !FileAccess.file_exists(settings_path):
 		print("No skin for: " + settings_path)
 		return true
@@ -2307,7 +2320,7 @@ func _save_suit_tweaks_for(suit: String) -> void:
 
 
 func _on_suit_tweaks_pressed() -> void:
-	_open_skin_settings(SkinSettingsDialog.Tab.SUIT)
+	_open_suit_settings(SuitSettingsDialog.Tab.SUIT)
 
 
 func _bind_suit_tweaks_dialog() -> void:
@@ -2319,14 +2332,15 @@ func _bind_suit_tweaks_dialog() -> void:
 		_ensure_suit_tweaks(suit),
 		SuitTweaks.editor_schema(suit)
 	)
-	if skin_settings_dialog:
-		skin_settings_dialog.update_title()
+	if suit_settings_dialog:
+		suit_settings_dialog.update_title()
 
 
 func _refresh_suit_tweaks_dialog() -> void:
-	if !_skin_settings_open() || !current_skin_setting:
+	if !_suit_settings_open() || !current_skin_setting:
 		return
 	_bind_suit_tweaks_dialog()
+	_bind_suit_sounds_dialog()
 
 
 func _on_suit_tweak_changed(path: PackedStringArray, new_value: Variant, old_value: Variant) -> void:
@@ -2355,7 +2369,7 @@ func _on_suit_tweak_changed(path: PackedStringArray, new_value: Variant, old_val
 func _apply_suit_tweak(suit: String, path: PackedStringArray, value: Variant) -> void:
 	var tweaks := _ensure_suit_tweaks(suit)
 	SuitTweaks.set_at(tweaks, path, value)
-	if suit == _current_suit() && _skin_settings_open():
+	if suit == _current_suit() && _suit_settings_open():
 		suit_tweaks_dialog.sync_value(path, value)
 
 
@@ -2386,6 +2400,448 @@ func _popup_tweaks_window(dialog: Window) -> void:
 	dialog.popup_window = false
 	dialog.move_to_center()
 	Util.clamp_window_to_screen(dialog)
+
+
+func _bind_misc_textures_dialog() -> void:
+	if !current_folder_skin || !misc_textures_dialog:
+		return
+	var schema := MiscTextures.editor_schema()
+	schema["skin_root"] = current_folder_skin
+	misc_textures_dialog.bind("Misc Textures", MiscTextures.inject(current_folder_skin), schema)
+
+
+func _refresh_misc_textures_dialog() -> void:
+	if !_skin_settings_open() || !current_folder_skin:
+		return
+	_bind_misc_textures_dialog()
+	if skin_settings_dialog:
+		skin_settings_dialog.update_reset_button()
+
+
+func _on_misc_texture_changed(path: PackedStringArray, new_value: Variant, _old_value: Variant) -> void:
+	if path.is_empty() || !current_folder_skin:
+		return
+	var meta := MiscTextures.file_for(path)
+	if meta.is_empty():
+		return
+	var dest_name := str(meta.get("dest_name", ""))
+	var dest := current_folder_skin.path_join(dest_name)
+	var swap := _copied_file_swap(dest, dest_name, new_value, "PNG")
+	if swap.is_empty():
+		return
+	_commit_edit(
+		"Set %s" % SuitTweaks.display_name(path[path.size() - 1]),
+		_apply_misc_texture.bind(path, dest, swap.new_bytes, swap.new_name),
+		_apply_misc_texture.bind(path, dest, swap.old_bytes, swap.old_name)
+	)
+
+
+func _apply_misc_texture(path: PackedStringArray, dest: String, bytes: PackedByteArray, filename: String) -> void:
+	if !_write_copied_file(dest, bytes):
+		return
+	if _skin_settings_open():
+		misc_textures_dialog.sync_value(path, filename)
+		skin_settings_dialog.update_reset_button()
+
+
+func _on_misc_textures_reset() -> void:
+	if !current_folder_skin:
+		return
+	var before := _snapshot_copied_files(MiscTextures.FILES, current_folder_skin)
+	var after := _empty_copied_files(MiscTextures.FILES)
+	if _copied_files_equal(before, after):
+		return
+	_commit_edit(
+		"Reset Misc Textures",
+		_apply_misc_texture_files.bind(after.duplicate(true)),
+		_apply_misc_texture_files.bind(before)
+	)
+
+
+func _apply_misc_texture_files(files: Dictionary) -> void:
+	if !current_folder_skin:
+		return
+	for key in MiscTextures.FILES:
+		var dest_name := str(MiscTextures.FILES[key].get("dest_name", ""))
+		_write_copied_file(current_folder_skin.path_join(dest_name), files.get(key, PackedByteArray()))
+	_refresh_misc_textures_dialog()
+
+
+func _bind_global_sounds_dialog() -> void:
+	if !current_folder_skin || !global_sounds_dialog:
+		return
+	var schema := GlobalSounds.editor_schema()
+	schema["skin_root"] = GlobalSounds.sounds_dir(current_folder_skin)
+	global_sounds_dialog.bind("Global Sounds", GlobalSounds.inject(current_folder_skin), schema)
+
+
+func _refresh_global_sounds_dialog() -> void:
+	if !_skin_settings_open() || !current_folder_skin:
+		return
+	_bind_global_sounds_dialog()
+	if skin_settings_dialog:
+		skin_settings_dialog.update_reset_button()
+
+
+func _on_global_sound_changed(path: PackedStringArray, new_value: Variant, _old_value: Variant) -> void:
+	if path.is_empty() || !current_folder_skin:
+		return
+	var meta := GlobalSounds.file_for(path)
+	if meta.is_empty():
+		return
+	var key := path[path.size() - 1]
+	var dir := GlobalSounds.sounds_dir(current_folder_skin)
+	var op := str(new_value.get("op", "replace")) if new_value is Dictionary else "replace"
+	var snaps := {}
+	var action := "Set %s" % SuitTweaks.display_name(key)
+	match op:
+		"add":
+			snaps = _sound_add_snaps(dir, key, new_value)
+			action = "Add %s" % SuitTweaks.display_name(key)
+		"delete":
+			snaps = _sound_delete_snaps(dir, key, new_value)
+			action = "Remove %s variation" % SuitTweaks.display_name(key)
+		_:
+			snaps = _sound_replace_snaps(dir, key, new_value)
+	if snaps.is_empty():
+		return
+	_commit_edit(
+		action,
+		_apply_global_sound_set.bind(key, snaps.after.duplicate(true)),
+		_apply_global_sound_set.bind(key, snaps.before)
+	)
+
+
+func _apply_global_sound_set(key: String, snap: Dictionary) -> void:
+	var dir := GlobalSounds.sounds_dir(current_folder_skin)
+	_write_sound_snap(dir, snap)
+	if _skin_settings_open():
+		global_sounds_dialog.sync_value(PackedStringArray([key]), SuitSounds.list_existing(dir, key))
+		skin_settings_dialog.update_reset_button()
+
+
+func _on_global_sounds_reset() -> void:
+	if !current_folder_skin:
+		return
+	var dir := GlobalSounds.sounds_dir(current_folder_skin)
+	var before := {}
+	var after := {}
+	for key in GlobalSounds.DESCRIPTIONS.keys():
+		before[key] = _sound_variation_snap(dir, str(key))
+		after[key] = _sound_variation_snap_empty(str(key))
+	if _copied_files_equal(before, after):
+		return
+	_commit_edit(
+		"Reset Global Sounds",
+		_apply_global_sound_files.bind(after.duplicate(true)),
+		_apply_global_sound_files.bind(before)
+	)
+
+
+func _apply_global_sound_files(files: Dictionary) -> void:
+	var dir := GlobalSounds.sounds_dir(current_folder_skin)
+	if dir.is_empty():
+		return
+	for key in files:
+		var snap = files[key]
+		if snap is Dictionary:
+			_write_sound_snap(dir, snap)
+	_refresh_global_sounds_dialog()
+
+
+func _bind_suit_sounds_dialog() -> void:
+	if !current_skin_setting || !suit_sounds_dialog:
+		return
+	var suit := _current_suit()
+	var schema := SuitSounds.editor_schema(suit)
+	schema["skin_root"] = SuitSounds.sounds_dir(current_folder_skin, suit)
+	suit_sounds_dialog.bind(
+		"Suit Sounds - %s" % SuitTweaks.display_name(suit),
+		SuitSounds.inject(current_folder_skin, suit),
+		schema
+	)
+	if suit_settings_dialog:
+		suit_settings_dialog.update_title()
+
+
+func _refresh_suit_sounds_dialog() -> void:
+	if !_suit_settings_open() || !current_skin_setting:
+		return
+	_bind_suit_sounds_dialog()
+	if suit_settings_dialog:
+		suit_settings_dialog.update_reset_button()
+
+
+func _on_suit_sound_changed(path: PackedStringArray, new_value: Variant, _old_value: Variant) -> void:
+	if path.is_empty() || !current_folder_skin || !current_skin_setting:
+		return
+	var meta := SuitSounds.file_for(path)
+	if meta.is_empty():
+		return
+	var key := path[path.size() - 1]
+	var suit := _current_suit()
+	var dir := SuitSounds.sounds_dir(current_folder_skin, suit)
+	var op := str(new_value.get("op", "replace")) if new_value is Dictionary else "replace"
+	match op:
+		"add":
+			_commit_suit_sound_add(suit, key, dir, new_value)
+		"delete":
+			_commit_suit_sound_delete(suit, key, dir, new_value)
+		_:
+			_commit_suit_sound_replace(suit, key, dir, new_value)
+
+
+func _commit_suit_sound_add(suit: String, key: String, dir: String, new_value: Variant) -> void:
+	var snaps := _sound_add_snaps(dir, key, new_value)
+	if snaps.is_empty():
+		return
+	_commit_edit(
+		"Add %s (%s)" % [SuitTweaks.display_name(key), suit],
+		_apply_suit_sound_set.bind(suit, key, snaps.after.duplicate(true)),
+		_apply_suit_sound_set.bind(suit, key, snaps.before)
+	)
+
+
+func _commit_suit_sound_delete(suit: String, key: String, dir: String, new_value: Variant) -> void:
+	var snaps := _sound_delete_snaps(dir, key, new_value)
+	if snaps.is_empty():
+		return
+	_commit_edit(
+		"Remove %s variation (%s)" % [SuitTweaks.display_name(key), suit],
+		_apply_suit_sound_set.bind(suit, key, snaps.after),
+		_apply_suit_sound_set.bind(suit, key, snaps.before)
+	)
+
+
+func _commit_suit_sound_replace(suit: String, key: String, dir: String, new_value: Variant) -> void:
+	var snaps := _sound_replace_snaps(dir, key, new_value)
+	if snaps.is_empty():
+		return
+	_commit_edit(
+		"Set %s (%s)" % [SuitTweaks.display_name(key), suit],
+		_apply_suit_sound_set.bind(suit, key, snaps.after.duplicate(true)),
+		_apply_suit_sound_set.bind(suit, key, snaps.before)
+	)
+
+
+func _apply_suit_sound_set(suit: String, key: String, snap: Dictionary) -> void:
+	var dir := SuitSounds.sounds_dir(current_folder_skin, suit)
+	_write_sound_snap(dir, snap)
+	if suit == _current_suit() && _suit_settings_open():
+		suit_sounds_dialog.sync_value(PackedStringArray([key]), SuitSounds.list_existing(dir, key))
+		suit_settings_dialog.update_reset_button()
+
+
+func _on_suit_sounds_reset() -> void:
+	if !current_folder_skin || !current_skin_setting:
+		return
+	var suit := _current_suit()
+	var dir := SuitSounds.sounds_dir(current_folder_skin, suit)
+	var files_meta := SuitSounds.files_for_suit(suit)
+	var before := {}
+	var after := {}
+	for key in files_meta:
+		before[key] = _sound_variation_snap(dir, str(key))
+		after[key] = _sound_variation_snap_empty(str(key))
+	if _copied_files_equal(before, after):
+		return
+	_commit_edit(
+		"Reset Suit Sounds (%s)" % suit,
+		_apply_suit_sound_files.bind(suit, after.duplicate(true)),
+		_apply_suit_sound_files.bind(suit, before)
+	)
+
+
+func _apply_suit_sound_files(suit: String, files: Dictionary) -> void:
+	var dir := SuitSounds.sounds_dir(current_folder_skin, suit)
+	if dir.is_empty():
+		return
+	for key in files:
+		var snap = files[key]
+		if snap is Dictionary:
+			_write_sound_snap(dir, snap)
+	if suit == _current_suit():
+		_refresh_suit_sounds_dialog()
+
+
+func _write_sound_snap(dir: String, snap: Dictionary) -> void:
+	if dir.is_empty():
+		return
+	for dest_name in snap:
+		var bytes: PackedByteArray = snap[dest_name] if snap[dest_name] is PackedByteArray else PackedByteArray()
+		_write_copied_file(dir.path_join(str(dest_name)), bytes)
+
+
+func _sound_add_snaps(dir: String, key: String, new_value: Variant) -> Dictionary:
+	var sources := _sound_sources_from_value(new_value.get("sources", PackedStringArray()) if new_value is Dictionary else new_value)
+	var holes := SuitSounds.empty_slots(dir, key)
+	if sources.size() > holes.size():
+		OS.alert(
+			"This sound supports at most %d variations. Only the first %d new files were added." % [
+				SuitSounds.MAX_VARIATIONS, holes.size()
+			],
+			"Too Many Files"
+		)
+		sources = sources.slice(0, holes.size())
+	if sources.is_empty() || holes.is_empty():
+		return {}
+	var before := {}
+	var after := {}
+	for i in sources.size():
+		if !FileAccess.file_exists(sources[i]):
+			OS.alert("Could not read the selected OGG.", "Copy Failed")
+			return {}
+		var dest_name: String = holes[i]
+		before[dest_name] = PackedByteArray()
+		after[dest_name] = FileAccess.get_file_as_bytes(sources[i])
+	if _copied_files_equal(before, after):
+		return {}
+	return { "before": before, "after": after }
+
+
+func _sound_delete_snaps(dir: String, key: String, new_value: Variant) -> Dictionary:
+	var dest_name := str(new_value.get("dest_name", "")) if new_value is Dictionary else ""
+	if dest_name.is_empty() || dest_name not in SuitSounds.variation_dest_names(key):
+		return {}
+	var dest := dir.path_join(dest_name)
+	if dir.is_empty() || !FileAccess.file_exists(dest):
+		return {}
+	return {
+		"before": { dest_name: FileAccess.get_file_as_bytes(dest) },
+		"after": { dest_name: PackedByteArray() },
+	}
+
+
+func _sound_replace_snaps(dir: String, key: String, new_value: Variant) -> Dictionary:
+	var sources := _sound_sources_from_value(new_value)
+	if sources.size() > SuitSounds.MAX_VARIATIONS:
+		OS.alert(
+			"This sound supports at most %d variations. Only the first %d files were loaded." % [
+				SuitSounds.MAX_VARIATIONS, SuitSounds.MAX_VARIATIONS
+			],
+			"Too Many Files"
+		)
+		sources = sources.slice(0, SuitSounds.MAX_VARIATIONS)
+	var before := _sound_variation_snap(dir, key)
+	var after := _sound_variation_snap_empty(key)
+	var dests := SuitSounds.dest_names_for_count(key, sources.size())
+	for i in dests.size():
+		if !FileAccess.file_exists(sources[i]):
+			OS.alert("Could not read the selected OGG.", "Copy Failed")
+			return {}
+		after[dests[i]] = FileAccess.get_file_as_bytes(sources[i])
+	if _copied_files_equal(before, after):
+		return {}
+	return { "before": before, "after": after }
+
+
+func _sound_sources_from_value(value: Variant) -> PackedStringArray:
+	if value is Dictionary:
+		return _sound_sources_from_value(value.get("sources", PackedStringArray()))
+	var sources := PackedStringArray()
+	if value is PackedStringArray || value is Array:
+		for item in value:
+			@warning_ignore("confusable_local_declaration")
+			var text := str(item)
+			if !text.is_empty():
+				sources.append(text)
+		return sources
+	var text := str(value) if value != null else ""
+	if !text.is_empty() && text != "<null>":
+		sources.append(text)
+	return sources
+
+
+func _sound_variation_snap(dir: String, key: String) -> Dictionary:
+	var snap := {}
+	for dest_name in SuitSounds.variation_dest_names(key):
+		var dest := dir.path_join(dest_name) if !dir.is_empty() else ""
+		if dest && FileAccess.file_exists(dest):
+			snap[dest_name] = FileAccess.get_file_as_bytes(dest)
+		else:
+			snap[dest_name] = PackedByteArray()
+	return snap
+
+
+func _sound_variation_snap_empty(key: String) -> Dictionary:
+	var snap := {}
+	for dest_name in SuitSounds.variation_dest_names(key):
+		snap[dest_name] = PackedByteArray()
+	return snap
+
+
+func _copied_file_swap(dest: String, dest_name: String, new_value: Variant, kind_label: String) -> Dictionary:
+	if dest.is_empty() || dest_name.is_empty():
+		return {}
+	var old_bytes := PackedByteArray()
+	var old_name := ""
+	if FileAccess.file_exists(dest):
+		old_bytes = FileAccess.get_file_as_bytes(dest)
+		old_name = dest_name
+	var new_bytes := PackedByteArray()
+	var new_name := ""
+	var src := str(new_value)
+	if !src.is_empty():
+		if !FileAccess.file_exists(src):
+			OS.alert("Could not read the selected %s." % kind_label, "Copy Failed")
+			return {}
+		new_bytes = FileAccess.get_file_as_bytes(src)
+		new_name = dest_name
+	if new_bytes == old_bytes && new_name == old_name:
+		return {}
+	return {
+		"old_bytes": old_bytes,
+		"old_name": old_name,
+		"new_bytes": new_bytes,
+		"new_name": new_name,
+	}
+
+
+func _write_copied_file(dest: String, bytes: PackedByteArray) -> bool:
+	if dest.is_empty():
+		return false
+	if bytes.is_empty():
+		if FileAccess.file_exists(dest):
+			DirAccess.remove_absolute(dest)
+		return true
+	var dir := dest.get_base_dir()
+	if !dir.is_empty() && !DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
+	var file := FileAccess.open(dest, FileAccess.WRITE)
+	if !file:
+		OS.alert("Could not write %s." % dest.get_file(), "Copy Failed")
+		return false
+	file.store_buffer(bytes)
+	file.close()
+	return true
+
+
+func _snapshot_copied_files(files_meta: Dictionary, root: String) -> Dictionary:
+	var out := {}
+	for key in files_meta:
+		var dest_name := str(files_meta[key].get("dest_name", ""))
+		var dest := root.path_join(dest_name) if !root.is_empty() && !dest_name.is_empty() else ""
+		if dest && FileAccess.file_exists(dest):
+			out[key] = FileAccess.get_file_as_bytes(dest)
+		else:
+			out[key] = PackedByteArray()
+	return out
+
+
+func _empty_copied_files(files_meta: Dictionary) -> Dictionary:
+	var out := {}
+	for key in files_meta:
+		out[key] = PackedByteArray()
+	return out
+
+
+func _copied_files_equal(a: Dictionary, b: Dictionary) -> bool:
+	if a.size() != b.size():
+		return false
+	for key in a:
+		if !b.has(key) || a[key] != b[key]:
+			return false
+	return true
 
 
 func _global_skin_tweaks_path() -> String:
@@ -2422,10 +2878,6 @@ func _save_global_skin_tweaks() -> void:
 		return
 	file.store_string(JSON.stringify(data, "\t"))
 	file.close()
-
-
-func _on_global_skin_tweaks_pressed() -> void:
-	_open_skin_settings(SkinSettingsDialog.Tab.GLOBAL)
 
 
 func _bind_global_skin_tweaks_dialog() -> void:
@@ -2473,41 +2925,20 @@ func _commit_virtual_png(path: PackedStringArray, meta: Dictionary, new_value: V
 	if dest_name.is_empty():
 		return
 	var dest := current_folder_skin.path_join(dest_name)
-	var old_bytes := PackedByteArray()
-	var old_name := ""
-	if FileAccess.file_exists(dest):
-		old_bytes = FileAccess.get_file_as_bytes(dest)
-		old_name = dest_name
-	var new_bytes := PackedByteArray()
-	var new_name := ""
-	var src := str(new_value)
-	if !src.is_empty():
-		if !FileAccess.file_exists(src):
-			OS.alert("Could not read the selected PNG.", "Copy Failed")
-			return
-		new_bytes = FileAccess.get_file_as_bytes(src)
-		new_name = dest_name
-	if new_bytes == old_bytes && new_name == old_name:
+	var swap := _copied_file_swap(dest, dest_name, new_value, "PNG")
+	if swap.is_empty():
 		return
 	var label := SuitTweaks.display_name(path[path.size() - 1])
 	_commit_edit(
 		"Set %s (global)" % label,
-		_apply_virtual_png.bind(path, dest, new_bytes, new_name),
-		_apply_virtual_png.bind(path, dest, old_bytes, old_name)
+		_apply_virtual_png.bind(path, dest, swap.new_bytes, swap.new_name),
+		_apply_virtual_png.bind(path, dest, swap.old_bytes, swap.old_name)
 	)
 
 
 func _apply_virtual_png(path: PackedStringArray, dest: String, bytes: PackedByteArray, filename: String) -> void:
-	if bytes.is_empty():
-		if FileAccess.file_exists(dest):
-			DirAccess.remove_absolute(dest)
-	else:
-		var file := FileAccess.open(dest, FileAccess.WRITE)
-		if !file:
-			OS.alert("Could not write %s." % dest.get_file(), "Copy Failed")
-			return
-		file.store_buffer(bytes)
-		file.close()
+	if !_write_copied_file(dest, bytes):
+		return
 	SuitTweaks.set_at(_ensure_global_skin_tweaks(), path, filename)
 	if _skin_settings_open():
 		global_skin_tweaks_dialog.sync_value(path, filename)
@@ -2837,28 +3268,32 @@ func _restore_created_suit(snap: Dictionary) -> void:
 				DirAccess.remove_absolute(folder)
 	_applying_history = false
 
-## Skin Options / Suit Tweaks / Global Skin Tweaks (one tabbed window)
-func options_pressed() -> void:
-	_open_skin_settings(SkinSettingsDialog.Tab.OPTIONS)
-
-
 func _skin_settings_open() -> bool:
 	return skin_settings_dialog && skin_settings_dialog.visible
 
 
-func _open_skin_settings(tab: SkinSettingsDialog.Tab) -> void:
+func _suit_settings_open() -> bool:
+	return suit_settings_dialog && suit_settings_dialog.visible
+
+
+func _open_skin_settings() -> void:
 	if !current_folder_skin:
 		return
-	if tab == SkinSettingsDialog.Tab.SUIT && !current_skin_setting:
-		return
-	var was_open := _skin_settings_open()
-	if !was_open:
+	if !_skin_settings_open():
 		_reload_options_fields()
-	if current_skin_setting:
-		_bind_suit_tweaks_dialog()
+	_bind_misc_textures_dialog()
+	_bind_global_sounds_dialog()
 	_bind_global_skin_tweaks_dialog()
-	skin_settings_dialog.open_on_tab(tab)
 	_popup_tweaks_window(skin_settings_dialog)
+
+
+func _open_suit_settings(tab: SuitSettingsDialog.Tab) -> void:
+	if !current_folder_skin || !current_skin_setting:
+		return
+	_bind_suit_tweaks_dialog()
+	_bind_suit_sounds_dialog()
+	suit_settings_dialog.open_on_tab(tab)
+	_popup_tweaks_window(suit_settings_dialog)
 
 
 func reset_options_dialog() -> void:
@@ -2885,12 +3320,24 @@ func _on_skin_settings_reset() -> void:
 	match skin_settings_dialog.current_tab():
 		SkinSettingsDialog.Tab.OPTIONS:
 			_on_options_reset()
-		SkinSettingsDialog.Tab.SUIT:
-			_on_suit_tweaks_reset()
+		SkinSettingsDialog.Tab.MISC:
+			_on_misc_textures_reset()
+		SkinSettingsDialog.Tab.SOUNDS:
+			_on_global_sounds_reset()
 		SkinSettingsDialog.Tab.GLOBAL:
 			_on_global_skin_tweaks_reset()
 	if _skin_settings_open():
 		skin_settings_dialog.update_reset_button()
+
+
+func _on_suit_settings_reset() -> void:
+	match suit_settings_dialog.current_tab():
+		SuitSettingsDialog.Tab.SUIT:
+			_on_suit_tweaks_reset()
+		SuitSettingsDialog.Tab.SOUNDS:
+			_on_suit_sounds_reset()
+	if _suit_settings_open():
+		suit_settings_dialog.update_reset_button()
 
 
 func _on_options_field_changed(field: SkinSettingsDialog.Field, new_value: String) -> void:

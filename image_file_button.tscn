@@ -1,23 +1,59 @@
 [gd_scene format=3 uid="uid://dydpl06r6m1q0"]
 
 [ext_resource type="Script" uid="uid://dimgfilebtn0k1" path="res://scripts/image_file_button.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bguioptionarw01" path="res://icons/GuiOptionArrow.svg" id="2_arrow"]
 
-[node name="ImageFileButton" type="MenuButton"]
-custom_minimum_size = Vector2(132, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_list"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(0, 0, 0, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[node name="ImageFileButton" type="VBoxContainer"]
+custom_minimum_size = Vector2(160, 0)
 size_flags_horizontal = 8
+theme_override_constants/separation = 2
+script = ExtResource("1_script")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Menu" type="MenuButton" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(132, 0)
+layout_mode = 2
+size_flags_horizontal = 3
 clip_text = true
 text_overrun_behavior = 3
 flat = false
 alignment = 0
 text = "Select PNG..."
-script = ExtResource("1_script")
 
-[node name="FileDialog" type="FileDialog" parent="."]
-title = "Select PNG"
-ok_button_text = "Open"
-mode_overrides_title = false
-file_mode = 0
-access = 2
-filters = PackedStringArray("*.png ; PNG Images")
-use_native_dialog = true
+[node name="Expand" type="Button" parent="HBox"]
+unique_name_in_owner = true
 visible = false
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+focus_mode = 0
+icon = ExtResource("2_arrow")
+flat = true
+icon_alignment = 1
+expand_icon = false
+
+[node name="ListPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_list")
+
+[node name="List" type="VBoxContainer" parent="ListPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 0

@@ -27,9 +27,19 @@ autowrap_mode = 3
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
 
 [node name="TweakList" type="VBoxContainer" parent="VBox/Scroll" unique_id=933446335]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
+
+[node name="FilePicker" type="FileDialog" parent="." unique_id=1671048814]
+unique_name_in_owner = true
+title = "Select File"
+ok_button_text = "Open"
+mode_overrides_title = false
+file_mode = 0
+access = 2
+use_native_dialog = true
