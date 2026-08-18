@@ -240,6 +240,7 @@ func _make_control(path: PackedStringArray, value: Variant) -> Control:
 	if value is int || value is float:
 		var spin := SpinBox.new()
 		spin.set_script(SPIN_SCRIPT)
+		spin.disable_scroll = true
 		spin.custom_minimum_size = Vector2(108, 0)
 		spin.size_flags_horizontal = Control.SIZE_SHRINK_END
 		var lim := _limits_for(key)
@@ -454,6 +455,7 @@ func _make_vec2(path: PackedStringArray, vec: Vector2) -> Control:
 func _make_axis_spin(value: float) -> SpinBox:
 	var spin := SpinBox.new()
 	spin.set_script(SPIN_SCRIPT)
+	spin.disable_scroll = true
 	spin.custom_minimum_size = Vector2(72, 0)
 	spin.step = 0.01
 	spin.custom_arrow_step = 1.0
