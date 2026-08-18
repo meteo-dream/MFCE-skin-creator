@@ -108,7 +108,7 @@ func refresh(undo_redo: UndoRedo) -> void:
 	for i in range(count - 1, -1, -1):
 		var action_name := undo_redo.get_action_name(i)
 		if action_name.is_empty():
-			action_name = "Action %d" % (i + 1)
+			continue
 		list.add_item(action_name)
 		var idx := list.item_count - 1
 		list.set_item_metadata(idx, i)
@@ -118,7 +118,11 @@ func refresh(undo_redo: UndoRedo) -> void:
 	var begin_idx := list.item_count - 1
 	list.set_item_metadata(begin_idx, -1)
 	list.set_item_custom_fg_color(begin_idx, BEGINNING_COLOR)
-	var select_idx := begin_idx if current < 0 else (count - 1 - current)
+	var select_idx := begin_idx
+	for i in list.item_count:
+		if int(list.get_item_metadata(i)) == current:
+			select_idx = i
+			break
 	if select_idx >= 0 && select_idx < list.item_count:
 		list.select(select_idx)
 		list.ensure_current_is_visible()

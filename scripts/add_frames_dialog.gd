@@ -489,9 +489,9 @@ func _on_preview_draw() -> void:
 	var accent := Color(0.44, 0.73, 0.98)
 	for i in ordered.size():
 		var idx: int = ordered[i]
-		var x := idx % frame_count.x
-		var y := int(idx / float(frame_count.x))
-		var pos := draw_offset + Vector2(x, y) * (draw_frame_size + draw_sep)
+		@warning_ignore("integer_division")
+		var cell := Vector2i(idx % frame_count.x, idx / frame_count.x)
+		var pos := draw_offset + Vector2(cell) * (draw_frame_size + draw_sep)
 		preview.draw_rect(Rect2(pos + Vector2(5, 5), draw_frame_size - Vector2(10, 10)), Color(0, 0, 0, 0.35))
 		preview.draw_rect(Rect2(pos, draw_frame_size), Color.BLACK, false, 2.0)
 		preview.draw_rect(Rect2(pos + Vector2(2, 2), draw_frame_size - Vector2(4, 4)), accent, false, 2.0)
@@ -511,6 +511,7 @@ func _on_confirmed() -> void:
 	var separation := _get_separation()
 	var rects: Array[Rect2] = []
 	for idx in _ordered_indices():
-		var coords := Vector2(idx % frame_count.x, idx / float(frame_count.x))
-		rects.append(Rect2(Vector2(offset) + coords * Vector2(frame_size + separation), Vector2(frame_size)))
+		@warning_ignore("integer_division")
+		var cell := Vector2i(idx % frame_count.x, idx / frame_count.x)
+		rects.append(Rect2(Vector2(offset) + Vector2(cell) * Vector2(frame_size + separation), Vector2(frame_size)))
 	frames_chosen.emit(rects, preview.texture)

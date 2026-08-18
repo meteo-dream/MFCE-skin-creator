@@ -3,6 +3,37 @@ extends Node
 const PATH := "user://config.json"
 const RECENT_SKINS_MAX := 8
 
+const DEFAULTS := {
+	"zoom": 1.0,
+	"campos_x": 0.0,
+	"campos_y": 0.0,
+	"camera_origin_y": -32.0,
+	"anim_split_offset": -380,
+	"frames_split_offset": 0,
+	"grid_color": "4e4e4e",
+	"bg_color": "000000",
+	"thumb_size": 64,
+	"show_collisions": false,
+	"autoreload": true,
+	"history_split_offset": 10000,
+	"history_visible": false,
+	"history_floating": false,
+	"history_win_x": 0,
+	"history_win_y": 0,
+	"history_win_w": 280,
+	"history_win_h": 600,
+	"frames_floating": false,
+	"frames_win_x": 0,
+	"frames_win_y": 0,
+	"frames_win_w": 900,
+	"frames_win_h": 280,
+	"editor_scale": 1.0,
+	"volume": 0.3,
+	"index": 0,
+	"is_looping": false,
+	"is_muted": true,
+}
+
 var data: Dictionary = {}
 
 
@@ -36,71 +67,91 @@ func collect_and_save() -> void:
 	save()
 
 
+func reset_to_defaults() -> void:
+	var recents: Array = get_recent_skins()
+	data = DEFAULTS.duplicate(true)
+	data.recent_skins = recents
+	apply_to_scene()
+	var music := _n("MusicControls") as MusicControls
+	if music:
+		music.apply_from_config()
+	var camera := _n("Camera2D") as Camera2D
+	if camera:
+		camera.has_user_moved = false
+		camera.update_camera_position()
+		data.campos_x = camera.position.x
+		data.campos_y = camera.position.y
+	save()
+
+
 func apply_to_scene() -> void:
 	var scene := get_tree().current_scene
 	if !scene:
 		return
+	if scene.has_method("apply_editor_scale"):
+		scene.apply_editor_scale(float(data.get("editor_scale", DEFAULTS.editor_scale)))
 	var camera := _n("Camera2D") as Camera2D
 	if camera:
-		camera.set_logical_zoom(data.get("zoom", 1.0))
-		camera.origin_offset_y = float(data.get("camera_origin_y", -32.0))
-		camera.position.x = data.get("campos_x", 0.0)
-		camera.position.y = data.get("campos_y", 0.0)
+		camera.set_logical_zoom(float(data.get("zoom", DEFAULTS.zoom)))
+		camera.origin_offset_y = float(data.get("camera_origin_y", DEFAULTS.camera_origin_y))
+		camera.position.x = data.get("campos_x", DEFAULTS.campos_x)
+		camera.position.y = data.get("campos_y", DEFAULTS.campos_y)
 	var splitter := _n("FrameHSplitter") as SplitContainer
 	if splitter:
-		_apply_split_offset(splitter, int(data.get("anim_split_offset", -380)))
+		_apply_split_offset(splitter, int(data.get("anim_split_offset", DEFAULTS.anim_split_offset)))
 	var frames_vsplit := _n("FrameOuterVSplit") as SplitContainer
-	var frames_split := int(data.get("frames_split_offset", 0))
+	var frames_split := int(data.get("frames_split_offset", DEFAULTS.frames_split_offset))
 	if frames_vsplit:
 		_apply_split_offset(frames_vsplit, frames_split)
 	var grid_color := _n("GridColor") as ColorPickerButton
 	if grid_color:
-		grid_color.color = Color.from_string(data.get("grid_color", ""), grid_color.color)
+		grid_color.color = Color.from_string(str(data.get("grid_color", DEFAULTS.grid_color)), grid_color.color)
 		scene.color = grid_color.color
 	var bg_color := _n("BGcolor") as ColorPickerButton
 	if bg_color:
-		bg_color.color = Color.from_string(data.get("bg_color", ""), bg_color.color)
+		bg_color.color = Color.from_string(str(data.get("bg_color", DEFAULTS.bg_color)), bg_color.color)
 		RenderingServer.set_default_clear_color(bg_color.color)
 	var frames_dock := _n("FramesDock") as FramesStrip
 	if frames_dock:
 		frames_dock.set_docked_split_offset(frames_split)
-	var thumb := clampi(int(data.get("thumb_size", 64)), 32, 256)
+	var thumb := clampi(int(data.get("thumb_size", DEFAULTS.thumb_size)), 32, 256)
 	var thumb_spin := _n("ThumbSize") as SpinBox
 	if thumb_spin:
 		thumb_spin.value = thumb
 	if frames_dock:
 		frames_dock.set_thumb_size(thumb)
 	var editor := _n("Editor") as PopupMenu
-	var show_col: bool = data.get("show_collisions", false)
+	var show_col: bool = data.get("show_collisions", DEFAULTS.show_collisions)
 	if editor:
 		editor.set_item_checked(editor.get_item_index(Main.EditorMenu.SHOW_COLLISION), show_col)
-		editor.set_item_checked(editor.get_item_index(Main.EditorMenu.AUTORELOAD), data.get("autoreload", true))
+		editor.set_item_checked(editor.get_item_index(Main.EditorMenu.AUTORELOAD), data.get("autoreload", DEFAULTS.autoreload))
 	scene.show_collisions = show_col
 	var history_split := _n("HistoryHSplit") as SplitContainer
 	if history_split:
-		_apply_split_offset(history_split, int(data.get("history_split_offset", 10000)))
+		_apply_split_offset(history_split, int(data.get("history_split_offset", DEFAULTS.history_split_offset)))
 	var history_dock := _n("HistoryDock") as HistoryDock
-	var hist_vis: bool = data.get("history_visible", false)
+	var hist_vis: bool = data.get("history_visible", DEFAULTS.history_visible)
 	if history_dock:
-		if data.get("history_floating", false):
-			history_dock.set_floating(true, false)
+		history_dock.set_floating(bool(data.get("history_floating", DEFAULTS.history_floating)), false)
+		if history_dock.is_floating():
 			history_dock.apply_window_rect(Rect2i(
-				int(data.get("history_win_x", 0)),
-				int(data.get("history_win_y", 0)),
-				int(data.get("history_win_w", 280)),
-				int(data.get("history_win_h", 600))
+				int(data.get("history_win_x", DEFAULTS.history_win_x)),
+				int(data.get("history_win_y", DEFAULTS.history_win_y)),
+				int(data.get("history_win_w", DEFAULTS.history_win_w)),
+				int(data.get("history_win_h", DEFAULTS.history_win_h))
 			))
 		history_dock.set_open(hist_vis, false)
 	if editor:
 		editor.set_item_checked(editor.get_item_index(Main.EditorMenu.HISTORY), hist_vis)
-	if frames_dock && data.get("frames_floating", false):
-		frames_dock.set_floating(true, false)
-		frames_dock.apply_window_rect(Rect2i(
-			int(data.get("frames_win_x", 0)),
-			int(data.get("frames_win_y", 0)),
-			int(data.get("frames_win_w", 900)),
-			int(data.get("frames_win_h", 280))
-		))
+	if frames_dock:
+		frames_dock.set_floating(bool(data.get("frames_floating", DEFAULTS.frames_floating)), false)
+		if frames_dock.is_floating():
+			frames_dock.apply_window_rect(Rect2i(
+				int(data.get("frames_win_x", DEFAULTS.frames_win_x)),
+				int(data.get("frames_win_y", DEFAULTS.frames_win_y)),
+				int(data.get("frames_win_w", DEFAULTS.frames_win_w)),
+				int(data.get("frames_win_h", DEFAULTS.frames_win_h))
+			))
 	var origin_spin := _n("CameraOriginY") as SpinBox
 	if origin_spin && camera:
 		origin_spin.set_value_no_signal(camera.origin_offset_y)

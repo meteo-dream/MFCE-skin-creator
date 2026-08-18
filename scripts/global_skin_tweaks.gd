@@ -33,6 +33,7 @@ const DEFAULTS := {
 
 const DESCRIPTIONS := {
 	"particles_process_material": "Anything wider than 128 pixels on all sides may be cut off and disappear.",
+	"texture": "Custom particle PNG. Copied to the skin root as particle.png. If unset, the game uses the default starman particles.",
 	"particle_flag_disable_z": "Should the texture rotate along its velocity?",
 	"emission_shape": "Can be point, box, or sphere.",
 	"emission_sphere_radius": "From 0.01 to 128. In pixels, the in-game size is double this value.",
@@ -81,21 +82,76 @@ const CHOICES := {
 	"emission_shape": ["point", "box", "sphere"],
 }
 
+## Virtual PNG pickers (not written to global_skin_tweaks.json). dest_name is the copy in the skin root.
+const PNG_FILES := {
+	"particles_process_material/texture": { "dest_name": "particle.png" },
+}
+
 
 static func defaults() -> Dictionary:
 	return DEFAULTS.duplicate(true)
 
 
+static func editor_defaults() -> Dictionary:
+	var out := defaults()
+	var ppm: Dictionary = { "texture": "" }
+	for key in out.particles_process_material.keys():
+		ppm[key] = out.particles_process_material[key]
+	out.particles_process_material = ppm
+	return out
+
+
 static func merge_loaded(parsed: Dictionary) -> Dictionary:
-	return SuitTweaks.merge_with_defaults(parsed, defaults())
+	var loaded := SuitTweaks.merge_with_defaults(parsed, defaults())
+	strip_virtual_inplace(loaded)
+	return loaded
+
+
+static func png_file_for(path: PackedStringArray) -> Dictionary:
+	var meta = PNG_FILES.get("/".join(path), {})
+	return meta if meta is Dictionary else {}
+
+
+static func strip_virtual(data: Dictionary) -> Dictionary:
+	var out: Dictionary = data.duplicate(true)
+	strip_virtual_inplace(out)
+	return out
+
+
+static func strip_virtual_inplace(data: Dictionary) -> void:
+	for path_key in PNG_FILES.keys():
+		var parts: PackedStringArray = str(path_key).split("/")
+		if parts.is_empty():
+			continue
+		var parent: Variant = data
+		for i in parts.size() - 1:
+			if !(parent is Dictionary) || !parent.has(parts[i]):
+				parent = null
+				break
+			parent = parent[parts[i]]
+		if parent is Dictionary:
+			parent.erase(parts[parts.size() - 1])
+
+
+static func inject_virtual_files(tweaks: Dictionary, skin_root: String) -> void:
+	if skin_root.is_empty():
+		return
+	for path_key in PNG_FILES.keys():
+		var meta: Dictionary = PNG_FILES[path_key]
+		var dest_name := str(meta.get("dest_name", ""))
+		if dest_name.is_empty():
+			continue
+		var filename := dest_name if FileAccess.file_exists(skin_root.path_join(dest_name)) else ""
+		SuitTweaks.set_at(tweaks, PackedStringArray(str(path_key).split("/")), filename)
 
 
 static func editor_schema() -> Dictionary:
 	return {
-		"defaults": DEFAULTS,
+		"defaults": editor_defaults(),
 		"descriptions": DESCRIPTIONS,
 		"limits": LIMITS,
 		"skip": [],
 		"choices": CHOICES,
+		"png_files": PNG_FILES,
 		"hint": "Skin-wide flags used by the game. Saved to global_skin_tweaks.json in the skin root.",
 	}

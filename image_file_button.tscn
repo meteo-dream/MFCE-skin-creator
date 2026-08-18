@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://dydpl06r6m1q0"]
+
+[ext_resource type="Script" uid="uid://dimgfilebtn0k1" path="res://scripts/image_file_button.gd" id="1_script"]
+
+[node name="ImageFileButton" type="MenuButton"]
+custom_minimum_size = Vector2(132, 0)
+size_flags_horizontal = 8
+clip_text = true
+text_overrun_behavior = 3
+flat = false
+alignment = 0
+text = "Select PNG..."
+script = ExtResource("1_script")
+
+[node name="FileDialog" type="FileDialog" parent="."]
+title = "Select PNG"
+ok_button_text = "Open"
+mode_overrides_title = false
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png ; PNG Images")
+use_native_dialog = true
+visible = false

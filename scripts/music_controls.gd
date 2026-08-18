@@ -36,13 +36,19 @@ var index: int
 
 func _ready() -> void:
 	_on_h_slider_value_changed(volume)
+	apply_from_config()
+
+
+func apply_from_config() -> void:
 	if Config.data.get("is_looping", false):
 		index = int(Config.data.get("index", 0))
-	$Loop.button_pressed = Config.data.get("is_looping", false)
-	$Mute.button_pressed = Config.data.get("is_muted", true)
+	else:
+		index = 0
+	$Loop.set_pressed_no_signal(bool(Config.data.get("is_looping", false)))
+	$Mute.set_pressed_no_signal(bool(Config.data.get("is_muted", true)))
+	$CenterContainer/HSlider.value = float(Config.data.get("volume", volume))
 	play_music()
 	_on_mute_toggled($Mute.button_pressed)
-	$CenterContainer/HSlider.value = Config.data.get("volume", volume)
 
 
 func go_next() -> void:

@@ -102,9 +102,9 @@ static func defaults_for_suit(suit: String) -> Dictionary:
 	return out
 
 
-static func editor_schema() -> Dictionary:
+static func editor_schema(suit: String = "") -> Dictionary:
 	return {
-		"defaults": DEFAULTS,
+		"defaults": defaults_for_suit(suit),
 		"descriptions": DESCRIPTIONS,
 		"limits": LIMITS,
 		"skip": SKIP_IN_EDITOR,
@@ -136,8 +136,24 @@ static func merge_loaded(parsed: Dictionary, suit: String) -> Dictionary:
 	return loaded
 
 
+const _TITLE_SMALL_WORDS := [
+	"a", "an", "the",
+	"and", "but", "or", "nor", "for", "yet", "so",
+	"as", "at", "by", "in", "of", "on", "to", "from", "with", "per", "via",
+	"into", "onto", "over", "upon", "after", "before", "about", "under",
+]
+
+
 static func display_name(key: String) -> String:
-	return str(key).replacen("_", " ")
+	var words := str(key).replace("_", " ").split(" ", false)
+	var last := words.size() - 1
+	for i in words.size():
+		var lower := str(words[i]).to_lower()
+		if i != 0 && i != last && lower in _TITLE_SMALL_WORDS:
+			words[i] = lower
+		else:
+			words[i] = lower.capitalize()
+	return " ".join(words)
 
 
 static func description_for(key: String) -> String:

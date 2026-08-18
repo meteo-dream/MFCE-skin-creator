@@ -6,8 +6,7 @@ const ICON_PLAY := preload("res://icons/Play.svg")
 const ICON_PAUSE := preload("res://icons/Pause.svg")
 const BACKGROUND_FPS := 10
 
-enum FileMenu { NEW, OPEN, SAVE, SAVE_AS }
-enum EditMenu { UNDO, REDO }
+enum FileMenu { NEW, OPEN, SAVE, SAVE_AS, SEP_FILE, UNDO, REDO, SEP_EDIT, SEP_QUIT, QUIT, CLOSE }
 enum EditorMenu { SETTINGS, SEP_EDITOR, SHOW_COLLISION, AUTORELOAD, SEP_HISTORY, HISTORY }
 enum SkinMenu { CREATE_MISSING, BROWSE_ANIM, RELOAD, SEP_OVERRIDES, BROWSE_OVERRIDES, SEP_SKIN, OPTIONS, GLOBAL_TWEAKS }
 enum HelpMenu { ABOUT }
@@ -63,6 +62,9 @@ var _saved_version: int = 0
 var _applying_history := false
 var _seeking_history := false
 var _updating_ui := false
+var _merge_origin: Dictionary = {}
+var _merge_origin_ms: Dictionary = {}
+const _MERGE_WINDOW_MS := 800
 var _pending_after_unsaved: Callable
 var _edit_region_before := Rect2()
 var _edit_region_suit: String
@@ -88,8 +90,11 @@ var _edit_region_frame: int = -1
 @onready var play_button: Button = %Play
 @onready var stop_button: Button = %Stop
 @onready var add_frames_button: Button = %AddFrames
+@onready var duplicate_frame_button: Button = %DuplicateFrame
 @onready var edit_frame_button: Button = %EditFrame
 @onready var delete_frame_button: Button = %DeleteFrame
+@onready var move_frame_left_button: Button = %MoveFrameLeft
+@onready var move_frame_right_button: Button = %MoveFrameRight
 @onready var loop_checkbox: CheckBox = %Loop
 @onready var loop_offset_spin: SpinBox = %LoopOffset
 @onready var anim_time_label: Label = %AnimTime
@@ -178,8 +183,12 @@ func _ready() -> void:
 	frames_strip.frame_selected.connect(set_frame)
 	frames_strip.frames_reordered.connect(_on_frames_reordered)
 	frames_strip.add_frames_pressed.connect(_on_add_frames_pressed)
+	frames_strip.duplicate_frame_pressed.connect(_on_duplicate_frame_pressed)
 	frames_strip.edit_frame_pressed.connect(_on_edit_frame_pressed)
 	frames_strip.delete_frame_pressed.connect(_on_delete_frame_pressed)
+	frames_strip.move_frame_left_pressed.connect(_on_move_frame_left_pressed)
+	frames_strip.move_frame_right_pressed.connect(_on_move_frame_right_pressed)
+	frames_strip.open_in_explorer_pressed.connect(_on_open_animation_in_explorer)
 	_setup_toolbar_hotkeys()
 	_setup_dock_shortcut_forwarding()
 	add_frames_dialog.frames_chosen.connect(add_frames_from_rects)
@@ -193,7 +202,6 @@ func _ready() -> void:
 	_setup_file_shortcuts()
 	_setup_menu_shortcuts()
 	_setup_menu_bar_scale_fix()
-	%Edit.id_pressed.connect(_on_edit_menu_id_pressed)
 	%Editor.id_pressed.connect(_on_editor_menu_id_pressed)
 	%Skin.id_pressed.connect(_on_skin_menu_id_pressed)
 	%Help.id_pressed.connect(_on_help_menu_id_pressed)
@@ -258,17 +266,32 @@ func _notification(what: int) -> void:
 
 
 func _setup_toolbar_hotkeys() -> void:
-	for button in [add_frames_button, edit_frame_button, delete_frame_button, play_button, stop_button]:
+	for button in [
+		add_frames_button, duplicate_frame_button, edit_frame_button, delete_frame_button,
+		move_frame_left_button, move_frame_right_button, play_button, stop_button,
+	]:
 		button.focus_mode = Control.FOCUS_NONE
 	add_frames_button.tooltip_text = "Add frames from the animation spritesheet. (A)"
+	duplicate_frame_button.tooltip_text = "Duplicate the selected frame(s) and insert them after the selection. (Ctrl+D)"
 	edit_frame_button.tooltip_text = "Edit the selected frame region on the spritesheet. (E)"
 	delete_frame_button.tooltip_text = "Remove the selected frame(s) from the animation. (Del)"
+	move_frame_left_button.tooltip_text = "Move the selected frame(s) left. (Ctrl+Left)"
+	move_frame_right_button.tooltip_text = "Move the selected frame(s) right. (Ctrl+Right)"
 	play_button.tooltip_text = "Toggles between Play and Pause. (Space)"
 	stop_button.tooltip_text = "Stop animation and set frame to 0. (Esc)"
 
 
 func _gui_is_editing_text() -> bool:
 	return _gui_is_editing_text_in(get_viewport())
+
+
+func _any_gui_editing_text() -> bool:
+	if _gui_is_editing_text_in(get_viewport()):
+		return true
+	for win: Window in get_tree().root.find_children("*", "Window", true, false):
+		if win.visible && _gui_is_editing_text_in(win):
+			return true
+	return false
 
 
 func _gui_is_editing_text_in(vp: Viewport) -> bool:
@@ -314,8 +337,10 @@ func _on_editor_dock_window_input(event: InputEvent, win: Window) -> void:
 
 
 func _is_toolbar_hotkey(key: InputEventKey) -> bool:
-	if key.alt_pressed || key.shift_pressed || key.is_command_or_control_pressed():
+	if key.alt_pressed || key.shift_pressed:
 		return false
+	if key.is_command_or_control_pressed():
+		return key.keycode in [KEY_LEFT, KEY_RIGHT, KEY_D]
 	match key.keycode:
 		KEY_SPACE, KEY_ESCAPE, KEY_A, KEY_E, KEY_DELETE:
 			return true
@@ -333,6 +358,26 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if _gui_is_editing_text() || _is_foreign_window_focused():
+		return
+	if key.is_command_or_control_pressed():
+		if _any_gui_editing_text():
+			return
+		match key.keycode:
+			KEY_LEFT:
+				if move_frame_left_button.disabled:
+					return
+				_on_move_frame_left_pressed()
+			KEY_RIGHT:
+				if move_frame_right_button.disabled:
+					return
+				_on_move_frame_right_pressed()
+			KEY_D:
+				if duplicate_frame_button.disabled:
+					return
+				_on_duplicate_frame_pressed()
+			_:
+				return
+		get_viewport().set_input_as_handled()
 		return
 	match key.keycode:
 		KEY_SPACE:
@@ -425,6 +470,7 @@ func _set_controls_working(val: bool) -> void:
 			global_skin_tweaks_dialog.hide()
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE), !val)
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE_AS), !val)
+	%File.set_item_disabled(%File.get_item_index(FileMenu.CLOSE), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.CREATE_MISSING), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.BROWSE_ANIM), !val)
 	%Skin.set_item_disabled(%Skin.get_item_index(SkinMenu.RELOAD), !val)
@@ -484,6 +530,48 @@ func new_pressed() -> void:
 		"Save changes to this skin before creating a new one?"
 	)
 
+## Called when "close skin" is chosen.
+func close_skin_pressed() -> void:
+	if !current_folder_skin:
+		return
+	_confirm_unsaved(
+		_close_skin,
+		"Save changes to this skin before closing?"
+	)
+
+
+func _close_skin() -> void:
+	play_button.button_pressed = false
+	play_button.icon = ICON_PLAY
+	if preview:
+		preview.stop()
+		preview.sprite_frames = SpriteFrames.new()
+	for dialog in [
+		suit_tweaks_dialog, global_skin_tweaks_dialog, add_frames_dialog,
+		edit_frame_dialog, options_dialog, confirm_dialog, confirm_new_state,
+		image_creation_dialog,
+	]:
+		if dialog && dialog.visible:
+			dialog.hide()
+	skin_settings.clear()
+	current_skin_setting = null
+	current_folder_skin = ""
+	skin_name = ""
+	misc_files = {}
+	_suit_tweaks_by_suit.clear()
+	_loop_offsets.clear()
+	_global_skin_tweaks.clear()
+	_last_state = -1
+	pending_state = 0
+	current_frame = null
+	_refresh_frames_strip()
+	_set_controls_working(false)
+	_reset_history()
+	_refresh_welcome_recents()
+	%WelcomePanel.show()
+	version_label.text = PROJECT_NAME % [version_string]
+	_update_window_title()
+
 ## Called when "play" button toggled.
 func play_toggled(toggle: bool) -> void:
 	if toggle:
@@ -536,6 +624,17 @@ func _on_browse_pressed() -> void:
 	print("Browsing: " + _path)
 	OS.shell_open(_path)
 
+func _on_open_animation_in_explorer() -> void:
+	if !current_folder_skin || !current_skin_setting || !preview.animation:
+		return
+	var folder := current_folder_skin.path_join(str(current_skin_setting.name))
+	var file := folder.path_join(String(preview.animation) + ".png")
+	print("Browsing: " + file)
+	if FileAccess.file_exists(file):
+		OS.shell_show_in_file_manager(file)
+	else:
+		OS.shell_open(folder)
+
 func _on_browse_overrides_pressed() -> void:
 	print("Browsing: " + AnimOverrides.OVERRIDES_DIR)
 	OS.shell_open(OS.get_user_data_dir().path_join("slicing_overrides"))
@@ -551,6 +650,14 @@ func _on_file_menu_id_pressed(id: int) -> void:
 			save_pressed()
 		FileMenu.SAVE_AS:
 			save_as_pressed()
+		FileMenu.CLOSE:
+			close_skin_pressed()
+		FileMenu.UNDO:
+			_undo_pressed()
+		FileMenu.REDO:
+			_redo_pressed()
+		FileMenu.QUIT:
+			_on_app_close_requested()
 
 func _key_shortcut(keycode: Key, ctrl := false, shift := false) -> Shortcut:
 	var ev := InputEventKey.new()
@@ -567,6 +674,12 @@ func _setup_file_shortcuts() -> void:
 	%File.set_item_shortcut(%File.get_item_index(FileMenu.OPEN), _key_shortcut(KEY_O, true), true)
 	%File.set_item_shortcut(%File.get_item_index(FileMenu.SAVE), _key_shortcut(KEY_S, true), true)
 	%File.set_item_shortcut(%File.get_item_index(FileMenu.SAVE_AS), _key_shortcut(KEY_S, true, true), true)
+	%File.set_item_shortcut(%File.get_item_index(FileMenu.CLOSE), _key_shortcut(KEY_W, true), true)
+	%File.set_item_shortcut(%File.get_item_index(FileMenu.UNDO), _key_shortcut(KEY_Z, true), true)
+	var redo_sc := _key_shortcut(KEY_Y, true)
+	redo_sc.events.append_array(_key_shortcut(KEY_Z, true, true).events)
+	%File.set_item_shortcut(%File.get_item_index(FileMenu.REDO), redo_sc, true)
+	%File.set_item_shortcut(%File.get_item_index(FileMenu.QUIT), _key_shortcut(KEY_Q, true), true)
 
 
 func _setup_menu_shortcuts() -> void:
@@ -727,6 +840,23 @@ func _on_editor_settings_canceled() -> void:
 	editor_settings_window.hide()
 
 
+func _on_reset_editor_settings_pressed() -> void:
+	var dlg: ConfirmationDialog = %ResetEditorSettingsDialog
+	if dlg.visible:
+		dlg.grab_focus()
+		return
+	dlg.popup_centered()
+	scene.scale_window(dlg)
+
+
+func _on_reset_editor_settings_confirmed() -> void:
+	Config.reset_to_defaults()
+	_sync_editor_settings_controls(_live_editor_settings())
+	_editor_settings_snapshot = _live_editor_settings()
+	_on_window_resized()
+	_update_background_fps()
+
+
 func _on_frames_thumb_size_changed(thumb_px: int) -> void:
 	if int(%ThumbSize.value) != thumb_px:
 		%ThumbSize.set_value_no_signal(thumb_px)
@@ -739,7 +869,6 @@ func _on_frames_thumb_size_changed(thumb_px: int) -> void:
 func _setup_history() -> void:
 	undo_redo.max_steps = 256
 	undo_redo.version_changed.connect(_on_history_changed)
-	_setup_edit_shortcuts()
 	unsaved_dialog.ok_button_text = "Save"
 	unsaved_dialog.add_button("Don't Save", true, "discard")
 	unsaved_dialog.confirmed.connect(_on_unsaved_save_pressed)
@@ -750,33 +879,24 @@ func _setup_history() -> void:
 	history_dock.seek_requested.connect(_seek_history)
 	history_dock.open_changed.connect(_on_history_dock_open_changed)
 	history_dock.refresh(undo_redo)
+	for dialog in _undo_blocking_dialogs():
+		if dialog:
+			dialog.visibility_changed.connect(_update_undo_redo_menu)
 	_reset_history()
 
 
-func _setup_edit_shortcuts() -> void:
-	%Edit.set_item_shortcut(%Edit.get_item_index(EditMenu.UNDO), _key_shortcut(KEY_Z, true), true)
-	var redo_sc := _key_shortcut(KEY_Y, true)
-	redo_sc.events.append_array(_key_shortcut(KEY_Z, true, true).events)
-	%Edit.set_item_shortcut(%Edit.get_item_index(EditMenu.REDO), redo_sc, true)
-
-
-func _on_edit_menu_id_pressed(id: int) -> void:
-	match id:
-		EditMenu.UNDO:
-			_undo_pressed()
-		EditMenu.REDO:
-			_redo_pressed()
+func _undo_blocking_dialogs() -> Array:
+	return [
+		add_frames_dialog, edit_frame_dialog, modal_window, confirm_dialog,
+		confirm_new_state, options_dialog, unsaved_dialog, save_dialog,
+		open_dialog, new_save_dialog, editor_settings_window, about_window,
+	]
 
 
 func _can_undo_redo() -> bool:
 	if !current_skin_setting:
 		return false
-	for dialog in [
-		add_frames_dialog, edit_frame_dialog, modal_window, confirm_dialog,
-		confirm_new_state, options_dialog, unsaved_dialog, save_dialog,
-		open_dialog, new_save_dialog, editor_settings_window, about_window,
-		image_creation_dialog,
-	]:
+	for dialog in _undo_blocking_dialogs():
 		if dialog && dialog.visible:
 			return false
 	return true
@@ -789,7 +909,7 @@ func _undo_pressed() -> void:
 
 
 func _redo_pressed() -> void:
-	if !_can_undo_redo() || !undo_redo.has_redo():
+	if !_can_undo_redo() || !_has_visible_redo():
 		return
 	undo_redo.redo()
 
@@ -847,6 +967,22 @@ func _seek_history(action_index: int) -> void:
 	_refresh_global_skin_tweaks_dialog()
 
 
+## Replay undo/redo until disk matches the last save (immediate-write actions like
+## creating a suit or copying particle.png).
+func _revert_to_saved_version() -> void:
+	if undo_redo.get_version() == _saved_version:
+		return
+	_seeking_history = true
+	while undo_redo.get_version() > _saved_version && undo_redo.has_undo():
+		if !undo_redo.undo():
+			break
+	while undo_redo.get_version() < _saved_version && undo_redo.has_redo():
+		if !undo_redo.redo():
+			break
+	_seeking_history = false
+	_on_history_changed()
+
+
 func _has_unsaved_changes() -> bool:
 	if !current_skin_setting:
 		return false
@@ -858,20 +994,20 @@ func _has_unsaved_changes() -> bool:
 
 
 func _update_undo_redo_menu() -> void:
-	var undo_idx: int = %Edit.get_item_index(EditMenu.UNDO)
-	var redo_idx: int = %Edit.get_item_index(EditMenu.REDO)
+	var undo_idx: int = %File.get_item_index(FileMenu.UNDO)
+	var redo_idx: int = %File.get_item_index(FileMenu.REDO)
 	var can_undo := _can_undo_redo() && undo_redo.has_undo()
-	var can_redo := _can_undo_redo() && undo_redo.has_redo()
-	%Edit.set_item_disabled(undo_idx, !can_undo)
-	%Edit.set_item_disabled(redo_idx, !can_redo)
+	var can_redo := _can_undo_redo() && _has_visible_redo()
+	%File.set_item_disabled(undo_idx, !can_undo)
+	%File.set_item_disabled(redo_idx, !can_redo)
 	var undo_name := undo_redo.get_current_action_name()
-	%Edit.set_item_text(undo_idx, "Undo" if undo_name.is_empty() else "Undo %s" % undo_name)
+	%File.set_item_text(undo_idx, "Undo" if undo_name.is_empty() else "Undo %s" % undo_name)
 	if can_redo:
 		var redo_action := undo_redo.get_current_action() + 1
 		var redo_name := undo_redo.get_action_name(redo_action)
-		%Edit.set_item_text(redo_idx, "Redo" if redo_name.is_empty() else "Redo %s" % redo_name)
+		%File.set_item_text(redo_idx, "Redo" if redo_name.is_empty() else "Redo %s" % redo_name)
 	else:
-		%Edit.set_item_text(redo_idx, "Redo")
+		%File.set_item_text(redo_idx, "Redo")
 
 
 func _update_window_title() -> void:
@@ -879,7 +1015,7 @@ func _update_window_title() -> void:
 	if current_folder_skin:
 		title += " - " + (skin_name if !skin_name.is_empty() else current_folder_skin)
 	if _has_unsaved_changes():
-		title = "* " + title
+		title = "(*) " + title
 	DisplayServer.window_set_title(title)
 
 
@@ -899,6 +1035,90 @@ func _commit_edit(
 	undo_redo.add_undo_method(undo_method)
 	undo_redo.commit_action(execute)
 	_on_history_changed()
+
+
+func _commit_merged_value_edit(
+	action_name: String,
+	do_method: Callable,
+	undo_method: Callable,
+	new_value: Variant,
+	old_value: Variant,
+	execute: bool = true
+) -> void:
+	if _history_values_equal(new_value, old_value):
+		return
+	_remember_merge_origin(action_name, old_value)
+	_commit_edit(action_name, do_method, undo_method, UndoRedo.MERGE_ENDS, execute)
+	if !_merge_origin.has(action_name) || !_history_values_equal(new_value, _merge_origin[action_name]):
+		return
+	_drop_last_action()
+	_merge_origin.erase(action_name)
+	_merge_origin_ms.erase(action_name)
+
+
+func _remember_merge_origin(action_name: String, old_value: Variant) -> void:
+	var now := Time.get_ticks_msec()
+	var in_window := int(_merge_origin_ms.get(action_name, 0)) + _MERGE_WINDOW_MS > now
+	var same_action := undo_redo.has_undo() && undo_redo.get_current_action_name() == action_name
+	if !(in_window && same_action && _merge_origin.has(action_name)):
+		if old_value is Dictionary:
+			_merge_origin[action_name] = old_value.duplicate(true)
+		elif old_value is Array:
+			_merge_origin[action_name] = old_value.duplicate()
+		else:
+			_merge_origin[action_name] = old_value
+	_merge_origin_ms[action_name] = now
+
+
+func _history_values_equal(a: Variant, b: Variant) -> bool:
+	if SuitTweaks.is_vec2(a) || SuitTweaks.is_vec2(b):
+		return SuitTweaks.to_vec2(a).is_equal_approx(SuitTweaks.to_vec2(b))
+	if a is Dictionary && b is Dictionary:
+		if a.size() != b.size():
+			return false
+		for key in a.keys():
+			if !b.has(key) || !_history_values_equal(a[key], b[key]):
+				return false
+		return true
+	if a is Array && b is Array:
+		if a.size() != b.size():
+			return false
+		for i in a.size():
+			if !_history_values_equal(a[i], b[i]):
+				return false
+		return true
+	if a is float || b is float:
+		return is_equal_approx(float(a), float(b))
+	return a == b
+
+
+func _has_visible_redo() -> bool:
+	if !undo_redo.has_redo():
+		return false
+	return !undo_redo.get_action_name(undo_redo.get_current_action() + 1).is_empty()
+
+
+func _drop_last_action() -> void:
+	if !undo_redo.has_undo():
+		return
+	_seeking_history = true
+	_applying_history = true
+	undo_redo.undo()
+	_applying_history = false
+	if undo_redo.has_method("discard_redo"):
+		undo_redo.call("discard_redo")
+	elif undo_redo.has_redo():
+		undo_redo.create_action("")
+		undo_redo.commit_action(false)
+		undo_redo.undo()
+	_seeking_history = false
+	_on_history_changed()
+
+
+func _tweak_history_merge(new_value: Variant) -> UndoRedo.MergeMode:
+	if typeof(new_value) in [TYPE_FLOAT, TYPE_INT, TYPE_ARRAY] || SuitTweaks.is_html_color(new_value):
+		return UndoRedo.MERGE_ENDS
+	return UndoRedo.MERGE_DISABLE
 
 
 func _current_suit() -> String:
@@ -922,6 +1142,16 @@ func _commit_frames_change(
 ) -> void:
 	var after := _snapshot_frames(anim)
 	if before.regions == after.regions && before.durations == after.durations:
+		return
+	if merge_mode == UndoRedo.MERGE_ENDS:
+		_commit_merged_value_edit(
+			action_name,
+			_restore_anim_frames.bind(suit, String(anim), after.regions, after.durations, after.frame),
+			_restore_anim_frames.bind(suit, String(anim), before.regions, before.durations, before.frame),
+			after,
+			before,
+			false
+		)
 		return
 	_commit_edit(
 		action_name,
@@ -1099,6 +1329,8 @@ func _on_unsaved_save_pressed() -> void:
 func _on_unsaved_custom_action(action: String) -> void:
 	if action != "discard":
 		return
+	unsaved_dialog.hide()
+	_revert_to_saved_version()
 	var cb := _pending_after_unsaved
 	_pending_after_unsaved = Callable()
 	if cb.is_valid():
@@ -1136,11 +1368,12 @@ func speed_val_changed(value: float) -> void:
 	var new_val := clampf(value, 0.0, 120.0)
 	if is_equal_approx(old, new_val):
 		return
-	_commit_edit(
+	_commit_merged_value_edit(
 		"Set Speed (%s)" % anim,
 		_apply_speed.bind(_current_suit(), anim, new_val),
 		_apply_speed.bind(_current_suit(), anim, old),
-		UndoRedo.MERGE_ENDS
+		new_val,
+		old
 	)
 
 ## Calls when "frames" spinbox changed
@@ -1176,11 +1409,12 @@ func duration_val_changed(value: float) -> void:
 	var action := "Set Duration (%s #%d)" % [anim, int(new_map.keys()[0])]
 	if new_map.size() > 1:
 		action = "Set Duration (%s, %d frames)" % [anim, new_map.size()]
-	_commit_edit(
+	_commit_merged_value_edit(
 		action,
 		_apply_durations.bind(_current_suit(), anim, new_map.duplicate(), preview.frame),
 		_apply_durations.bind(_current_suit(), anim, old_map.duplicate(), preview.frame),
-		UndoRedo.MERGE_ENDS
+		new_map,
+		old_map
 	)
 
 #region SpinboxSetters
@@ -1408,6 +1642,8 @@ func set_state(idx: int) -> void:
 	var state: String = state_option.get_item_text(idx)
 	
 	if !skin_settings.has(state):
+		if _applying_history:
+			return
 		pending_state = idx
 		if _last_state != -1:
 			state_option.select(_last_state)
@@ -1557,10 +1793,83 @@ func _on_edit_frame_confirmed() -> void:
 func _on_delete_frame_pressed() -> void:
 	if !preview.animation:
 		return
+	_remove_frames_at(_selected_frame_indices())
+
+
+func _selected_frame_indices() -> PackedInt32Array:
 	var indices := frames_strip.get_selected_indices()
-	if indices.is_empty():
+	if indices.is_empty() && preview:
 		indices = PackedInt32Array([preview.frame])
-	_remove_frames_at(indices)
+	return indices
+
+
+func _on_move_frame_left_pressed() -> void:
+	_move_selected_frames(-1)
+
+
+func _on_move_frame_right_pressed() -> void:
+	_move_selected_frames(1)
+
+
+func _move_selected_frames(direction: int) -> void:
+	if !preview || !preview.animation:
+		return
+	var indices := _selected_frame_indices()
+	if indices.is_empty():
+		return
+	var min_i := indices[0]
+	var max_i := indices[0]
+	for i in indices:
+		min_i = mini(min_i, i)
+		max_i = maxi(max_i, i)
+	var count := preview.sprite_frames.get_frame_count(preview.animation)
+	if direction < 0:
+		if min_i <= 0:
+			return
+		_on_frames_reordered(indices, min_i - 1)
+	else:
+		if max_i >= count - 1:
+			return
+		_on_frames_reordered(indices, max_i + 2)
+
+
+func _on_duplicate_frame_pressed() -> void:
+	if !preview || !preview.animation:
+		return
+	var anim := preview.animation
+	var count := preview.sprite_frames.get_frame_count(anim)
+	var sources: Array[int] = []
+	for i in _selected_frame_indices():
+		if i >= 0 && i < count && !sources.has(i):
+			sources.append(i)
+	sources.sort()
+	if sources.is_empty():
+		return
+	var before := _snapshot_frames(anim)
+	var regions: Array = current_skin_setting.animation_regions[anim]
+	var durations: Array = current_skin_setting.animation_durations[anim]
+	var insert_at := sources[sources.size() - 1] + 1
+	var new_selected := PackedInt32Array()
+	for j in sources.size():
+		var src: int = sources[j]
+		var tex: Texture2D = preview.sprite_frames.get_frame_texture(anim, src)
+		var dur := preview.sprite_frames.get_frame_duration(anim, src)
+		var copy: Texture2D = tex.duplicate() if tex else tex
+		preview.sprite_frames.add_frame(anim, copy, dur, insert_at + j)
+		regions.insert(insert_at + j, regions[src])
+		durations.insert(insert_at + j, durations[src])
+		new_selected.append(insert_at + j)
+	_last_frame_amount = preview.sprite_frames.get_frame_count(anim)
+	_updating_ui = true
+	spinbox_frames.value = _last_frame_amount
+	_updating_ui = false
+	update_anim_time()
+	set_frame(insert_at)
+	_refresh_frames_strip(new_selected)
+	var action := "Duplicate Frame #%d (%s)" % [sources[0], String(anim)]
+	if sources.size() > 1:
+		action = "Duplicate %d Frames (%s)" % [sources.size(), String(anim)]
+	_commit_frames_change(action, _current_suit(), anim, before)
 
 
 func _remove_frame_at(index: int) -> void:
@@ -1807,7 +2116,7 @@ func new_save_file(path: String) -> void:
 	_loop_offsets.clear()
 	_global_skin_tweaks.clear()
 	load_misc_files(path)
-	_on_dialog_new_settings_confirmed()
+	_create_default_suit_settings(false)
 	
 	skin_name = path.get_slice("/", path.get_slice_count("/") - 1)
 	reset_options_dialog()
@@ -2012,7 +2321,7 @@ func _bind_suit_tweaks_dialog() -> void:
 	suit_tweaks_dialog.bind(
 		"Suit Tweaks - %s" % SuitTweaks.display_name(suit),
 		_ensure_suit_tweaks(suit),
-		SuitTweaks.editor_schema()
+		SuitTweaks.editor_schema(suit)
 	)
 
 
@@ -2027,7 +2336,16 @@ func _on_suit_tweak_changed(path: PackedStringArray, new_value: Variant, old_val
 		return
 	var suit := _current_suit()
 	var label := SuitTweaks.display_name(path[path.size() - 1])
-	var merge := UndoRedo.MERGE_ENDS if typeof(new_value) in [TYPE_FLOAT, TYPE_INT, TYPE_ARRAY] else UndoRedo.MERGE_DISABLE
+	var merge := _tweak_history_merge(new_value)
+	if merge == UndoRedo.MERGE_ENDS:
+		_commit_merged_value_edit(
+			"Set %s (%s)" % [label, suit],
+			_apply_suit_tweak.bind(suit, path, new_value),
+			_apply_suit_tweak.bind(suit, path, old_value),
+			new_value,
+			old_value
+		)
+		return
 	_commit_edit(
 		"Set %s (%s)" % [label, suit],
 		_apply_suit_tweak.bind(suit, path, new_value),
@@ -2081,11 +2399,11 @@ func _global_skin_tweaks_path() -> String:
 func _load_global_skin_tweaks() -> void:
 	_global_skin_tweaks = GlobalSkinTweaks.defaults()
 	var path := _global_skin_tweaks_path()
-	if !path || !FileAccess.file_exists(path):
-		return
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if parsed is Dictionary:
-		_global_skin_tweaks = GlobalSkinTweaks.merge_loaded(parsed)
+	if path && FileAccess.file_exists(path):
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if parsed is Dictionary:
+			_global_skin_tweaks = GlobalSkinTweaks.merge_loaded(parsed)
+	GlobalSkinTweaks.inject_virtual_files(_global_skin_tweaks, current_folder_skin)
 
 
 func _ensure_global_skin_tweaks() -> Dictionary:
@@ -2100,7 +2418,7 @@ func _save_global_skin_tweaks() -> void:
 	var path := _global_skin_tweaks_path()
 	if !path:
 		return
-	var data: Dictionary = _global_skin_tweaks.duplicate(true)
+	var data: Dictionary = GlobalSkinTweaks.strip_virtual(_global_skin_tweaks)
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if !file:
 		return
@@ -2116,11 +2434,11 @@ func _on_global_skin_tweaks_pressed() -> void:
 
 
 func _bind_global_skin_tweaks_dialog() -> void:
-	global_skin_tweaks_dialog.bind(
-		"Global Skin Tweaks",
-		_ensure_global_skin_tweaks(),
-		GlobalSkinTweaks.editor_schema()
-	)
+	var tweaks := _ensure_global_skin_tweaks()
+	GlobalSkinTweaks.inject_virtual_files(tweaks, current_folder_skin)
+	var schema := GlobalSkinTweaks.editor_schema()
+	schema["skin_root"] = current_folder_skin
+	global_skin_tweaks_dialog.bind("Global Skin Tweaks", tweaks, schema)
 
 
 func _refresh_global_skin_tweaks_dialog() -> void:
@@ -2132,14 +2450,72 @@ func _refresh_global_skin_tweaks_dialog() -> void:
 func _on_global_skin_tweak_changed(path: PackedStringArray, new_value: Variant, old_value: Variant) -> void:
 	if path.is_empty() || !current_folder_skin:
 		return
+	var png := GlobalSkinTweaks.png_file_for(path)
+	if !png.is_empty():
+		_commit_virtual_png(path, png, new_value)
+		return
 	var label := SuitTweaks.display_name(path[path.size() - 1])
-	var merge := UndoRedo.MERGE_ENDS if typeof(new_value) in [TYPE_FLOAT, TYPE_INT, TYPE_ARRAY] else UndoRedo.MERGE_DISABLE
+	var merge := _tweak_history_merge(new_value)
+	if merge == UndoRedo.MERGE_ENDS:
+		_commit_merged_value_edit(
+			"Set %s (global)" % label,
+			_apply_global_skin_tweak.bind(path, new_value),
+			_apply_global_skin_tweak.bind(path, old_value),
+			new_value,
+			old_value
+		)
+		return
 	_commit_edit(
 		"Set %s (global)" % label,
 		_apply_global_skin_tweak.bind(path, new_value),
 		_apply_global_skin_tweak.bind(path, old_value),
 		merge
 	)
+
+
+func _commit_virtual_png(path: PackedStringArray, meta: Dictionary, new_value: Variant) -> void:
+	var dest_name := str(meta.get("dest_name", ""))
+	if dest_name.is_empty():
+		return
+	var dest := current_folder_skin.path_join(dest_name)
+	var old_bytes := PackedByteArray()
+	var old_name := ""
+	if FileAccess.file_exists(dest):
+		old_bytes = FileAccess.get_file_as_bytes(dest)
+		old_name = dest_name
+	var new_bytes := PackedByteArray()
+	var new_name := ""
+	var src := str(new_value)
+	if !src.is_empty():
+		if !FileAccess.file_exists(src):
+			OS.alert("Could not read the selected PNG.", "Copy Failed")
+			return
+		new_bytes = FileAccess.get_file_as_bytes(src)
+		new_name = dest_name
+	if new_bytes == old_bytes && new_name == old_name:
+		return
+	var label := SuitTweaks.display_name(path[path.size() - 1])
+	_commit_edit(
+		"Set %s (global)" % label,
+		_apply_virtual_png.bind(path, dest, new_bytes, new_name),
+		_apply_virtual_png.bind(path, dest, old_bytes, old_name)
+	)
+
+
+func _apply_virtual_png(path: PackedStringArray, dest: String, bytes: PackedByteArray, filename: String) -> void:
+	if bytes.is_empty():
+		if FileAccess.file_exists(dest):
+			DirAccess.remove_absolute(dest)
+	else:
+		var file := FileAccess.open(dest, FileAccess.WRITE)
+		if !file:
+			OS.alert("Could not write %s." % dest.get_file(), "Copy Failed")
+			return
+		file.store_buffer(bytes)
+		file.close()
+	SuitTweaks.set_at(_ensure_global_skin_tweaks(), path, filename)
+	if global_skin_tweaks_dialog.visible:
+		global_skin_tweaks_dialog.sync_value(path, filename)
 
 
 func _apply_global_skin_tweak(path: PackedStringArray, value: Variant) -> void:
@@ -2198,11 +2574,12 @@ func _on_loop_offset_changed(value: float) -> void:
 	var new_val := int(value)
 	if old == new_val:
 		return
-	_commit_edit(
+	_commit_merged_value_edit(
 		"Set Loop Offset (%s)" % anim,
 		_apply_loop_offset.bind(_current_suit(), anim, new_val),
 		_apply_loop_offset.bind(_current_suit(), anim, old),
-		UndoRedo.MERGE_ENDS
+		new_val,
+		old
 	)
 
 
@@ -2220,9 +2597,9 @@ func _fill_preview_speed_items() -> void:
 		else:
 			preview_speed_option.add_item(text)
 	if _is_frog_hop_walk():
-		preview_speed_option.tooltip_text = "Frog walk uses fixed speed_scale: hop ×1, warp ×2, level complete ×2.4."
+		preview_speed_option.tooltip_text = "Frog walk uses fixed Speed Scale: hop ×1, warp ×2, level complete ×2.4."
 	else:
-		preview_speed_option.tooltip_text = "Sets AnimatedSprite2D.speed_scale to match in-game walking:\nclampf(|speed.x| × 0.008 × animation_walking_speed, min, max)."
+		preview_speed_option.tooltip_text = "Sets Speed Scale to match in-game walking speed."
 
 
 func _preview_move_speed_scale(kind: int) -> float:
@@ -2330,12 +2707,28 @@ func _on_dialog_new_state_confirmed() -> void:
 
 ## The "This suit is incomplete..." confirmation action
 func _on_dialog_new_settings_confirmed() -> void:
-	var item := state_option.get_item_text(pending_state)
-	var er := AnimGenerator.copy_settings(item, current_folder_skin)
-	if er != "Success":
-		return OS.alert(er)
+	_create_default_suit_settings(true)
+
+
+func _create_default_suit_settings(record_undo: bool) -> void:
+	if !current_folder_skin || pending_state < 0 || pending_state >= state_option.item_count:
+		return
+	var suit := state_option.get_item_text(pending_state)
+	var folder := current_folder_skin.path_join(suit)
+	var settings_path := folder.path_join("skin_settings.tres")
+	var created_dir := !DirAccess.dir_exists_absolute(folder)
+	var had_settings := FileAccess.file_exists(settings_path)
+	var old_settings := PackedByteArray()
+	if had_settings:
+		old_settings = FileAccess.get_file_as_bytes(settings_path)
+	var pngs_before := _png_names_at(folder)
+	var prev_idx := _last_state
 	
-	if load_skin_settings_from_file(item, current_folder_skin):
+	var er := AnimGenerator.copy_settings(suit, current_folder_skin)
+	if er != "Success":
+		OS.alert(er)
+		return
+	if load_skin_settings_from_file(suit, current_folder_skin):
 		return
 	
 	state_option.select(pending_state)
@@ -2345,9 +2738,109 @@ func _on_dialog_new_settings_confirmed() -> void:
 		if !anim_option.is_item_disabled(i):
 			enabled_count += 1
 		if enabled_count >= 2:
-			return
+			break
+	if enabled_count < 2:
+		_on_dialog_new_state_confirmed()
 	
-	_on_dialog_new_state_confirmed()
+	if !record_undo || prev_idx < 0:
+		return
+	var created_pngs := {}
+	for png_name in _png_names_at(folder).keys():
+		if pngs_before.has(png_name):
+			continue
+		created_pngs[png_name] = FileAccess.get_file_as_bytes(folder.path_join(str(png_name)))
+	var new_settings := PackedByteArray()
+	if FileAccess.file_exists(settings_path):
+		new_settings = FileAccess.get_file_as_bytes(settings_path)
+	var after := {
+		"suit": suit,
+		"select_idx": pending_state,
+		"has_skin": true,
+		"settings_bytes": new_settings,
+		"had_settings_file": true,
+		"pngs": created_pngs,
+		"remove_pngs": PackedStringArray(),
+		"remove_dir": false,
+	}
+	var before := {
+		"suit": suit,
+		"select_idx": prev_idx,
+		"has_skin": false,
+		"settings_bytes": old_settings,
+		"had_settings_file": had_settings,
+		"pngs": {},
+		"remove_pngs": PackedStringArray(created_pngs.keys()),
+		"remove_dir": created_dir,
+	}
+	_commit_edit(
+		"Create Default Settings (%s)" % suit,
+		_restore_created_suit.bind(after.duplicate(true)),
+		_restore_created_suit.bind(before.duplicate(true)),
+		UndoRedo.MERGE_DISABLE,
+		false
+	)
+
+
+func _png_names_at(folder: String) -> Dictionary:
+	var out := {}
+	if !DirAccess.dir_exists_absolute(folder):
+		return out
+	for file_name in DirAccess.get_files_at(folder):
+		if str(file_name).get_extension().to_lower() == "png":
+			out[file_name] = true
+	return out
+
+
+func _write_file_bytes(path: String, bytes: PackedByteArray) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if !file:
+		return
+	file.store_buffer(bytes)
+	file.close()
+
+
+func _restore_created_suit(snap: Dictionary) -> void:
+	if !current_folder_skin || snap.is_empty():
+		return
+	_applying_history = true
+	var suit := str(snap.suit)
+	var folder := current_folder_skin.path_join(suit)
+	var settings_path := folder.path_join("skin_settings.tres")
+	if snap.has_skin:
+		if !DirAccess.dir_exists_absolute(folder):
+			DirAccess.make_dir_absolute(folder)
+		_write_file_bytes(settings_path, snap.settings_bytes)
+		var pngs: Dictionary = snap.pngs
+		for png_name in pngs.keys():
+			_write_file_bytes(folder.path_join(str(png_name)), pngs[png_name])
+		load_skin_settings_from_file(suit, current_folder_skin)
+		var idx := int(snap.select_idx)
+		state_option.select(idx)
+		set_state(idx)
+		_update_animations()
+		update_anim_options()
+	else:
+		var prev_idx := int(snap.select_idx)
+		if current_skin_setting && str(current_skin_setting.name) == suit:
+			if prev_idx >= 0 && prev_idx < state_option.item_count:
+				var prev_name := state_option.get_item_text(prev_idx)
+				if skin_settings.has(prev_name):
+					state_option.select(prev_idx)
+					set_state(prev_idx)
+		skin_settings.erase(suit)
+		_suit_tweaks_by_suit.erase(suit)
+		for png_name in snap.remove_pngs:
+			var png_path := folder.path_join(str(png_name))
+			if FileAccess.file_exists(png_path):
+				DirAccess.remove_absolute(png_path)
+		if snap.had_settings_file:
+			_write_file_bytes(settings_path, snap.settings_bytes)
+		elif FileAccess.file_exists(settings_path):
+			DirAccess.remove_absolute(settings_path)
+		if snap.remove_dir && DirAccess.dir_exists_absolute(folder):
+			if DirAccess.get_files_at(folder).is_empty() && DirAccess.get_directories_at(folder).is_empty():
+				DirAccess.remove_absolute(folder)
+	_applying_history = false
 
 ## Skin Options button
 func options_pressed() -> void:

@@ -5,8 +5,12 @@ signal frame_selected(index: int)
 signal selection_changed(indices: PackedInt32Array)
 signal frames_reordered(indices: PackedInt32Array, to: int)
 signal add_frames_pressed
+signal duplicate_frame_pressed
 signal edit_frame_pressed
 signal delete_frame_pressed
+signal move_frame_left_pressed
+signal move_frame_right_pressed
+signal open_in_explorer_pressed
 signal thumb_size_changed(size: int)
 signal floating_changed(floating: bool)
 
@@ -17,12 +21,17 @@ const DROP_LINE := Color(0.45, 0.68, 1.0, 0.95)
 const FLOAT_MIN_WIDTH := 640
 const FLOAT_MIN_HEIGHT := 240
 
+enum ItemMenu { OPEN_IN_EXPLORER }
+
 var thumb_size := 64
 
 @onready var list: ItemList = %FrameList
 @onready var add_button: Button = %AddFrames
+@onready var duplicate_button: Button = %DuplicateFrame
 @onready var edit_button: Button = %EditFrame
 @onready var delete_button: Button = %DeleteFrame
+@onready var move_left_button: Button = %MoveFrameLeft
+@onready var move_right_button: Button = %MoveFrameRight
 
 var _updating := false
 var _drop_index := -1
@@ -36,6 +45,7 @@ var _split: SplitContainer
 var _window: Window
 var _float_button: Button
 var _docked_split_offset := 0
+var _item_menu: PopupMenu
 
 
 func _ready() -> void:
@@ -51,8 +61,12 @@ func _ready() -> void:
 	list.draw.connect(_on_list_draw)
 	list.set_drag_forwarding(_on_get_drag_data, _on_can_drop_data, _on_drop_data)
 	add_button.pressed.connect(func(): add_frames_pressed.emit())
+	duplicate_button.pressed.connect(func(): duplicate_frame_pressed.emit())
 	edit_button.pressed.connect(func(): edit_frame_pressed.emit())
 	delete_button.pressed.connect(func(): delete_frame_pressed.emit())
+	move_left_button.pressed.connect(func(): move_frame_left_pressed.emit())
+	move_right_button.pressed.connect(func(): move_frame_right_pressed.emit())
+	_setup_item_menu()
 	_setup_scroll_edges()
 	_split = get_parent() as SplitContainer
 	_window = %FramesWindow
@@ -70,7 +84,7 @@ func set_enabled(enabled: bool) -> void:
 		_v_edge.mouse_filter = Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
 	if _h_edge:
 		_h_edge.mouse_filter = Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
-	_update_delete_enabled()
+	_update_frame_edit_buttons()
 
 
 func set_thumb_size(thumb_px: int) -> void:
@@ -212,7 +226,7 @@ func rebuild(sprite_frames: SpriteFrames, anim: StringName, selected: int, keep_
 	list.clear()
 	if !sprite_frames || !sprite_frames.has_animation(anim):
 		_updating = false
-		_update_delete_enabled()
+		_update_frame_edit_buttons()
 		return
 	var count := sprite_frames.get_frame_count(anim)
 	for i in count:
@@ -235,7 +249,7 @@ func rebuild(sprite_frames: SpriteFrames, anim: StringName, selected: int, keep_
 		if list.is_selected(_primary_index):
 			list.select(_primary_index, false)
 		list.ensure_current_is_visible()
-	_update_delete_enabled()
+	_update_frame_edit_buttons()
 	_updating = false
 
 
@@ -257,7 +271,7 @@ func select_frame(index: int, collapse_multi := false) -> void:
 	list.select(index)
 	_primary_index = index
 	list.ensure_current_is_visible()
-	_update_delete_enabled()
+	_update_frame_edit_buttons()
 	_updating = false
 
 
@@ -278,7 +292,7 @@ func select_indices(indices: PackedInt32Array, primary: int = -1) -> void:
 		list.select(primary, false)
 		_primary_index = primary
 	list.ensure_current_is_visible()
-	_update_delete_enabled()
+	_update_frame_edit_buttons()
 	_updating = false
 
 
@@ -307,8 +321,23 @@ func _item_text(index: int, duration: float) -> String:
 	return "%d [× %.2f]" % [index, duration]
 
 
-func _update_delete_enabled() -> void:
-	delete_button.disabled = add_button.disabled || list.item_count <= 1
+func _update_frame_edit_buttons() -> void:
+	var idle := add_button.disabled || list.item_count <= 0
+	duplicate_button.disabled = idle
+	var selected := list.get_selected_items()
+	if selected.is_empty() && _primary_index >= 0 && _primary_index < list.item_count:
+		selected = PackedInt32Array([_primary_index])
+	var min_i := 0
+	var max_i := 0
+	if !selected.is_empty():
+		min_i = selected[0]
+		max_i = selected[0]
+		for i in selected:
+			min_i = mini(min_i, i)
+			max_i = maxi(max_i, i)
+	delete_button.disabled = idle || list.item_count <= 1
+	move_left_button.disabled = idle || selected.is_empty() || min_i <= 0
+	move_right_button.disabled = idle || selected.is_empty() || max_i >= list.item_count - 1
 
 
 func _emit_selection(primary: int) -> void:
@@ -337,21 +366,55 @@ func _on_empty_clicked(_at_position: Vector2, mouse_button_index: int) -> void:
 	list.select(keep)
 	_primary_index = keep
 	_updating = false
-	_update_delete_enabled()
+	_update_frame_edit_buttons()
 	selection_changed.emit(list.get_selected_items())
 
 
 func _on_multi_selected(_index: int, _selected: bool) -> void:
 	if _updating:
 		return
-	_update_delete_enabled()
+	_update_frame_edit_buttons()
 	selection_changed.emit(list.get_selected_items())
 
 
 func _on_item_clicked(index: int, _at_position: Vector2, mouse_button_index: int) -> void:
-	if _updating || mouse_button_index != MOUSE_BUTTON_LEFT:
+	if _updating:
+		return
+	if mouse_button_index == MOUSE_BUTTON_RIGHT:
+		if add_button.disabled:
+			return
+		if !list.is_selected(index):
+			_updating = true
+			list.select(index)
+			_updating = false
+			_emit_selection(index)
+		_popup_item_menu()
+		return
+	if mouse_button_index != MOUSE_BUTTON_LEFT:
 		return
 	_emit_selection(index)
+
+
+func _setup_item_menu() -> void:
+	_item_menu = PopupMenu.new()
+	_item_menu.add_item("Open in File Explorer", ItemMenu.OPEN_IN_EXPLORER)
+	add_child(_item_menu)
+	_item_menu.id_pressed.connect(_on_item_menu_id_pressed)
+
+
+func _popup_item_menu() -> void:
+	if !_item_menu:
+		return
+	Util.fit_window_scale(_item_menu, 180, 32)
+	_item_menu.reset_size()
+	_item_menu.position = DisplayServer.mouse_get_position()
+	_item_menu.popup()
+
+
+func _on_item_menu_id_pressed(id: int) -> void:
+	match id:
+		ItemMenu.OPEN_IN_EXPLORER:
+			open_in_explorer_pressed.emit()
 
 
 func _on_item_activated(_index: int) -> void:
@@ -394,7 +457,7 @@ func _select_all() -> void:
 	for i in list.item_count:
 		list.select(i, i == 0)
 	_updating = false
-	_update_delete_enabled()
+	_update_frame_edit_buttons()
 	_emit_selection(0)
 
 

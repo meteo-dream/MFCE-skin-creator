@@ -6,6 +6,8 @@ signal reset_requested
 
 const SPIN_SCRIPT := preload("res://scripts/spinbox.gd")
 const COLOR_SCRIPT := preload("res://scripts/color_pick_button.gd")
+const IMAGE_FILE_BUTTON := preload("res://image_file_button.tscn")
+const REVERT_ICON := preload("res://icons/ReloadSmall.svg")
 
 @onready var list: VBoxContainer = %TweakList
 @onready var reset_button: Button = %ResetTweaks
@@ -15,12 +17,19 @@ const COLOR_SCRIPT := preload("res://scripts/color_pick_button.gd")
 var _updating := false
 var _ignore_close := false
 var _controls: Dictionary = {}
+var _revert_buttons: Dictionary = {}
 var _values: Dictionary = {}
 var _defaults: Dictionary = {}
 var _descriptions: Dictionary = {}
 var _limits: Dictionary = {}
 var _skip: Array = []
 var _choices: Dictionary = {}
+var _png_files: Dictionary = {}
+var _skin_root := ""
+var _blank_normal := StyleBoxEmpty.new()
+var _blank_normal_box: StyleBoxEmpty
+var _icon_hover := StyleBoxFlat.new()
+var _icon_pressed := StyleBoxFlat.new()
 
 
 func _ready() -> void:
@@ -28,10 +37,49 @@ func _ready() -> void:
 	transient = true
 	popup_window = false
 	unresizable = false
+	_setup_icon_button_styles()
 	close_requested.connect(_on_close_requested)
 	focus_entered.connect(_on_focus_entered)
 	close_button.pressed.connect(hide)
 	reset_button.pressed.connect(func(): reset_requested.emit())
+	reset_button.tooltip_text = "Reset all values to their defaults."
+	_update_reset_button()
+
+
+func _setup_icon_button_styles() -> void:
+	_blank_normal.set_content_margin_all(0)
+	for box in [_icon_hover, _icon_pressed]:
+		box.set_content_margin_all(0)
+		box.set_border_width_all(0)
+		box.set_expand_margin_all(0)
+		box.set_corner_radius_all(3)
+		box.corner_detail = 5
+	_blank_normal_box = _blank_normal.duplicate()
+	_blank_normal_box.content_margin_left = 3
+	_icon_hover.bg_color = Color(1, 1, 1, 0.1)
+	_icon_pressed.bg_color = Color(1, 1, 1, 0.16)
+
+
+func _apply_icon_button_styles(button: BaseButton) -> void:
+	button.add_theme_stylebox_override("normal", _blank_normal)
+	button.add_theme_stylebox_override("hover", _icon_hover)
+	button.add_theme_stylebox_override("pressed", _icon_pressed)
+	button.add_theme_stylebox_override("hover_pressed", _icon_pressed)
+	button.add_theme_stylebox_override("focus", _blank_normal)
+	button.add_theme_constant_override("h_separation", 0)
+	button.add_theme_constant_override("align_to_largest_stylebox", 0)
+
+
+func _apply_checkbox_styles(box: CheckBox) -> void:
+	box.add_theme_stylebox_override("normal", _blank_normal_box)
+	box.add_theme_stylebox_override("pressed", _blank_normal_box)
+	box.add_theme_stylebox_override("hover", _icon_hover)
+	box.add_theme_stylebox_override("hover_pressed", _icon_hover)
+	box.add_theme_stylebox_override("focus", _blank_normal_box)
+	box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	box.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.custom_minimum_size = Vector2(22, 22)
 
 
 func _on_focus_entered() -> void:
@@ -54,6 +102,8 @@ func bind(window_title: String, tweaks: Dictionary, schema: Dictionary) -> void:
 	_limits = schema.get("limits", {})
 	_skip = schema.get("skip", [])
 	_choices = schema.get("choices", {})
+	_png_files = schema.get("png_files", {})
+	_skin_root = str(schema.get("skin_root", ""))
 	_values = tweaks
 	_rebuild()
 
@@ -65,6 +115,7 @@ func sync_value(path: PackedStringArray, value: Variant) -> void:
 	_updating = true
 	_set_control(_controls[key], value)
 	_updating = false
+	_update_revert_visible(path)
 
 
 func _rebuild() -> void:
@@ -73,8 +124,10 @@ func _rebuild() -> void:
 		list.remove_child(child)
 		child.queue_free()
 	_controls.clear()
+	_revert_buttons.clear()
 	if _values.is_empty() || _defaults.is_empty():
 		_updating = false
+		_update_reset_button()
 		return
 	for key in _defaults.keys():
 		if key in _skip:
@@ -85,6 +138,7 @@ func _rebuild() -> void:
 		else:
 			_add_row(PackedStringArray([key]), value, false)
 	_updating = false
+	_update_reset_button()
 
 
 func _add_section(key: String, nested: Dictionary) -> void:
@@ -102,8 +156,9 @@ func _add_section(key: String, nested: Dictionary) -> void:
 
 func _add_row(path: PackedStringArray, value: Variant, indented: bool) -> void:
 	var key := path[path.size() - 1]
+	var path_copy := path.duplicate()
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", 4)
 	if indented:
 		var pad := Control.new()
 		pad.custom_minimum_size = Vector2(12, 0)
@@ -116,23 +171,41 @@ func _add_row(path: PackedStringArray, value: Variant, indented: bool) -> void:
 	label.clip_text = true
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(label)
-	var control := _make_control(path, value)
+	var revert := Button.new()
+	revert.icon = REVERT_ICON
+	revert.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	revert.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	revert.focus_mode = Control.FOCUS_NONE
+	revert.custom_minimum_size = Vector2(22, 16)
+	_apply_icon_button_styles(revert)
+	revert.tooltip_text = "Revert Value"
+	revert.pressed.connect(func(): _revert_property(path_copy))
+	row.add_child(revert)
+	_revert_buttons[_path_key(path_copy)] = revert
+	var control := _make_control(path_copy, value)
 	if control:
 		control.tooltip_text = _desc(key)
 		row.add_child(control)
-		_controls[_path_key(path)] = control
+		_controls[_path_key(path_copy)] = control
 	row.tooltip_text = _desc(key)
 	list.add_child(row)
+	var end_pad := Control.new()
+	end_pad.custom_minimum_size = Vector2(4, 0)
+	row.add_child(end_pad)
+	_update_revert_visible(path_copy)
 
 
 func _make_control(path: PackedStringArray, value: Variant) -> Control:
 	var key := path[path.size() - 1]
+	var png := _png_meta(path)
+	if !png.is_empty():
+		return _make_png_picker(path, str(value) if value != null else "", png)
 	if _choices.has(key):
 		return _make_choice(path, str(value), _choices[key])
 	if value is bool:
 		var box := CheckBox.new()
 		box.button_pressed = value
-		box.custom_minimum_size = Vector2(26, 26)
+		_apply_checkbox_styles(box)
 		box.toggled.connect(func(on: bool): _emit_change(path, on))
 		return box
 	if SuitTweaks.is_html_color(value):
@@ -153,11 +226,10 @@ func _make_control(path: PackedStringArray, value: Variant) -> Control:
 		var lim := _limits_for(key)
 		spin.min_value = float(lim.get("min", -99999.0))
 		spin.max_value = float(lim.get("max", 99999.0))
-		spin.step = float(lim.get("step", 1.0 if value is int else 0.01))
 		spin.allow_greater = !lim.has("max")
 		spin.allow_lesser = !lim.has("min")
+		_apply_spin_step(spin, lim, value)
 		spin.value = float(value)
-		spin.rounded = is_equal_approx(spin.step, 1.0)
 		spin.value_changed.connect(func(v: float):
 			if spin.rounded:
 				_emit_change(path, int(v))
@@ -166,6 +238,22 @@ func _make_control(path: PackedStringArray, value: Variant) -> Control:
 		)
 		return spin
 	return null
+
+
+func _make_png_picker(path: PackedStringArray, value: String, meta: Dictionary) -> Control:
+	var picker := IMAGE_FILE_BUTTON.instantiate()
+	var dest_name := str(meta.get("dest_name", ""))
+	var dest_path := _skin_root.path_join(dest_name) if !_skin_root.is_empty() && !dest_name.is_empty() else ""
+	picker.set_meta("dest_path", dest_path)
+	var exists := !value.is_empty() && !dest_path.is_empty() && FileAccess.file_exists(dest_path)
+	picker.set_display(value if exists else "", dest_path if exists else "")
+	picker.file_chosen.connect(func(src: String): _emit_change(path, src))
+	return picker
+
+
+func _png_meta(path: PackedStringArray) -> Dictionary:
+	var meta = _png_files.get(_path_key(path), {})
+	return meta if meta is Dictionary else {}
 
 
 func _make_choice(path: PackedStringArray, value: String, options: Variant) -> Control:
@@ -194,11 +282,11 @@ func _make_vec2(path: PackedStringArray, vec: Vector2) -> Control:
 	for spin in [spin_x, spin_y]:
 		if lim.has("min"):
 			spin.min_value = float(lim.min)
+			spin.allow_lesser = false
 		if lim.has("max"):
 			spin.max_value = float(lim.max)
-		if lim.has("step"):
-			spin.step = float(lim.step)
-			spin.rounded = is_equal_approx(spin.step, 1.0)
+			spin.allow_greater = false
+		_apply_spin_step(spin, lim, vec.x)
 	spin_x.prefix = "X:"
 	spin_y.prefix = "Y:"
 	var emit := func(_v: float):
@@ -216,14 +304,38 @@ func _make_axis_spin(value: float) -> SpinBox:
 	var spin := SpinBox.new()
 	spin.set_script(SPIN_SCRIPT)
 	spin.custom_minimum_size = Vector2(72, 0)
-	spin.step = 1.0
+	spin.step = 0.01
+	spin.custom_arrow_step = 1.0
 	spin.allow_greater = true
 	spin.allow_lesser = true
 	spin.value = value
 	return spin
 
 
+## LIMITS "step" only affects arrow buttons. Typed values are not snapped to it.
+func _apply_spin_step(spin: SpinBox, lim: Dictionary, value: Variant) -> void:
+	var is_int := value is int
+	var arrow := float(lim.get("step", 1.0 if is_int else 0.01))
+	spin.custom_arrow_step = arrow
+	if is_int && !lim.has("step"):
+		spin.step = 1.0
+		spin.rounded = true
+		return
+	spin.rounded = false
+	if arrow > 0.0:
+		spin.step = minf(arrow, 0.01)
+	else:
+		spin.step = 0.01
+
+
 func _set_control(control: Control, value: Variant) -> void:
+	if control.has_method("set_display"):
+		var dest_path := str(control.get_meta("dest_path", ""))
+		@warning_ignore("shadowed_variable_base_class")
+		var name := str(value)
+		var exists := !name.is_empty() && !dest_path.is_empty() && FileAccess.file_exists(dest_path)
+		control.set_display(name if exists else "", dest_path if exists else "")
+		return
 	if control is CheckBox:
 		(control as CheckBox).button_pressed = bool(value)
 	elif control is ColorPickerButton:
@@ -250,6 +362,58 @@ func _emit_change(path: PackedStringArray, new_value: Variant) -> void:
 	if _values_equal(old_value, new_value):
 		return
 	tweak_changed.emit(path, new_value, old_value)
+
+
+func _revert_property(path: PackedStringArray) -> void:
+	if _updating:
+		return
+	var default_value: Variant = _copy_value(SuitTweaks.get_at(_defaults, path))
+	if default_value == null:
+		return
+	_emit_change(path, default_value)
+
+
+func _update_revert_visible(path: PackedStringArray) -> void:
+	var key := _path_key(path)
+	if _revert_buttons.has(key):
+		(_revert_buttons[key] as Button).visible = !_is_at_default(path)
+	_update_reset_button()
+
+
+func _update_reset_button() -> void:
+	if !reset_button:
+		return
+	var can_reset := _has_resettable_changes()
+	reset_button.disabled = !can_reset
+	reset_button.tooltip_text = (
+		"Reset all values to their defaults."
+		if can_reset
+		else "Nothing to reset."
+	)
+
+
+func _has_resettable_changes() -> bool:
+	for key in _revert_buttons.keys():
+		if _png_files.has(key):
+			continue
+		if !_is_at_default(PackedStringArray(str(key).split("/"))):
+			return true
+	return false
+
+
+func _is_at_default(path: PackedStringArray) -> bool:
+	var default_value: Variant = SuitTweaks.get_at(_defaults, path)
+	if default_value == null:
+		return true
+	return _values_equal(SuitTweaks.get_at(_values, path), default_value)
+
+
+func _copy_value(value: Variant) -> Variant:
+	if value is Array:
+		return value.duplicate()
+	if value is Dictionary:
+		return value.duplicate(true)
+	return value
 
 
 func _values_equal(a: Variant, b: Variant) -> bool:
