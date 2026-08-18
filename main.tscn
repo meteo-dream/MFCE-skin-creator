@@ -18,7 +18,7 @@
 [ext_resource type="FontFile" uid="uid://c642yw1llh7ke" path="res://fonts/tahomabd.ttf" id="15_vivmo"]
 [ext_resource type="PackedScene" uid="uid://bc5tsqs3u3wvp" path="res://add_frames_dialog.tscn" id="16_addfrm"]
 [ext_resource type="PackedScene" uid="uid://bhwdu6j2vv14x" path="res://edit_frame_dialog.tscn" id="17_editfrm"]
-[ext_resource type="PackedScene" uid="uid://26vgeem3o1ef" path="res://suit_tweaks_dialog.tscn" id="17_tweaks"]
+[ext_resource type="PackedScene" uid="uid://0082j6mt55nm" path="res://skin_settings_dialog.tscn" id="17_skinset"]
 [ext_resource type="Texture2D" uid="uid://cddbt8ojvbaj2" path="res://icon.png" id="18_icon"]
 [ext_resource type="Texture2D" uid="uid://0h5pnu7y2a53" path="res://icons/SpriteSheet.svg" id="19_sheet"]
 [ext_resource type="Texture2D" uid="uid://y21t3j2c1m53" path="res://icons/Edit.svg" id="20_edit"]
@@ -921,12 +921,8 @@ unique_name_in_owner = true
 [node name="EditFrameDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811709101 instance=ExtResource("17_editfrm")]
 unique_name_in_owner = true
 
-[node name="SuitTweaksDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811710101 instance=ExtResource("17_tweaks")]
+[node name="SkinSettingsDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811710101 instance=ExtResource("17_skinset")]
 unique_name_in_owner = true
-
-[node name="GlobalSkinTweaksDialog" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811710102 instance=ExtResource("17_tweaks")]
-unique_name_in_owner = true
-title = "Global Skin Tweaks"
 
 [node name="WelcomePanel" type="ColorRect" parent="CanvasLayer/VBoxContainer/Main" unique_id=1811709700]
 unique_name_in_owner = true
@@ -1067,7 +1063,6 @@ item_0/id = 0
 [node name="EditorSettings" type="Window" parent="CanvasLayer" unique_id=1811709400]
 unique_name_in_owner = true
 disable_3d = true
-oversampling_override = 1.0
 title = "Editor Settings"
 initial_position = 2
 size = Vector2i(360, 300)
@@ -1397,160 +1392,6 @@ ok_button_text = "Save"
 dialog_text = "Save changes to this skin before closing?"
 dialog_autowrap = true
 
-[node name="OptionsDialog" type="Window" parent="." unique_id=1291975243]
-unique_name_in_owner = true
-disable_3d = true
-title = "Skin Options"
-position = Vector2i(100, 120)
-size = Vector2i(348, 220)
-visible = false
-min_size = Vector2i(348, 220)
-
-[node name="Panel" type="Panel" parent="OptionsDialog" unique_id=36603011]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_efxa6")
-
-[node name="MarginContainer" type="MarginContainer" parent="OptionsDialog" unique_id=1232112345]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 4
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 4
-theme_override_constants/margin_bottom = 4
-
-[node name="VBoxContainer3" type="VBoxContainer" parent="OptionsDialog/MarginContainer" unique_id=2054127997]
-layout_mode = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3" unique_id=2089386034]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer2" unique_id=759854812]
-layout_mode = 2
-text = "Display Name:"
-
-[node name="DisplayNameLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer2" unique_id=204626416]
-unique_name_in_owner = true
-texture_filter = 1
-custom_minimum_size = Vector2(0, 28)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("15_vivmo")
-max_length = 15
-emoji_menu_enabled = false
-drag_and_drop_selection_enabled = false
-
-[node name="VBoxContainer" type="VBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3" unique_id=1650148205]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer" unique_id=1277924050]
-custom_minimum_size = Vector2(0, 25)
-layout_mode = 2
-text = "Pronouns & Alias (Story Text):"
-autowrap_mode = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer" unique_id=552096337]
-layout_mode = 2
-
-[node name="TheyLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/HBoxContainer2" unique_id=1987235848]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
-theme_override_fonts/font = ExtResource("15_vivmo")
-placeholder_text = "they"
-max_length = 15
-emoji_menu_enabled = false
-drag_and_drop_selection_enabled = false
-
-[node name="ThemLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/HBoxContainer2" unique_id=1111816645]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.1
-theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
-theme_override_fonts/font = ExtResource("15_vivmo")
-placeholder_text = "them"
-max_length = 25
-emoji_menu_enabled = false
-drag_and_drop_selection_enabled = false
-
-[node name="VBoxContainer3" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer" unique_id=906585111]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3" unique_id=493882775]
-visible = false
-layout_mode = 2
-text = "Description (Story Text):"
-
-[node name="TheirLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3" unique_id=1380007630]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
-theme_override_fonts/font = ExtResource("15_vivmo")
-placeholder_text = "their"
-max_length = 25
-emoji_menu_enabled = false
-drag_and_drop_selection_enabled = false
-
-[node name="DescriptionLine" type="LineEdit" parent="OptionsDialog/MarginContainer/VBoxContainer3/VBoxContainer/VBoxContainer3" unique_id=678866925]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 28)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.1
-theme_override_colors/font_placeholder_color = Color(0.875, 0.875, 0.875, 0.5)
-theme_override_fonts/font = ExtResource("15_vivmo")
-placeholder_text = "plumber"
-max_length = 50
-emoji_menu_enabled = false
-drag_and_drop_selection_enabled = false
-
-[node name="Label" type="Label" parent="OptionsDialog/MarginContainer/VBoxContainer3" unique_id=699401759]
-custom_minimum_size = Vector2(320, 40)
-layout_mode = 2
-text = "See more skin options in MF:CE under Tweaks/Skin Setup/Skin Tweaks"
-autowrap_mode = 3
-
-[node name="HBoxContainer" type="HBoxContainer" parent="OptionsDialog/MarginContainer/VBoxContainer3" unique_id=808250710]
-layout_mode = 2
-size_flags_vertical = 10
-alignment = 1
-
-[node name="Control" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=2125417842]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Cancel" type="Button" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=1559145428]
-layout_mode = 2
-size_flags_horizontal = 3
-shortcut = SubResource("Shortcut_074og")
-text = "Cancel"
-
-[node name="Control2" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=1105889118]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="OK" type="Button" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=1994688542]
-layout_mode = 2
-size_flags_horizontal = 3
-shortcut = SubResource("Shortcut_2cqfq")
-text = "Save"
-
-[node name="Control3" type="Control" parent="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer" unique_id=816082102]
-layout_mode = 2
-size_flags_horizontal = 3
-
 [connection signal="animation_finished" from="Preview" to="CanvasLayer/VBoxContainer/Main" method="_anim_finished"]
 [connection signal="animation_looped" from="Preview" to="CanvasLayer/VBoxContainer/Main" method="_anim_looped"]
 [connection signal="frame_changed" from="Preview" to="CanvasLayer/VBoxContainer/Main" method="_frame_changed"]
@@ -1587,6 +1428,3 @@ size_flags_horizontal = 3
 [connection signal="pressed" from="CanvasLayer/ModalWindow/MarginContainer/VBoxContainer/HBoxContainer/OK" to="CanvasLayer/VBoxContainer/Main" method="_on_fill_blanks_ok_pressed"]
 [connection signal="confirmed" from="ConfirmationDialog" to="CanvasLayer/VBoxContainer/Main" method="_on_dialog_new_settings_confirmed"]
 [connection signal="confirmed" from="ConfirmationNewState" to="CanvasLayer/VBoxContainer/Main" method="_on_dialog_new_state_confirmed"]
-[connection signal="close_requested" from="OptionsDialog" to="CanvasLayer/VBoxContainer/Main" method="reset_options_dialog"]
-[connection signal="pressed" from="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer/Cancel" to="CanvasLayer/VBoxContainer/Main" method="reset_options_dialog"]
-[connection signal="pressed" from="OptionsDialog/MarginContainer/VBoxContainer3/HBoxContainer/OK" to="CanvasLayer/VBoxContainer/Main" method="options_confirmed"]

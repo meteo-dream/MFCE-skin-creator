@@ -1,8 +1,8 @@
-extends Window
+extends MarginContainer
 class_name SuitTweaksDialog
 
 signal tweak_changed(path: PackedStringArray, new_value: Variant, old_value: Variant)
-signal reset_requested
+signal resettable_changed
 
 const SPIN_SCRIPT := preload("res://scripts/spinbox.gd")
 const COLOR_SCRIPT := preload("res://scripts/color_pick_button.gd")
@@ -10,12 +10,10 @@ const IMAGE_FILE_BUTTON := preload("res://image_file_button.tscn")
 const REVERT_ICON := preload("res://icons/ReloadSmall.svg")
 
 @onready var list: VBoxContainer = %TweakList
-@onready var reset_button: Button = %ResetTweaks
-@onready var close_button: Button = %CloseTweaks
 @onready var hint_label: Label = %Hint
 
+var heading := ""
 var _updating := false
-var _ignore_close := false
 var _controls: Dictionary = {}
 var _revert_buttons: Dictionary = {}
 var _values: Dictionary = {}
@@ -33,17 +31,7 @@ var _icon_pressed := StyleBoxFlat.new()
 
 
 func _ready() -> void:
-	exclusive = false
-	transient = true
-	popup_window = false
-	unresizable = false
 	_setup_icon_button_styles()
-	close_requested.connect(_on_close_requested)
-	focus_entered.connect(_on_focus_entered)
-	close_button.pressed.connect(hide)
-	reset_button.pressed.connect(func(): reset_requested.emit())
-	reset_button.tooltip_text = "Reset all values to their defaults."
-	_update_reset_button()
 
 
 func _setup_icon_button_styles() -> void:
@@ -82,19 +70,8 @@ func _apply_checkbox_styles(box: CheckBox) -> void:
 	box.custom_minimum_size = Vector2(22, 22)
 
 
-func _on_focus_entered() -> void:
-	_ignore_close = true
-	get_tree().create_timer(0.15).timeout.connect(func(): _ignore_close = false)
-
-
-func _on_close_requested() -> void:
-	if _ignore_close:
-		return
-	hide()
-
-
 func bind(window_title: String, tweaks: Dictionary, schema: Dictionary) -> void:
-	title = window_title
+	heading = window_title
 	if hint_label:
 		hint_label.text = str(schema.get("hint", hint_label.text))
 	_defaults = schema.get("defaults", {})
@@ -380,25 +357,17 @@ func _update_revert_visible(path: PackedStringArray) -> void:
 	_update_reset_button()
 
 
-func _update_reset_button() -> void:
-	if !reset_button:
-		return
-	var can_reset := _has_resettable_changes()
-	reset_button.disabled = !can_reset
-	reset_button.tooltip_text = (
-		"Reset all values to their defaults."
-		if can_reset
-		else "Nothing to reset."
-	)
-
-
-func _has_resettable_changes() -> bool:
+func has_resettable_changes() -> bool:
 	for key in _revert_buttons.keys():
 		if _png_files.has(key):
 			continue
 		if !_is_at_default(PackedStringArray(str(key).split("/"))):
 			return true
 	return false
+
+
+func _update_reset_button() -> void:
+	resettable_changed.emit()
 
 
 func _is_at_default(path: PackedStringArray) -> bool:

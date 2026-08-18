@@ -43,7 +43,6 @@ const FROG_WALK_SPEED_LABELS := ["Hop Walk", "Warp", "Level Complete"]
 @onready var confirm_new_state: ConfirmationDialog = %ConfirmationNewState
 @onready var unsaved_dialog: ConfirmationDialog = %UnsavedDialog
 @onready var image_creation_dialog: AcceptDialog = %ImageCreationDialog
-@onready var options_dialog: Window = %OptionsDialog
 @onready var about_window: Window = %AboutWindow
 @onready var editor_settings_window: Window = %EditorSettings
 
@@ -77,8 +76,9 @@ var _edit_region_frame: int = -1
 @onready var history_dock: HistoryDock = %HistoryDock
 @onready var add_frames_dialog: AddFramesDialog = %AddFramesDialog
 @onready var edit_frame_dialog: EditFrameDialog = %EditFrameDialog
-@onready var suit_tweaks_dialog: SuitTweaksDialog = %SuitTweaksDialog
-@onready var global_skin_tweaks_dialog: SuitTweaksDialog = %GlobalSkinTweaksDialog
+@onready var skin_settings_dialog: SkinSettingsDialog = %SkinSettingsDialog
+@onready var suit_tweaks_dialog: SuitTweaksDialog = skin_settings_dialog.suit_tweaks
+@onready var global_skin_tweaks_dialog: SuitTweaksDialog = skin_settings_dialog.global_tweaks
 
 @onready var spinbox_frame: SpinBox = %Frame
 @onready var spinbox_speed: SpinBox = %Speed
@@ -124,9 +124,6 @@ func _ready() -> void:
 	_update_background_fps()
 	
 	if DisplayServer.get_swap_cancel_ok():
-		var options_par = options_dialog.get_node("MarginContainer/VBoxContainer3/HBoxContainer")
-		options_par.move_child(options_par.get_node("OK"), 1)
-		options_par.move_child(options_par.get_node("Cancel"), 3)
 		var modal_par = modal_window.get_node("MarginContainer/VBoxContainer/HBoxContainer")
 		modal_par.move_child(modal_par.get_node("OK"), 1)
 		modal_par.move_child(modal_par.get_node("Cancel"), 3)
@@ -195,9 +192,9 @@ func _ready() -> void:
 	edit_frame_dialog.region_changed.connect(apply_frame_region)
 	edit_frame_dialog.confirmed.connect(_on_edit_frame_confirmed)
 	suit_tweaks_dialog.tweak_changed.connect(_on_suit_tweak_changed)
-	suit_tweaks_dialog.reset_requested.connect(_on_suit_tweaks_reset)
 	global_skin_tweaks_dialog.tweak_changed.connect(_on_global_skin_tweak_changed)
-	global_skin_tweaks_dialog.reset_requested.connect(_on_global_skin_tweaks_reset)
+	skin_settings_dialog.reset_pressed.connect(_on_skin_settings_reset)
+	skin_settings_dialog.options_field_changed.connect(_on_options_field_changed)
 	%File.id_pressed.connect(_on_file_menu_id_pressed)
 	_setup_file_shortcuts()
 	_setup_menu_shortcuts()
@@ -300,7 +297,7 @@ func _gui_is_editing_text_in(vp: Viewport) -> bool:
 
 
 func _is_editor_dock_window(win: Window) -> bool:
-	return win == %FramesWindow || win == %HistoryWindow || win == suit_tweaks_dialog || win == global_skin_tweaks_dialog
+	return win == %FramesWindow || win == %HistoryWindow || win == skin_settings_dialog
 
 
 func _is_foreign_window_focused() -> bool:
@@ -317,7 +314,7 @@ func _is_foreign_window_focused() -> bool:
 
 
 func _setup_dock_shortcut_forwarding() -> void:
-	for win: Window in [%FramesWindow, %HistoryWindow, suit_tweaks_dialog, global_skin_tweaks_dialog]:
+	for win: Window in [%FramesWindow, %HistoryWindow, skin_settings_dialog]:
 		win.window_input.connect(_on_editor_dock_window_input.bind(win))
 		win.visibility_changed.connect(_update_background_fps)
 		win.focus_entered.connect(_update_background_fps)
@@ -464,10 +461,8 @@ func _set_controls_working(val: bool) -> void:
 		_update_preview_move_speed()
 	# Autoreload calls this with false on every app focus-in; don't close tool windows.
 	if !val && !current_skin_setting:
-		if suit_tweaks_dialog:
-			suit_tweaks_dialog.hide()
-		if global_skin_tweaks_dialog:
-			global_skin_tweaks_dialog.hide()
+		if skin_settings_dialog:
+			skin_settings_dialog.hide()
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE), !val)
 	%File.set_item_disabled(%File.get_item_index(FileMenu.SAVE_AS), !val)
 	%File.set_item_disabled(%File.get_item_index(FileMenu.CLOSE), !val)
@@ -547,8 +542,8 @@ func _close_skin() -> void:
 		preview.stop()
 		preview.sprite_frames = SpriteFrames.new()
 	for dialog in [
-		suit_tweaks_dialog, global_skin_tweaks_dialog, add_frames_dialog,
-		edit_frame_dialog, options_dialog, confirm_dialog, confirm_new_state,
+		skin_settings_dialog, add_frames_dialog,
+		edit_frame_dialog, confirm_dialog, confirm_new_state,
 		image_creation_dialog,
 	]:
 		if dialog && dialog.visible:
@@ -888,7 +883,7 @@ func _setup_history() -> void:
 func _undo_blocking_dialogs() -> Array:
 	return [
 		add_frames_dialog, edit_frame_dialog, modal_window, confirm_dialog,
-		confirm_new_state, options_dialog, unsaved_dialog, save_dialog,
+		confirm_new_state, unsaved_dialog, save_dialog,
 		open_dialog, new_save_dialog, editor_settings_window, about_window,
 	]
 
@@ -965,6 +960,8 @@ func _seek_history(action_index: int) -> void:
 	_on_history_changed()
 	_refresh_suit_tweaks_dialog()
 	_refresh_global_skin_tweaks_dialog()
+	if _skin_settings_open():
+		skin_settings_dialog.update_reset_button()
 
 
 ## Replay undo/redo until disk matches the last save (immediate-write actions like
@@ -2033,6 +2030,8 @@ func save_file(path: String) -> void:
 			break
 	_save_all_loop_offsets()
 	_save_global_skin_tweaks()
+	_write_name_file()
+	_write_story_file()
 	if mark_as_saved:
 		_mark_saved()
 		_run_pending_after_save()
@@ -2308,10 +2307,7 @@ func _save_suit_tweaks_for(suit: String) -> void:
 
 
 func _on_suit_tweaks_pressed() -> void:
-	if !current_skin_setting:
-		return
-	_bind_suit_tweaks_dialog()
-	_popup_tweaks_window(suit_tweaks_dialog)
+	_open_skin_settings(SkinSettingsDialog.Tab.SUIT)
 
 
 func _bind_suit_tweaks_dialog() -> void:
@@ -2323,10 +2319,12 @@ func _bind_suit_tweaks_dialog() -> void:
 		_ensure_suit_tweaks(suit),
 		SuitTweaks.editor_schema(suit)
 	)
+	if skin_settings_dialog:
+		skin_settings_dialog.update_title()
 
 
 func _refresh_suit_tweaks_dialog() -> void:
-	if !suit_tweaks_dialog || !suit_tweaks_dialog.visible || !current_skin_setting:
+	if !_skin_settings_open() || !current_skin_setting:
 		return
 	_bind_suit_tweaks_dialog()
 
@@ -2357,7 +2355,7 @@ func _on_suit_tweak_changed(path: PackedStringArray, new_value: Variant, old_val
 func _apply_suit_tweak(suit: String, path: PackedStringArray, value: Variant) -> void:
 	var tweaks := _ensure_suit_tweaks(suit)
 	SuitTweaks.set_at(tweaks, path, value)
-	if suit == _current_suit() && suit_tweaks_dialog.visible:
+	if suit == _current_suit() && _skin_settings_open():
 		suit_tweaks_dialog.sync_value(path, value)
 
 
@@ -2427,10 +2425,7 @@ func _save_global_skin_tweaks() -> void:
 
 
 func _on_global_skin_tweaks_pressed() -> void:
-	if !current_folder_skin:
-		return
-	_bind_global_skin_tweaks_dialog()
-	_popup_tweaks_window(global_skin_tweaks_dialog)
+	_open_skin_settings(SkinSettingsDialog.Tab.GLOBAL)
 
 
 func _bind_global_skin_tweaks_dialog() -> void:
@@ -2442,7 +2437,7 @@ func _bind_global_skin_tweaks_dialog() -> void:
 
 
 func _refresh_global_skin_tweaks_dialog() -> void:
-	if !global_skin_tweaks_dialog || !global_skin_tweaks_dialog.visible || !current_folder_skin:
+	if !_skin_settings_open() || !current_folder_skin:
 		return
 	_bind_global_skin_tweaks_dialog()
 
@@ -2514,13 +2509,13 @@ func _apply_virtual_png(path: PackedStringArray, dest: String, bytes: PackedByte
 		file.store_buffer(bytes)
 		file.close()
 	SuitTweaks.set_at(_ensure_global_skin_tweaks(), path, filename)
-	if global_skin_tweaks_dialog.visible:
+	if _skin_settings_open():
 		global_skin_tweaks_dialog.sync_value(path, filename)
 
 
 func _apply_global_skin_tweak(path: PackedStringArray, value: Variant) -> void:
 	SuitTweaks.set_at(_ensure_global_skin_tweaks(), path, value)
-	if global_skin_tweaks_dialog.visible:
+	if _skin_settings_open():
 		global_skin_tweaks_dialog.sync_value(path, value)
 
 
@@ -2842,51 +2837,200 @@ func _restore_created_suit(snap: Dictionary) -> void:
 				DirAccess.remove_absolute(folder)
 	_applying_history = false
 
-## Skin Options button
+## Skin Options / Suit Tweaks / Global Skin Tweaks (one tabbed window)
 func options_pressed() -> void:
-	popup_one_dialog(options_dialog)
+	_open_skin_settings(SkinSettingsDialog.Tab.OPTIONS)
+
+
+func _skin_settings_open() -> bool:
+	return skin_settings_dialog && skin_settings_dialog.visible
+
+
+func _open_skin_settings(tab: SkinSettingsDialog.Tab) -> void:
+	if !current_folder_skin:
+		return
+	if tab == SkinSettingsDialog.Tab.SUIT && !current_skin_setting:
+		return
+	var was_open := _skin_settings_open()
+	if !was_open:
+		_reload_options_fields()
+	if current_skin_setting:
+		_bind_suit_tweaks_dialog()
+	_bind_global_skin_tweaks_dialog()
+	skin_settings_dialog.open_on_tab(tab)
+	_popup_tweaks_window(skin_settings_dialog)
+
 
 func reset_options_dialog() -> void:
-	options_dialog.hide()
-	if !misc_files: return
-	%DisplayNameLine.placeholder_text = skin_name.to_upper()
-	%DisplayNameLine.text = misc_files.name
-	%TheyLine.text = misc_files.story[0]
-	%ThemLine.text = misc_files.story[1]
-	%DescriptionLine.text = misc_files.story[2]
-	%TheirLine.text = misc_files.story[3]
+	if skin_settings_dialog:
+		skin_settings_dialog.hide()
+	_reload_options_fields()
 
-func options_confirmed() -> void:
-	if !misc_files: return
-	options_dialog.hide()
-	
-	if %DisplayNameLine.text != misc_files.name:
-		misc_files.name = %DisplayNameLine.text
-		var file = FileAccess.open(current_folder_skin.path_join("name.txt"), FileAccess.WRITE)
-		file.store_line(misc_files.name)
-		file.close()
-	if (
-		%TheyLine.text != misc_files.story[0] ||
-		%ThemLine.text != misc_files.story[1] ||
-		%DescriptionLine.text != misc_files.story[2] ||
-		%TheirLine.text != misc_files.story[3]
-	):
-		misc_files.story[0] = %TheyLine.text
-		misc_files.story[1] = %ThemLine.text
-		misc_files.story[2] = %DescriptionLine.text
-		misc_files.story[3] = %TheirLine.text
-		var file = FileAccess.open(current_folder_skin.path_join("story.txt"), FileAccess.WRITE)
-		file.store_line(misc_files.story[0])
-		file.store_line(misc_files.story[1])
-		file.store_line(misc_files.story[2])
-		file.store_line(misc_files.story[3])
-		file.close()
+
+func _reload_options_fields() -> void:
+	if !skin_settings_dialog:
+		return
+	_ensure_misc_files()
+	skin_settings_dialog.load_options(
+		skin_name.to_upper(),
+		str(misc_files.name),
+		str(misc_files.story[0]),
+		str(misc_files.story[1]),
+		str(misc_files.story[2]),
+		str(misc_files.story[3])
+	)
+
+
+func _on_skin_settings_reset() -> void:
+	match skin_settings_dialog.current_tab():
+		SkinSettingsDialog.Tab.OPTIONS:
+			_on_options_reset()
+		SkinSettingsDialog.Tab.SUIT:
+			_on_suit_tweaks_reset()
+		SkinSettingsDialog.Tab.GLOBAL:
+			_on_global_skin_tweaks_reset()
+	if _skin_settings_open():
+		skin_settings_dialog.update_reset_button()
+
+
+func _on_options_field_changed(field: SkinSettingsDialog.Field, new_value: String) -> void:
+	if !current_folder_skin:
+		return
+	_ensure_misc_files()
+	var old_value := _options_field_value(field)
+	_commit_merged_value_edit(
+		_options_field_action_name(field),
+		_apply_options_field.bind(field, new_value),
+		_apply_options_field.bind(field, old_value),
+		new_value,
+		old_value
+	)
+
+
+func _on_options_reset() -> void:
+	if !current_folder_skin:
+		return
+	_ensure_misc_files()
+	var before := _options_snapshot()
+	var after := {"name": "", "story": ["", "", "", ""]}
+	if _history_values_equal(before, after):
+		return
+	_commit_edit(
+		"Reset Name & Pronouns",
+		_apply_options_state.bind(after.duplicate(true)),
+		_apply_options_state.bind(before)
+	)
+
+
+func _options_field_action_name(field: SkinSettingsDialog.Field) -> String:
+	match field:
+		SkinSettingsDialog.Field.NAME:
+			return "Set Display Name"
+		SkinSettingsDialog.Field.THEY:
+			return "Set They"
+		SkinSettingsDialog.Field.THEM:
+			return "Set Them"
+		SkinSettingsDialog.Field.THEIR:
+			return "Set Their"
+		SkinSettingsDialog.Field.ALIAS:
+			return "Set Alias"
+	return "Set Name & Pronouns"
+
+
+func _options_field_value(field: SkinSettingsDialog.Field) -> String:
+	_ensure_misc_files()
+	match field:
+		SkinSettingsDialog.Field.NAME:
+			return str(misc_files.name)
+		SkinSettingsDialog.Field.THEY:
+			return str(misc_files.story[0])
+		SkinSettingsDialog.Field.THEM:
+			return str(misc_files.story[1])
+		SkinSettingsDialog.Field.ALIAS:
+			return str(misc_files.story[2])
+		SkinSettingsDialog.Field.THEIR:
+			return str(misc_files.story[3])
+	return ""
+
+
+func _options_snapshot() -> Dictionary:
+	_ensure_misc_files()
+	return {
+		"name": str(misc_files.name),
+		"story": misc_files.story.duplicate(),
+	}
+
+
+func _apply_options_field(field: SkinSettingsDialog.Field, value: String) -> void:
+	_ensure_misc_files()
+	match field:
+		SkinSettingsDialog.Field.NAME:
+			misc_files.name = value.to_upper()
+			_write_name_file()
+		SkinSettingsDialog.Field.THEY:
+			misc_files.story[0] = value
+			_write_story_file()
+		SkinSettingsDialog.Field.THEM:
+			misc_files.story[1] = value
+			_write_story_file()
+		SkinSettingsDialog.Field.ALIAS:
+			misc_files.story[2] = value
+			_write_story_file()
+		SkinSettingsDialog.Field.THEIR:
+			misc_files.story[3] = value
+			_write_story_file()
+	if skin_settings_dialog:
+		skin_settings_dialog.set_field_value(field, _options_field_value(field))
+		skin_settings_dialog.update_reset_button()
+
+
+func _apply_options_state(state: Dictionary) -> void:
+	_ensure_misc_files()
+	misc_files.name = str(state.get("name", ""))
+	var story: Array = state.get("story", ["", "", "", ""]).duplicate()
+	while story.size() < 4:
+		story.append("")
+	misc_files.story = story
+	_write_name_file()
+	_write_story_file()
+	_reload_options_fields()
+
+
+func _ensure_misc_files() -> void:
+	if typeof(misc_files) != TYPE_DICTIONARY:
+		misc_files = {}
+	if !misc_files.has("name"):
+		misc_files.name = ""
+	if !(misc_files.get("story") is Array):
+		misc_files.story = ["", "", "", ""]
+	while misc_files.story.size() < 4:
+		misc_files.story.append("")
+
+
+func _write_name_file() -> void:
+	if !current_folder_skin:
+		return
+	_ensure_misc_files()
+	var file := FileAccess.open(current_folder_skin.path_join("name.txt"), FileAccess.WRITE)
+	if !file:
+		return
+	file.store_line(str(misc_files.name))
+	file.close()
+
+
+func _write_story_file() -> void:
+	if !current_folder_skin:
+		return
+	_ensure_misc_files()
+	var file := FileAccess.open(current_folder_skin.path_join("story.txt"), FileAccess.WRITE)
+	if !file:
+		return
+	for i in 4:
+		file.store_line(str(misc_files.story[i]))
+	file.close()
+
 
 #endregion ModalBoxActions
-
-
-func _on_display_name_line_text_changed(new_text: String) -> void:
-	%DisplayNameLine.text = new_text.to_upper()
 
 
 func _on_about_pressed() -> void:
