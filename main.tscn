@@ -26,6 +26,7 @@
 [ext_resource type="Texture2D" uid="uid://b8duplicatefr" path="res://icons/Duplicate.svg" id="21_dup"]
 [ext_resource type="Texture2D" uid="uid://b8moveleftfrm" path="res://icons/MoveLeft.svg" id="21_mleft"]
 [ext_resource type="Texture2D" uid="uid://b8moverightfr" path="res://icons/MoveRight.svg" id="21_mright"]
+[ext_resource type="Texture2D" uid="uid://b8reversefrm" path="res://icons/FlipWinding.svg" id="21_rev"]
 [ext_resource type="Texture2D" uid="uid://0g2xxw35pbs3" path="res://icons/Remove.svg" id="21_remove"]
 [ext_resource type="Texture2D" uid="uid://0fal8j2c1m53" path="res://icons/Play.svg" id="22_play"]
 [ext_resource type="Texture2D" uid="uid://0ii0yj2c1m53" path="res://icons/Stop.svg" id="23_stop"]
@@ -725,6 +726,15 @@ layout_mode = 2
 tooltip_text = "Move the selected frame(s) right. (Ctrl+Right)"
 focus_mode = 0
 icon = ExtResource("21_mright")
+icon_alignment = 1
+
+[node name="ReverseFrames" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/OrderGroup" unique_id=1811709018]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+tooltip_text = "Reverse the order of the selected frames."
+focus_mode = 0
+icon = ExtResource("21_rev")
 icon_alignment = 1
 
 [node name="DeleteFrame" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/OrderGroup" unique_id=1811709010]

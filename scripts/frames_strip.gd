@@ -10,6 +10,7 @@ signal edit_frame_pressed
 signal delete_frame_pressed
 signal move_frame_left_pressed
 signal move_frame_right_pressed
+signal reverse_frames_pressed
 signal open_in_explorer_pressed
 signal thumb_size_changed(size: int)
 signal floating_changed(floating: bool)
@@ -32,10 +33,12 @@ var thumb_size := 64
 @onready var delete_button: Button = %DeleteFrame
 @onready var move_left_button: Button = %MoveFrameLeft
 @onready var move_right_button: Button = %MoveFrameRight
+@onready var reverse_button: Button = %ReverseFrames
 
 var _updating := false
 var _drop_index := -1
 var _primary_index := 0
+var _range_anchor := 0
 var _edge_layer: Control
 var _v_edge: Control
 var _h_edge: Control
@@ -66,6 +69,7 @@ func _ready() -> void:
 	delete_button.pressed.connect(func(): delete_frame_pressed.emit())
 	move_left_button.pressed.connect(func(): move_frame_left_pressed.emit())
 	move_right_button.pressed.connect(func(): move_frame_right_pressed.emit())
+	reverse_button.pressed.connect(func(): reverse_frames_pressed.emit())
 	_setup_item_menu()
 	_setup_scroll_edges()
 	_split = get_parent() as SplitContainer
@@ -246,6 +250,7 @@ func rebuild(sprite_frames: SpriteFrames, anim: StringName, selected: int, keep_
 		for i in to_select.size():
 			list.select(to_select[i], i == 0)
 		_primary_index = clampi(selected, 0, count - 1)
+		_range_anchor = _primary_index
 		if list.is_selected(_primary_index):
 			list.select(_primary_index, false)
 		list.ensure_current_is_visible()
@@ -270,6 +275,7 @@ func select_frame(index: int, collapse_multi := false) -> void:
 	_updating = true
 	list.select(index)
 	_primary_index = index
+	_range_anchor = index
 	list.ensure_current_is_visible()
 	_update_frame_edit_buttons()
 	_updating = false
@@ -291,6 +297,7 @@ func select_indices(indices: PackedInt32Array, primary: int = -1) -> void:
 	elif primary >= 0 && primary < list.item_count && list.is_selected(primary):
 		list.select(primary, false)
 		_primary_index = primary
+	_range_anchor = _primary_index
 	list.ensure_current_is_visible()
 	_update_frame_edit_buttons()
 	_updating = false
@@ -338,6 +345,7 @@ func _update_frame_edit_buttons() -> void:
 	delete_button.disabled = idle || list.item_count <= 1
 	move_left_button.disabled = idle || selected.is_empty() || min_i <= 0
 	move_right_button.disabled = idle || selected.is_empty() || max_i >= list.item_count - 1
+	reverse_button.disabled = idle || selected.size() < 2
 
 
 func _emit_selection(primary: int) -> void:
@@ -365,6 +373,7 @@ func _on_empty_clicked(_at_position: Vector2, mouse_button_index: int) -> void:
 	_updating = true
 	list.select(keep)
 	_primary_index = keep
+	_range_anchor = keep
 	_updating = false
 	_update_frame_edit_buttons()
 	selection_changed.emit(list.get_selected_items())
@@ -387,11 +396,14 @@ func _on_item_clicked(index: int, _at_position: Vector2, mouse_button_index: int
 			_updating = true
 			list.select(index)
 			_updating = false
+			_range_anchor = index
 			_emit_selection(index)
 		_popup_item_menu()
 		return
 	if mouse_button_index != MOUSE_BUTTON_LEFT:
 		return
+	if !Input.is_key_pressed(KEY_SHIFT) && !Input.is_key_pressed(KEY_CTRL) && !Input.is_key_pressed(KEY_META):
+		_range_anchor = index
 	_emit_selection(index)
 
 
@@ -428,9 +440,14 @@ func _on_list_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouse && _exact_item_at(event.position) < 0:
 		# ItemList expands the last column into empty space and the scrollbar inset.
 		event.position = Vector2(-1e6, -1e6)
-	if add_button.disabled || !(event is InputEventKey) || !event.pressed || event.echo:
+	if add_button.disabled || !(event is InputEventKey) || !event.pressed:
 		return
 	var key := event as InputEventKey
+	if _navigate_from_key(key):
+		list.accept_event()
+		return
+	if key.echo:
+		return
 	if key.keycode == KEY_A && key.is_command_or_control_pressed():
 		_select_all()
 		list.accept_event()
@@ -456,9 +473,78 @@ func _select_all() -> void:
 	_updating = true
 	for i in list.item_count:
 		list.select(i, i == 0)
+	_range_anchor = 0
 	_updating = false
 	_update_frame_edit_buttons()
 	_emit_selection(0)
+
+
+func _navigate_from_key(key: InputEventKey) -> bool:
+	if key.alt_pressed || key.is_command_or_control_pressed():
+		return false
+	var count := list.item_count
+	if count <= 0:
+		return false
+	var cols := _visible_column_count()
+	var next := _primary_index
+	match key.keycode:
+		KEY_LEFT:
+			next = _primary_index - 1
+		KEY_RIGHT:
+			next = _primary_index + 1
+		KEY_UP:
+			if _primary_index < cols:
+				return true
+			next = _primary_index - cols
+		KEY_DOWN:
+			if _primary_index + cols >= count:
+				return true
+			next = _primary_index + cols
+		KEY_PAGEUP:
+			next = _primary_index - cols * 4
+		KEY_PAGEDOWN:
+			next = _primary_index + cols * 4
+		KEY_HOME:
+			next = 0
+		KEY_END:
+			next = count - 1
+		_:
+			return false
+	next = clampi(next, 0, count - 1)
+	_select_keyboard_index(next, key.shift_pressed)
+	return true
+
+
+func _visible_column_count() -> int:
+	if list.item_count <= 1:
+		return 1
+	var y := list.get_item_rect(0, false).position.y
+	var cols := 1
+	for i in range(1, list.item_count):
+		if !is_equal_approx(list.get_item_rect(i, false).position.y, y):
+			break
+		cols += 1
+	return maxi(cols, 1)
+
+
+func _select_keyboard_index(next: int, extend: bool) -> void:
+	_updating = true
+	if extend:
+		if _range_anchor < 0 || _range_anchor >= list.item_count:
+			_range_anchor = _primary_index
+		list.select(next, true)
+		var a := mini(_range_anchor, next)
+		var b := maxi(_range_anchor, next)
+		for i in range(a, b + 1):
+			list.select(i, false)
+	else:
+		_range_anchor = next
+		list.select(next, true)
+	_primary_index = next
+	list.ensure_current_is_visible()
+	_updating = false
+	_update_frame_edit_buttons()
+	_emit_selection(next)
 
 
 func _notification(what: int) -> void:

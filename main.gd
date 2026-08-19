@@ -99,6 +99,7 @@ var _edit_region_frame: int = -1
 @onready var delete_frame_button: Button = %DeleteFrame
 @onready var move_frame_left_button: Button = %MoveFrameLeft
 @onready var move_frame_right_button: Button = %MoveFrameRight
+@onready var reverse_frames_button: Button = %ReverseFrames
 @onready var loop_checkbox: CheckBox = %Loop
 @onready var loop_offset_spin: SpinBox = %LoopOffset
 @onready var anim_time_label: Label = %AnimTime
@@ -189,6 +190,7 @@ func _ready() -> void:
 	frames_strip.delete_frame_pressed.connect(_on_delete_frame_pressed)
 	frames_strip.move_frame_left_pressed.connect(_on_move_frame_left_pressed)
 	frames_strip.move_frame_right_pressed.connect(_on_move_frame_right_pressed)
+	frames_strip.reverse_frames_pressed.connect(_on_reverse_frames_pressed)
 	frames_strip.open_in_explorer_pressed.connect(_on_open_animation_in_explorer)
 	_setup_toolbar_hotkeys()
 	_setup_dock_shortcut_forwarding()
@@ -273,7 +275,7 @@ func _notification(what: int) -> void:
 func _setup_toolbar_hotkeys() -> void:
 	for button in [
 		add_frames_button, duplicate_frame_button, edit_frame_button, delete_frame_button,
-		move_frame_left_button, move_frame_right_button, play_button, stop_button,
+		move_frame_left_button, move_frame_right_button, reverse_frames_button, play_button, stop_button,
 	]:
 		button.focus_mode = Control.FOCUS_NONE
 	add_frames_button.tooltip_text = "Add frames from the animation spritesheet. (A)"
@@ -282,6 +284,7 @@ func _setup_toolbar_hotkeys() -> void:
 	delete_frame_button.tooltip_text = "Remove the selected frame(s) from the animation. (Del)"
 	move_frame_left_button.tooltip_text = "Move the selected frame(s) left. (Ctrl+Left)"
 	move_frame_right_button.tooltip_text = "Move the selected frame(s) right. (Ctrl+Right)"
+	reverse_frames_button.tooltip_text = "Reverse the order of the selected frames."
 	play_button.tooltip_text = "Toggles between Play and Pause. (Space)"
 	stop_button.tooltip_text = "Stop animation and set frame to 0. (Esc)"
 
@@ -1817,6 +1820,53 @@ func _on_move_frame_left_pressed() -> void:
 
 func _on_move_frame_right_pressed() -> void:
 	_move_selected_frames(1)
+
+
+func _on_reverse_frames_pressed() -> void:
+	if !preview || !preview.animation:
+		return
+	var anim := preview.animation
+	var count := preview.sprite_frames.get_frame_count(anim)
+	var indices: Array[int] = []
+	for i in _selected_frame_indices():
+		if i >= 0 && i < count && !indices.has(i):
+			indices.append(i)
+	indices.sort()
+	if indices.size() < 2:
+		return
+	var before := _snapshot_frames(anim)
+	var n := indices.size()
+	var regions: Array = current_skin_setting.animation_regions[anim]
+	var durations: Array = current_skin_setting.animation_durations[anim]
+	@warning_ignore("integer_division")
+	for k in range(int(n / 2)):
+		var a: int = indices[k]
+		var b: int = indices[n - 1 - k]
+		var tex_a: Texture2D = preview.sprite_frames.get_frame_texture(anim, a)
+		var tex_b: Texture2D = preview.sprite_frames.get_frame_texture(anim, b)
+		var dur_a := preview.sprite_frames.get_frame_duration(anim, a)
+		var dur_b := preview.sprite_frames.get_frame_duration(anim, b)
+		preview.sprite_frames.set_frame(anim, a, tex_b, dur_b)
+		preview.sprite_frames.set_frame(anim, b, tex_a, dur_a)
+		var region_a = regions[a]
+		regions[a] = regions[b]
+		regions[b] = region_a
+		var duration_a = durations[a]
+		durations[a] = durations[b]
+		durations[b] = duration_a
+	var primary := preview.frame
+	var pos := indices.find(primary)
+	if pos >= 0:
+		primary = indices[n - 1 - pos]
+	update_anim_time()
+	set_frame(primary)
+	_refresh_frames_strip(PackedInt32Array(indices))
+	_commit_frames_change(
+		"Reverse %d Frames (%s)" % [n, String(anim)],
+		_current_suit(),
+		anim,
+		before
+	)
 
 
 func _move_selected_frames(direction: int) -> void:
