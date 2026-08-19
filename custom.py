@@ -1,6 +1,6 @@
 target="template_release"
 debug_symbols="no"
-lto="thin"
+lto="full"
 arch="x86_64"
 optimize="size_extra"
 
@@ -16,7 +16,7 @@ d3d12="no"
 
 accesskit="no"   # Disables screen reader
 winrt="no"
-angle="no"
+angle="yes"
 disable_navigation_2d="yes"
 disable_navigation_3d="yes"
 disable_physics_2d="yes"
@@ -31,4 +31,5 @@ module_gdscript_enabled="yes"
 module_svg_enabled="yes"
 module_webp_enabled="yes"
 module_zip_enabled="yes"
-module_msdfgen_enabled="no"
+module_msdfgen_enabled="yes"
+module_astcenc_enabled="yes"

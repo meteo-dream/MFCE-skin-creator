@@ -115,6 +115,7 @@ pathfinding/max_threads=1
 
 [physics]
 
+2d/physics_engine="Dummy"
 3d/physics_engine="Dummy"
 
 [rendering]
