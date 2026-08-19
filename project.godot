@@ -28,6 +28,9 @@ config/custom_user_dir_name="MeteoDream/Skin Editor"
 config/auto_accept_quit=false
 config/features=PackedStringArray("4.7", "Mobile")
 run/low_processor_mode=true
+boot_splash/stretch_mode=0
+boot_splash/use_filter=false
+boot_splash/image="uid://cddbt8ojvbaj2"
 config/icon="uid://cddbt8ojvbaj2"
 
 [audio]
