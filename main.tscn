@@ -204,7 +204,6 @@ prefer_global_menu = false
 
 [node name="File" type="PopupMenu" parent="CanvasLayer/VBoxContainer/MenuPanel/MenuRow/MenuBar" unique_id=1811709303]
 unique_name_in_owner = true
-oversampling_override = 1.0
 size = Vector2i(132, 219)
 item_count = 12
 item_0/text = "New Skin..."
@@ -530,12 +529,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 clip_text = true
 
-[node name="SuitTweaksButton" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox" unique_id=1811710100]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Edit suit tweaks for this powerup (extra animations, particles, sounds). Saved to suit_tweaks.json."
-text = "Suit Tweaks..."
-
 [node name="HSeparator" type="HSeparator" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox" unique_id=932281929]
 layout_mode = 2
 
@@ -630,6 +623,12 @@ min_value = -2.0
 rounded = true
 allow_greater = true
 script = ExtResource("10_dg77c")
+
+[node name="SuitTweaksButton" type="Button" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox" unique_id=1811710100]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Edit suit tweaks for this powerup (extra animations, particles, sounds). Saved to suit_tweaks.json."
+text = "Suit Tweaks..."
 
 [node name="FramesSide" type="VBoxContainer" parent="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter" unique_id=1811709506]
 layout_mode = 2
@@ -1405,12 +1404,12 @@ dialog_autowrap = true
 [connection signal="dragged" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit" to="CanvasLayer/VBoxContainer/Main" method="_on_h_split_container_dragged"]
 [connection signal="item_selected" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/PreviewOverlay/PreviewSpeedRow/PreviewSpeedScale" to="CanvasLayer/VBoxContainer/Main" method="_on_preview_speed_scale_selected"]
 [connection signal="item_selected" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Powerup/StateSelect" to="CanvasLayer/VBoxContainer/Main" method="set_state"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/SuitTweaksButton" to="CanvasLayer/VBoxContainer/Main" method="_on_suit_tweaks_pressed"]
 [connection signal="item_selected" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Animation/AnimOption" to="CanvasLayer/VBoxContainer/Main" method="set_animation"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/Speed/Speed" to="CanvasLayer/VBoxContainer/Main" method="speed_val_changed"]
 [connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/LoopRow/Loop" to="CanvasLayer/VBoxContainer/Main" method="loop_pressed"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/LoopRow/LoopOffset" to="CanvasLayer/VBoxContainer/Main" method="_on_loop_offset_changed"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/MaxFrames/Frames" to="CanvasLayer/VBoxContainer/Main" method="frames_val_changed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/AnimPanel/AnimVBox/SuitTweaksButton" to="CanvasLayer/VBoxContainer/Main" method="_on_suit_tweaks_pressed"]
 [connection signal="toggled" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/PlayGroup/Play" to="CanvasLayer/VBoxContainer/Main" method="play_toggled"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/PlayGroup/Stop" to="CanvasLayer/VBoxContainer/Main" method="stop_pressed"]
 [connection signal="value_changed" from="CanvasLayer/VBoxContainer/Main/HistoryHSplit/FrameOuterVSplit/FramesDock/VBox/FrameHSplitter/FramesSide/Toolbar/Flow/DurationGroup/Duration" to="CanvasLayer/VBoxContainer/Main" method="duration_val_changed"]
