@@ -20,7 +20,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Mario Forever Community Edition Skin Editor"
-config/version="2.0.0"
+config/version="2.0.1"
 run/main_scene="res://main.tscn"
 run/enable_alt_space_menu=true
 config/use_custom_user_dir=true

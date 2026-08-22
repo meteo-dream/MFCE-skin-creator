@@ -24,16 +24,6 @@ var editor_scale: float
 
 var w_min_size: Vector2i
 
-func _init() -> void:
-	if Engine.is_editor_hint(): return
-	var user_screen: Rect2i = DisplayServer.screen_get_usable_rect()
-	if user_screen.size.y < ProjectSettings.get_setting("display/window/size/viewport_height"):
-		var wind_size = DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
-		DisplayServer.window_set_size(Vector2i(
-			ProjectSettings.get_setting("display/window/size/viewport_width"),
-			user_screen.size.y - 12 - wind_size.y
-		))
-		get_tree().root.move_to_center()
 
 func _notification(what: int) -> void:
 	if Engine.is_editor_hint(): return
@@ -46,6 +36,15 @@ func _ready() -> void:
 	if Engine.is_editor_hint(): return
 	process_loaded_config(Config.data)
 	Config.apply_to_scene.call_deferred()
+	
+	var user_screen: Rect2i = DisplayServer.screen_get_usable_rect()
+	if user_screen.size.y < ProjectSettings.get_setting("display/window/size/viewport_height"):
+		var wind_size = DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
+		DisplayServer.window_set_size(Vector2i(
+			ProjectSettings.get_setting("display/window/size/viewport_width"),
+			user_screen.size.y - 12 - wind_size.y
+		))
+		get_tree().root.move_to_center()
 
 func _draw():
 	var vp_size: = get_viewport_rect().size
